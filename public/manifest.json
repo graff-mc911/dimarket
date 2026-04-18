@@ -1,0 +1,87 @@
+{
+  "name": "DImarket - Маркетплейс для будівництва, ремонту та матеріалів",
+  "short_name": "DImarket",
+  "description": "Знайдіть перевірених фахівців з будівництва та якісні матеріали. Ваш маркетплейс для будівництва, ремонту та послуг.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#1E3A8A",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": [
+    "business",
+    "productivity",
+    "lifestyle"
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Create Ad",
+      "short_name": "Create",
+      "description": "Post a new listing",
+      "url": "/create-ad",
+      "icons": [
+        {
+          "src": "/logo-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Find Professionals",
+      "short_name": "Professionals",
+      "description": "Browse construction professionals",
+      "url": "/professionals",
+      "icons": [
+        {
+          "src": "/logo-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Browse Listings",
+      "short_name": "Listings",
+      "description": "View all listings",
+      "url": "/listings",
+      "icons": [
+        {
+          "src": "/logo-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}
