@@ -1,12 +1,20 @@
 import { Star, MapPin, MessageCircle } from 'lucide-react'
 import { Profile } from '../lib/types'
+import { navigateTo } from '../lib/navigation'
 
 interface ProfessionalCardProps {
   professional: Profile
 }
 
 export function ProfessionalCard({ professional }: ProfessionalCardProps) {
-  const avatarUrl = professional.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(professional.full_name || 'User')}&background=1e3a8a&color=fff`
+  const avatarUrl =
+    professional.avatar_url ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      professional.full_name || 'User'
+    )}&background=1e3a8a&color=fff`
+
+  const ratingLabel =
+    professional.rating > 0 ? professional.rating.toFixed(1) : 'Новий'
 
   return (
     <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all overflow-hidden border border-gray-200">
@@ -14,7 +22,7 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
         <div className="absolute -bottom-12 left-6">
           <img
             src={avatarUrl}
-            alt={professional.full_name || 'Professional'}
+            alt={professional.full_name || 'Майстер'}
             className="w-24 h-24 rounded-full border-4 border-white object-cover"
           />
         </div>
@@ -22,7 +30,7 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
 
       <div className="pt-14 px-6 pb-6">
         <h3 className="text-xl font-semibold text-gray-900 mb-1">
-          {professional.full_name || 'Professional'}
+          {professional.full_name || 'Майстер'}
         </h3>
 
         {professional.location && (
@@ -36,11 +44,12 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
           <div className="flex items-center">
             <Star className="w-5 h-5 text-yellow-400 fill-current" />
             <span className="ml-1 font-semibold text-gray-900">
-              {professional.rating > 0 ? professional.rating.toFixed(1) : 'New'}
+              {ratingLabel}
             </span>
           </div>
+
           <span className="text-gray-500 text-sm ml-2">
-            ({professional.total_reviews} reviews)
+            ({professional.total_reviews} відгуків)
           </span>
         </div>
 
@@ -50,13 +59,14 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
           </p>
         )}
 
-        <a
-          href={`/professional/${professional.id}`}
+        <button
+          onClick={() => navigateTo(`/professional/${professional.id}`)}
+          type="button"
           className="flex items-center justify-center space-x-2 w-full bg-blue-900 text-white py-2 rounded-lg hover:bg-blue-800 transition font-medium"
         >
           <MessageCircle className="w-4 h-4" />
-          <span>Contact</span>
-        </a>
+          <span>Переглянути</span>
+        </button>
       </div>
     </div>
   )
