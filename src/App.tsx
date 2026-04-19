@@ -66,15 +66,15 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Панель навігації тепер показується на ВСІХ сторінках */}
+    <div className="min-h-screen bg-gray-50 flex flex-col w-full">
+      {/* Панель навігації тепер є на всіх сторінках */}
       <Header key={`header-${currentUrl}`} />
 
-      <main className="flex-1">
+      <main className="flex-1 w-full">
         {getPage()}
       </main>
 
-      {/* Футер теж показується на всіх сторінках */}
+      {/* Футер також є на всіх сторінках */}
       <Footer />
     </div>
   )
