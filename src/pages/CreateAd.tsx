@@ -9,39 +9,70 @@ import { getCurrentLocation, searchLocations, LocationSuggestion } from '../lib/
 import { navigateTo } from '../lib/navigation'
 
 export function CreateAd() {
+  // Беремо користувача, валюту і переклади з контексту
   const { user, currency, t } = useApp()
 
+  // Категорії для select
   const [categories, setCategories] = useState<Category[]>([])
+
+  // Стани процесу створення
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
 
+  // Основні поля форми
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [categoryId, setCategoryId] = useState('')
+
+  // Тип оголошення
   const [listingType, setListingType] = useState<
     'service_request' | 'service_offer' | 'item_sale' | 'item_wanted'
   >('service_request')
+
+  // Ціна
   const [price, setPrice] = useState('')
+
+  // Локація
   const [location, setLocation] = useState('')
+
+  // Контакти
   const [contactName, setContactName] = useState('')
   const [contactPhone, setContactPhone] = useState('')
   const [contactEmail, setContactEmail] = useState('')
+
+  // Тривалість публікації оголошення
   const [duration, setDuration] = useState(30)
+
+  // Масив URL-ів зображень
   const [imageUrls, setImageUrls] = useState<string[]>([''])
+
+  // Текст помилки
   const [error, setError] = useState('')
+
+  // Підказки по локації
   const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([])
+
+  // Показати / сховати список підказок
   const [showSuggestions, setShowSuggestions] = useState(false)
+
+  // Індикатор визначення геолокації
   const [loadingLocation, setLoadingLocation] = useState(false)
+
+  // Радіус видимості оголошення
   const [visibilityRadius, setVisibilityRadius] = useState<
     'city' | 'district' | 'region' | 'country' | 'state' | 'land' | 'global'
   >('city')
+
+  // Показати / сховати dropdown видимості
   const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false)
 
   useEffect(() => {
+    // При відкритті сторінки вантажимо категорії
     loadCategories()
   }, [])
 
   useEffect(() => {
+    // Затримка для пошуку місця, щоб не дергати геокодинг на кожен символ миттєво
     const delayDebounce = setTimeout(() => {
       if (location.length >= 2) {
         handleLocationSearch(location)
@@ -54,6 +85,7 @@ export function CreateAd() {
   }, [location])
 
   const loadCategories = async () => {
+    // Завантажуємо всі категорії з БД
     const { data } = await supabase
       .from('categories')
       .select('*')
@@ -63,11 +95,14 @@ export function CreateAd() {
   }
 
   const getCategoryTranslation = (categoryName: string) => {
+    // Якщо є переклад через t(...) — беремо його,
+    // якщо нема — залишаємо оригінальну назву
     const key = `category.name.${categoryName.toLowerCase()}` as never
     return t(key) || categoryName
   }
 
   const handleGetCurrentLocation = async () => {
+    // Вмикаємо loader на кнопці визначення місця
     setLoadingLocation(true)
 
     try {
@@ -87,44 +122,58 @@ export function CreateAd() {
   }
 
   const handleLocationSearch = async (query: string) => {
+    // Отримуємо підказки геолокації
     const suggestions = await searchLocations(query)
+
     setLocationSuggestions(suggestions)
     setShowSuggestions(suggestions.length > 0)
   }
 
   const selectLocationSuggestion = (suggestion: LocationSuggestion) => {
+    // Коли користувач натискає на підказку — підставляємо її в input
     setLocation(suggestion.name)
     setShowSuggestions(false)
     setLocationSuggestions([])
   }
 
   const addImageField = () => {
+    // Додаємо ще одне поле для URL картинки
     setImageUrls([...imageUrls, ''])
   }
 
   const updateImageUrl = (index: number, value: string) => {
+    // Оновлюємо конкретне поле картинки за індексом
     const newUrls = [...imageUrls]
     newUrls[index] = value
     setImageUrls(newUrls)
   }
 
   const removeImageField = (index: number) => {
+    // Видаляємо конкретне поле картинки
     setImageUrls(imageUrls.filter((_, i) => i !== index))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
+    // Забороняємо стандартну поведінку форми
     e.preventDefault()
+
+    // Очищаємо стару помилку
     setError('')
+
+    // Вмикаємо loader
     setLoading(true)
 
     try {
+      // Перевірка: має бути або телефон, або email
       if (!contactPhone && !contactEmail) {
         throw new Error('Вкажи хоча б телефон або email')
       }
 
+      // Вираховуємо дату завершення публікації
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + duration)
 
+      // Обʼєкт для запису в таблицю listings
       const listingData = {
         title,
         description,
@@ -144,6 +193,7 @@ export function CreateAd() {
         status: 'active',
       }
 
+      // Створюємо саме оголошення
       const { data: listing, error: listingError } = await supabase
         .from('listings')
         .insert(listingData)
@@ -153,8 +203,10 @@ export function CreateAd() {
       if (listingError) throw listingError
       if (!listing) throw new Error('Не вдалося створити оголошення')
 
+      // Відбираємо тільки непорожні URL картинок
       const validImageUrls = imageUrls.filter((url) => url.trim() !== '')
 
+      // Якщо картинки є — додаємо їх у таблицю listing_images
       if (validImageUrls.length > 0) {
         const imageInserts = validImageUrls.map((url, index) => ({
           listing_id: listing.id,
@@ -171,8 +223,10 @@ export function CreateAd() {
         }
       }
 
+      // Показуємо успіх
       setSuccess(true)
 
+      // Через короткий час переходимо до списку оголошень
       setTimeout(() => {
         navigateTo('/listings')
       }, 1200)
@@ -185,9 +239,20 @@ export function CreateAd() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 w-full">
+      {/* 
+        Full-width контейнер сторінки.
+        Саме він прибирає відчуття "вузької коробки" на великому моніторі.
+      */}
       <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
-        {/* Повертаємо структуру з рекламою зліва і справа,
-            але центральну форму робимо значно ширшою */}
+        {/* 
+          Layout сторінки:
+          - ліва реклама
+          - широка центральна форма
+          - права реклама
+
+          Зовнішня логіка "як було" збережена,
+          але центр тепер набагато ширший.
+        */}
         <div className="flex gap-6 items-start">
           {/* Ліва реклама */}
           <aside className="hidden xl:block w-[220px] 2xl:w-[260px] flex-shrink-0">
@@ -197,6 +262,7 @@ export function CreateAd() {
           {/* Центральна форма */}
           <main className="flex-1 min-w-0">
             <div className="bg-white rounded-2xl shadow-lg p-5 md:p-8 xl:p-10 w-full">
+              {/* Шапка сторінки */}
               <div className="flex items-start md:items-center mb-8">
                 <div className="bg-gradient-to-br from-orange-600 to-orange-500 p-3 rounded-lg mr-4 flex-shrink-0">
                   <PlusCircle className="w-8 h-8 text-white" />
@@ -212,16 +278,19 @@ export function CreateAd() {
                 </div>
               </div>
 
+              {/* Горизонтальна мобільна реклама */}
               <div className="mb-6">
                 <MobileAdBanner variant="horizontal" />
               </div>
 
+              {/* Блок помилки */}
               {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
                   {error}
                 </div>
               )}
 
+              {/* Блок успіху */}
               {success && (
                 <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
                   {t('createAd.success')}
@@ -229,6 +298,7 @@ export function CreateAd() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Вибір типу оголошення */}
                 <section>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     {t('createAd.adType')} *
@@ -297,12 +367,21 @@ export function CreateAd() {
                   </div>
                 </section>
 
+                {/* 
+                  Основна сітка форми:
+                  - ліва частина: основний контент
+                  - права частина: додаткові параметри
+
+                  На дуже великих екранах це виглядає значно дорожче і ширше.
+                */}
                 <section className="grid grid-cols-1 2xl:grid-cols-12 gap-6">
+                  {/* Ліва велика зона */}
                   <div className="2xl:col-span-8 space-y-6">
                     <div>
                       <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
                         {t('createAd.titleLabel')} *
                       </label>
+
                       <input
                         id="title"
                         type="text"
@@ -318,6 +397,7 @@ export function CreateAd() {
                       <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
                         {t('createAd.descriptionLabel')} *
                       </label>
+
                       <textarea
                         id="description"
                         required
@@ -334,6 +414,7 @@ export function CreateAd() {
                         <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
                           {t('createAd.categoryLabel')}
                         </label>
+
                         <select
                           id="category"
                           value={categoryId}
@@ -341,6 +422,7 @@ export function CreateAd() {
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
                         >
                           <option value="">{t('createAd.selectCategory')}</option>
+
                           {categories.map((cat) => (
                             <option key={cat.id} value={cat.id}>
                               {cat.icon} {getCategoryTranslation(cat.name)}
@@ -353,6 +435,7 @@ export function CreateAd() {
                         <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
                           {t('createAd.priceLabel')} ({currency.symbol})
                         </label>
+
                         <input
                           id="price"
                           type="number"
@@ -367,6 +450,7 @@ export function CreateAd() {
                     </div>
                   </div>
 
+                  {/* Права зона з додатковими параметрами */}
                   <div className="2xl:col-span-4 space-y-6">
                     <div className="border border-gray-200 rounded-xl p-5 bg-gray-50">
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -374,6 +458,7 @@ export function CreateAd() {
                       </h3>
 
                       <div className="space-y-5">
+                        {/* Локація */}
                         <div className="relative">
                           <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
                             {t('createAd.locationLabel')} *
@@ -393,6 +478,7 @@ export function CreateAd() {
                                 placeholder={t('createAd.locationPlaceholder')}
                               />
 
+                              {/* Випадаючі підказки по місту / локації */}
                               {showSuggestions && locationSuggestions.length > 0 && (
                                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
                                   {locationSuggestions.map((suggestion, index) => (
@@ -410,6 +496,7 @@ export function CreateAd() {
                               )}
                             </div>
 
+                            {/* Кнопка автогеолокації */}
                             <button
                               type="button"
                               onClick={handleGetCurrentLocation}
@@ -430,6 +517,7 @@ export function CreateAd() {
                           </p>
                         </div>
 
+                        {/* Радіус видимості */}
                         <div className="relative">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             {t('createAd.visibilityRadius')}
@@ -450,6 +538,7 @@ export function CreateAd() {
                             </svg>
                           </div>
 
+                          {/* Випадаючий список радіуса видимості */}
                           {showVisibilityDropdown && (
                             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
                               {[
@@ -485,10 +574,12 @@ export function CreateAd() {
                           </p>
                         </div>
 
+                        {/* Тривалість оголошення */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Тривалість
                           </label>
+
                           <select
                             value={duration}
                             onChange={(e) => setDuration(Number(e.target.value))}
@@ -506,6 +597,7 @@ export function CreateAd() {
                   </div>
                 </section>
 
+                {/* Контактна інформація */}
                 <section className="border-t pt-8">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     {t('createAd.contactInfo')}
@@ -516,6 +608,7 @@ export function CreateAd() {
                       <label htmlFor="contactName" className="block text-sm font-medium text-gray-700 mb-2">
                         {t('createAd.yourName')} *
                       </label>
+
                       <input
                         id="contactName"
                         type="text"
@@ -530,6 +623,7 @@ export function CreateAd() {
                       <label htmlFor="contactPhone" className="block text-sm font-medium text-gray-700 mb-2">
                         {t('createAd.phone')}
                       </label>
+
                       <input
                         id="contactPhone"
                         type="tel"
@@ -543,6 +637,7 @@ export function CreateAd() {
                       <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700 mb-2">
                         {t('createAd.email')}
                       </label>
+
                       <input
                         id="contactEmail"
                         type="email"
@@ -558,6 +653,7 @@ export function CreateAd() {
                   </p>
                 </section>
 
+                {/* Блок зображень */}
                 <section className="border-t pt-8">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <Upload className="w-5 h-5 mr-2" />
@@ -587,15 +683,13 @@ export function CreateAd() {
                       </div>
                     ))}
 
-                    {imageUrls.length < 10 && (
-                      <button
-                        type="button"
-                        onClick={addImageField}
-                        className="text-blue-900 hover:text-blue-700 text-sm font-medium"
-                      >
-                        {t('createAd.addImage')}
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={addImageField}
+                      className="text-blue-900 hover:text-blue-700 text-sm font-medium"
+                    >
+                      {t('createAd.addImage')}
+                    </button>
                   </div>
 
                   <p className="text-xs text-gray-500 mt-2">
@@ -611,10 +705,12 @@ export function CreateAd() {
                   </p>
                 </section>
 
+                {/* Нижня мобільна реклама */}
                 <div className="pt-2">
                   <MobileAdBanner variant="inline" />
                 </div>
 
+                {/* Кнопка створення оголошення */}
                 <button
                   type="submit"
                   disabled={loading || success}
