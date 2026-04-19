@@ -21,8 +21,6 @@ export function Listings() {
   const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
-    // Читаємо search-параметр із адресного рядка,
-    // якщо користувач перейшов з головної через пошук
     const params = new URLSearchParams(window.location.search)
     const urlSearch = params.get('search') || ''
     setSearchQuery(urlSearch)
@@ -57,10 +55,7 @@ export function Listings() {
           .order('created_at', { ascending: false }),
       ])
 
-      if (categoriesResult.data) {
-        setCategories(categoriesResult.data)
-      }
-
+      if (categoriesResult.data) setCategories(categoriesResult.data)
       if (listingsResult.data) {
         setAllListings(listingsResult.data as ListingWithImages[])
       }
@@ -74,8 +69,6 @@ export function Listings() {
     return t(key) || categoryName
   }
 
-  // Фільтрацію робимо в памʼяті, без повторного запиту в Supabase
-  // при кожному кліку по фільтру — так сторінка реагує швидше
   const filteredListings = useMemo(() => {
     let result = [...allListings]
 
@@ -127,21 +120,20 @@ export function Listings() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-8 w-full">
+      <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
         <div className="flex gap-6">
-          <div className="hidden lg:block w-1/5">
+          <div className="hidden xl:block w-[260px] 2xl:w-[300px] flex-shrink-0">
             <AdBanner position="left" sticky={true} />
           </div>
 
-          <div className="flex-1 lg:w-3/5">
+          <div className="flex-1 min-w-0">
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
                 {t('listings.title')}
               </h1>
 
-              {/* Пошук і фільтри */}
-              <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="flex flex-col xl:flex-row gap-4 mb-6">
                 <div className="flex-1 relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
@@ -149,9 +141,7 @@ export function Listings() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleSearch()
-                      }
+                      if (e.key === 'Enter') handleSearch()
                     }}
                     placeholder={t('listings.searchPlaceholder')}
                     className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -161,7 +151,7 @@ export function Listings() {
                 <button
                   onClick={handleSearch}
                   type="button"
-                  className="bg-blue-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition"
+                  className="bg-blue-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition xl:min-w-[180px]"
                 >
                   {t('listings.search')}
                 </button>
@@ -169,7 +159,7 @@ export function Listings() {
                 <button
                   onClick={() => setShowFilters(!showFilters)}
                   type="button"
-                  className="flex items-center justify-center space-x-2 bg-white text-gray-700 px-6 py-3 rounded-lg border border-gray-300 hover:bg-gray-50 transition"
+                  className="flex items-center justify-center space-x-2 bg-white text-gray-700 px-6 py-3 rounded-lg border border-gray-300 hover:bg-gray-50 transition xl:min-w-[180px]"
                 >
                   <SlidersHorizontal className="w-5 h-5" />
                   <span>{t('listings.filters')}</span>
@@ -178,8 +168,7 @@ export function Listings() {
 
               {showFilters && (
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Категорія */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t('listings.category')}
@@ -200,7 +189,6 @@ export function Listings() {
                       </select>
                     </div>
 
-                    {/* Тип оголошення */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {t('listings.listingType')}
@@ -218,16 +206,16 @@ export function Listings() {
                         <option value="item_wanted">{t('listings.typeItemWanted')}</option>
                       </select>
                     </div>
-                  </div>
 
-                  <div className="mt-4 flex gap-3">
-                    <button
-                      onClick={resetFilters}
-                      type="button"
-                      className="text-gray-600 hover:text-gray-800 text-sm font-medium"
-                    >
-                      {t('listings.clearFilters')}
-                    </button>
+                    <div className="flex items-end">
+                      <button
+                        onClick={resetFilters}
+                        type="button"
+                        className="text-gray-600 hover:text-gray-800 text-sm font-medium"
+                      >
+                        {t('listings.clearFilters')}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -235,19 +223,18 @@ export function Listings() {
               <MobileAdBanner variant="horizontal" />
             </div>
 
-            {/* Список оголошень */}
             {loading ? (
               <div className="flex justify-center items-center py-20">
                 <div className="text-gray-500">{t('listings.loading')}</div>
               </div>
             ) : filteredListings.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
                 {filteredListings.map((listing, index) => (
                   <Fragment key={listing.id}>
                     <ListingCard listing={listing} />
 
-                    {(index + 1) % 4 === 0 && index < filteredListings.length - 1 && (
-                      <div className="md:col-span-2">
+                    {(index + 1) % 6 === 0 && index < filteredListings.length - 1 && (
+                      <div className="md:col-span-2 2xl:col-span-3">
                         <MobileAdBanner variant="inline" />
                       </div>
                     )}
@@ -273,7 +260,7 @@ export function Listings() {
             </div>
           </div>
 
-          <div className="hidden lg:block w-1/5">
+          <div className="hidden xl:block w-[260px] 2xl:w-[300px] flex-shrink-0">
             <AdBanner position="right" sticky={true} />
           </div>
         </div>
