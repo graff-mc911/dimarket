@@ -1,31 +1,57 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Search, Star, SlidersHorizontal } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { PlusCircle, Upload, X, MapPin, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { Profile, Category } from '../lib/types'
-import { ProfessionalCard } from '../components/ProfessionalCard'
+import { useApp } from '../contexts/AppContext'
+import { Category, Listing } from '../lib/types'
 import { MobileAdBanner } from '../components/MobileAdBanner'
 import { AdBanner } from '../components/AdBanner'
-import { useApp } from '../contexts/AppContext'
+import { getCurrentLocation, searchLocations, LocationSuggestion } from '../lib/geocoding'
 import { navigateTo } from '../lib/navigation'
 
-export function Professionals() {
-  const { t } = useApp()
+export function CreateAd() {
+  const { user, currency, t } = useApp()
 
-  const [professionals, setProfessionals] = useState<Profile[]>([])
   const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
 
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('')
-  const [sortBy, setSortBy] = useState<'rating' | 'newest' | 'views'>('rating')
-  const [showFilters, setShowFilters] = useState(false)
-  const [minRating, setMinRating] = useState(0)
-  const [locationFilter, setLocationFilter] = useState('')
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [categoryId, setCategoryId] = useState('')
+  const [listingType, setListingType] = useState<
+    'service_request' | 'service_offer' | 'item_sale' | 'item_wanted'
+  >('service_request')
+  const [price, setPrice] = useState('')
+  const [location, setLocation] = useState('')
+  const [contactName, setContactName] = useState('')
+  const [contactPhone, setContactPhone] = useState('')
+  const [contactEmail, setContactEmail] = useState('')
+  const [duration, setDuration] = useState(30)
+  const [imageUrls, setImageUrls] = useState<string[]>([''])
+  const [error, setError] = useState('')
+  const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [loadingLocation, setLoadingLocation] = useState(false)
+  const [visibilityRadius, setVisibilityRadius] = useState<
+    'city' | 'district' | 'region' | 'country' | 'state' | 'land' | 'global'
+  >('city')
+  const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false)
 
   useEffect(() => {
     loadCategories()
-    loadProfessionals()
   }, [])
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (location.length >= 2) {
+        handleLocationSearch(location)
+      } else {
+        setLocationSuggestions([])
+      }
+    }, 300)
+
+    return () => clearTimeout(delayDebounce)
+  }, [location])
 
   const loadCategories = async () => {
     const { data } = await supabase
@@ -36,242 +62,574 @@ export function Professionals() {
     if (data) setCategories(data)
   }
 
-  const loadProfessionals = async () => {
-    setLoading(true)
-
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('is_professional', true)
-      .order('rating', { ascending: false })
-      .order('total_reviews', { ascending: false })
-
-    if (data) setProfessionals(data)
-    setLoading(false)
+  const getCategoryTranslation = (categoryName: string) => {
+    const key = `category.name.${categoryName.toLowerCase()}` as never
+    return t(key) || categoryName
   }
 
-  const filteredProfessionals = useMemo(() => {
-    return professionals
-      .filter((prof) => {
-        const matchesSearch =
-          searchQuery === '' ||
-          prof.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          prof.bio?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          prof.location?.toLowerCase().includes(searchQuery.toLowerCase())
+  const handleGetCurrentLocation = async () => {
+    setLoadingLocation(true)
 
-        const matchesRating = minRating === 0 || (prof.rating || 0) >= minRating
+    try {
+      const result = await getCurrentLocation()
 
-        const matchesLocation =
-          locationFilter === '' ||
-          prof.location?.toLowerCase().includes(locationFilter.toLowerCase())
+      if (result) {
+        setLocation(result.city)
+        setShowSuggestions(false)
+      } else {
+        setError('Не вдалося визначити місцезнаходження')
+      }
+    } catch {
+      setError('Помилка отримання геолокації')
+    } finally {
+      setLoadingLocation(false)
+    }
+  }
 
-        const matchesCategory = selectedCategory === '' || true
+  const handleLocationSearch = async (query: string) => {
+    const suggestions = await searchLocations(query)
+    setLocationSuggestions(suggestions)
+    setShowSuggestions(suggestions.length > 0)
+  }
 
-        return matchesSearch && matchesRating && matchesLocation && matchesCategory
-      })
-      .sort((a, b) => {
-        switch (sortBy) {
-          case 'rating':
-            return (b.rating || 0) - (a.rating || 0)
-          case 'views':
-            return (b.profile_views || 0) - (a.profile_views || 0)
-          case 'newest':
-            return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-          default:
-            return 0
+  const selectLocationSuggestion = (suggestion: LocationSuggestion) => {
+    setLocation(suggestion.name)
+    setShowSuggestions(false)
+    setLocationSuggestions([])
+  }
+
+  const addImageField = () => {
+    setImageUrls([...imageUrls, ''])
+  }
+
+  const updateImageUrl = (index: number, value: string) => {
+    const newUrls = [...imageUrls]
+    newUrls[index] = value
+    setImageUrls(newUrls)
+  }
+
+  const removeImageField = (index: number) => {
+    setImageUrls(imageUrls.filter((_, i) => i !== index))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      if (!contactPhone && !contactEmail) {
+        throw new Error('Вкажи хоча б телефон або email')
+      }
+
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + duration)
+
+      const listingData = {
+        title,
+        description,
+        category_id: categoryId || null,
+        listing_type: listingType,
+        price: price ? parseFloat(price) : null,
+        currency: currency.code,
+        location,
+        visibility_radius: visibilityRadius,
+        contact_name: contactName,
+        contact_phone: contactPhone || null,
+        contact_email: contactEmail || null,
+        author_id: user?.id || null,
+        duration_days: duration,
+        expires_at: expiresAt.toISOString(),
+        is_premium: duration >= 365,
+        status: 'active',
+      }
+
+      const { data: listing, error: listingError } = await supabase
+        .from('listings')
+        .insert(listingData)
+        .select()
+        .maybeSingle<Listing>()
+
+      if (listingError) throw listingError
+      if (!listing) throw new Error('Не вдалося створити оголошення')
+
+      const validImageUrls = imageUrls.filter((url) => url.trim() !== '')
+
+      if (validImageUrls.length > 0) {
+        const imageInserts = validImageUrls.map((url, index) => ({
+          listing_id: listing.id,
+          image_url: url,
+          display_order: index,
+        }))
+
+        const { error: imagesError } = await supabase
+          .from('listing_images')
+          .insert(imageInserts)
+
+        if (imagesError) {
+          console.error('Помилка додавання зображень:', imagesError)
         }
-      })
-  }, [professionals, searchQuery, minRating, locationFilter, selectedCategory, sortBy])
+      }
+
+      setSuccess(true)
+
+      setTimeout(() => {
+        navigateTo('/listings')
+      }, 1200)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Не вдалося створити оголошення')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 w-full">
+    <div className="min-h-screen bg-gray-50 py-10 w-full">
       <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
-        {/* Повертаємо 3-колонковий layout, але робимо його реально широким */}
+        {/* Повертаємо структуру з рекламою зліва і справа,
+            але центральну форму робимо значно ширшою */}
         <div className="flex gap-6 items-start">
           {/* Ліва реклама */}
-          <aside className="hidden xl:block w-[240px] 2xl:w-[280px] flex-shrink-0">
+          <aside className="hidden xl:block w-[220px] 2xl:w-[260px] flex-shrink-0">
             <AdBanner position="left" sticky={true} />
           </aside>
 
-          {/* Центральна частина тепер займає максимум доступного місця */}
+          {/* Центральна форма */}
           <main className="flex-1 min-w-0">
-            <div className="mb-8">
-              <div className="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between gap-4 mb-6">
+            <div className="bg-white rounded-2xl shadow-lg p-5 md:p-8 xl:p-10 w-full">
+              <div className="flex items-start md:items-center mb-8">
+                <div className="bg-gradient-to-br from-orange-600 to-orange-500 p-3 rounded-lg mr-4 flex-shrink-0">
+                  <PlusCircle className="w-8 h-8 text-white" />
+                </div>
+
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    {t('professionals.title')}
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    {t('createAd.title')}
                   </h1>
-                  <p className="text-gray-600">
-                    {t('professionals.subtitle')}
+                  <p className="text-gray-600 mt-1">
+                    {t('createAd.noRegistration')}
                   </p>
                 </div>
-
-                <div className="flex items-center space-x-2 text-yellow-500">
-                  <Star className="w-5 h-5 fill-current" />
-                  <span className="text-gray-700 font-medium">
-                    {t('professionals.topRated')}
-                  </span>
-                </div>
               </div>
 
-              {/* Пошук і фільтри */}
-              <div className="flex flex-col 2xl:flex-row gap-4 mb-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={t('professionals.searchPlaceholder')}
-                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  />
-                </div>
-
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full 2xl:w-[280px] px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                >
-                  <option value="">{t('listings.allCategories')}</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.icon} {cat.name}
-                    </option>
-                  ))}
-                </select>
-
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  type="button"
-                  className="w-full 2xl:w-[200px] px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 bg-white"
-                >
-                  <SlidersHorizontal className="w-5 h-5" />
-                  {t('listings.filters')}
-                </button>
+              <div className="mb-6">
+                <MobileAdBanner variant="horizontal" />
               </div>
 
-              {showFilters && (
-                <div className="mt-4 p-5 bg-white rounded-xl border border-gray-200 space-y-4 shadow-sm">
-                  <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('professionals.sortBy')}
-                      </label>
-                      <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as 'rating' | 'newest' | 'views')}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-                      >
-                        <option value="rating">{t('professionals.topRated')}</option>
-                        <option value="views">{t('professionals.mostViewed')}</option>
-                        <option value="newest">{t('professionals.newest')}</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('professionals.minRating')}
-                      </label>
-                      <select
-                        value={minRating}
-                        onChange={(e) => setMinRating(Number(e.target.value))}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-                      >
-                        <option value="0">{t('professionals.anyRating')}</option>
-                        <option value="3">3+ Stars</option>
-                        <option value="4">4+ Stars</option>
-                        <option value="4.5">4.5+ Stars</option>
-                      </select>
-                    </div>
-
-                    <div className="md:col-span-2 2xl:col-span-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('professionals.location')}
-                      </label>
-                      <input
-                        type="text"
-                        value={locationFilter}
-                        onChange={(e) => setLocationFilter(e.target.value)}
-                        placeholder={t('professionals.locationPlaceholder')}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-                      />
-                    </div>
-
-                    <div className="flex items-end">
-                      <button
-                        onClick={() => {
-                          setMinRating(0)
-                          setLocationFilter('')
-                          setSortBy('rating')
-                          setSelectedCategory('')
-                          setSearchQuery('')
-                        }}
-                        type="button"
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-medium transition"
-                      >
-                        {t('listings.clearFilters')}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t">
-                    <span className="text-sm text-gray-600">
-                      {filteredProfessionals.length} {t('professionals.found')}
-                    </span>
-                  </div>
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+                  {error}
                 </div>
               )}
 
-              <div className="mt-4">
-                <MobileAdBanner variant="horizontal" />
-              </div>
-            </div>
+              {success && (
+                <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
+                  {t('createAd.success')}
+                </div>
+              )}
 
-            {loading ? (
-              <div className="flex justify-center items-center py-20">
-                <div className="text-gray-500">{t('professionals.loading')}</div>
-              </div>
-            ) : filteredProfessionals.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
-                {filteredProfessionals.map((professional, index) => (
-                  <div key={professional.id}>
-                    <ProfessionalCard professional={professional} />
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <section>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    {t('createAd.adType')} *
+                  </label>
 
-                    {(index + 1) % 6 === 0 && index < filteredProfessionals.length - 1 && (
-                      <div className="mt-6">
-                        <MobileAdBanner variant="inline" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setListingType('service_request')}
+                      className={`p-4 rounded-xl border-2 transition text-left ${
+                        listingType === 'service_request'
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="font-semibold">{t('createAd.needService')}</div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {t('createAd.needServiceDesc')}
                       </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setListingType('service_offer')}
+                      className={`p-4 rounded-xl border-2 transition text-left ${
+                        listingType === 'service_offer'
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="font-semibold">{t('createAd.offerService')}</div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {t('createAd.offerServiceDesc')}
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setListingType('item_sale')}
+                      className={`p-4 rounded-xl border-2 transition text-left ${
+                        listingType === 'item_sale'
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="font-semibold">{t('createAd.sellItem')}</div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {t('createAd.sellItemDesc')}
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setListingType('item_wanted')}
+                      className={`p-4 rounded-xl border-2 transition text-left ${
+                        listingType === 'item_wanted'
+                          ? 'border-blue-600 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="font-semibold">{t('createAd.wantItem')}</div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {t('createAd.wantItemDesc')}
+                      </div>
+                    </button>
+                  </div>
+                </section>
+
+                <section className="grid grid-cols-1 2xl:grid-cols-12 gap-6">
+                  <div className="2xl:col-span-8 space-y-6">
+                    <div>
+                      <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('createAd.titleLabel')} *
+                      </label>
+                      <input
+                        id="title"
+                        type="text"
+                        required
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder={t('createAd.titlePlaceholder')}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('createAd.descriptionLabel')} *
+                      </label>
+                      <textarea
+                        id="description"
+                        required
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        rows={8}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder={t('createAd.descriptionPlaceholder')}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('createAd.categoryLabel')}
+                        </label>
+                        <select
+                          id="category"
+                          value={categoryId}
+                          onChange={(e) => setCategoryId(e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                        >
+                          <option value="">{t('createAd.selectCategory')}</option>
+                          {categories.map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.icon} {getCategoryTranslation(cat.name)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('createAd.priceLabel')} ({currency.symbol})
+                        </label>
+                        <input
+                          id="price"
+                          type="number"
+                          value={price}
+                          onChange={(e) => setPrice(e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          placeholder={t('createAd.pricePlaceholder')}
+                          min="0"
+                          step="0.01"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="2xl:col-span-4 space-y-6">
+                    <div className="border border-gray-200 rounded-xl p-5 bg-gray-50">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        Додаткові параметри
+                      </h3>
+
+                      <div className="space-y-5">
+                        <div className="relative">
+                          <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+                            {t('createAd.locationLabel')} *
+                          </label>
+
+                          <div className="flex gap-2">
+                            <div className="relative flex-1">
+                              <input
+                                id="location"
+                                type="text"
+                                required
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                onFocus={() => setShowSuggestions(locationSuggestions.length > 0)}
+                                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                                placeholder={t('createAd.locationPlaceholder')}
+                              />
+
+                              {showSuggestions && locationSuggestions.length > 0 && (
+                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+                                  {locationSuggestions.map((suggestion, index) => (
+                                    <button
+                                      key={index}
+                                      type="button"
+                                      onClick={() => selectLocationSuggestion(suggestion)}
+                                      className="w-full text-left px-4 py-2.5 hover:bg-gray-50 transition border-b border-gray-100 last:border-0"
+                                    >
+                                      <div className="font-medium text-gray-900">{suggestion.name}</div>
+                                      <div className="text-xs text-gray-500">{suggestion.displayName}</div>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={handleGetCurrentLocation}
+                              disabled={loadingLocation}
+                              className="px-4 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition flex items-center justify-center"
+                              title="Визначити автоматично"
+                            >
+                              {loadingLocation ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <MapPin className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+
+                          <p className="text-xs text-gray-500 mt-2">
+                            Почни вводити назву міста або індекс
+                          </p>
+                        </div>
+
+                        <div className="relative">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {t('createAd.visibilityRadius')}
+                          </label>
+
+                          <div
+                            onClick={() => setShowVisibilityDropdown(!showVisibilityDropdown)}
+                            onBlur={() => setTimeout(() => setShowVisibilityDropdown(false), 200)}
+                            tabIndex={0}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white hover:border-gray-400 transition flex items-center justify-between"
+                          >
+                            <span className="text-gray-900">
+                              {t(`createAd.radius.${visibilityRadius}` as never)}
+                            </span>
+
+                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
+
+                          {showVisibilityDropdown && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                              {[
+                                { value: 'city' as const },
+                                { value: 'district' as const },
+                                { value: 'region' as const },
+                                { value: 'country' as const },
+                                { value: 'state' as const },
+                                { value: 'land' as const },
+                                { value: 'global' as const },
+                              ].map((option) => (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => {
+                                    setVisibilityRadius(option.value)
+                                    setShowVisibilityDropdown(false)
+                                  }}
+                                  className={`w-full text-left px-4 py-2.5 hover:bg-orange-50 transition border-b border-gray-100 last:border-0 ${
+                                    visibilityRadius === option.value
+                                      ? 'bg-orange-50 text-orange-900 font-medium'
+                                      : 'text-gray-900'
+                                  }`}
+                                >
+                                  {t(`createAd.radius.${option.value}` as never)}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          <p className="text-xs text-gray-500 mt-2">
+                            {t('createAd.visibilityRadiusDesc')}
+                          </p>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Тривалість
+                          </label>
+                          <select
+                            value={duration}
+                            onChange={(e) => setDuration(Number(e.target.value))}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
+                          >
+                            <option value={7}>7 днів</option>
+                            <option value={14}>14 днів</option>
+                            <option value={30}>30 днів</option>
+                            <option value={90}>90 днів</option>
+                            <option value={365}>365 днів</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="border-t pt-8">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    {t('createAd.contactInfo')}
+                  </h3>
+
+                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <div>
+                      <label htmlFor="contactName" className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('createAd.yourName')} *
+                      </label>
+                      <input
+                        id="contactName"
+                        type="text"
+                        required
+                        value={contactName}
+                        onChange={(e) => setContactName(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="contactPhone" className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('createAd.phone')}
+                      </label>
+                      <input
+                        id="contactPhone"
+                        type="tel"
+                        value={contactPhone}
+                        onChange={(e) => setContactPhone(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('createAd.email')}
+                      </label>
+                      <input
+                        id="contactEmail"
+                        type="email"
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-gray-500 mt-3">
+                    * {t('createAd.contactNote')}
+                  </p>
+                </section>
+
+                <section className="border-t pt-8">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Upload className="w-5 h-5 mr-2" />
+                    {t('createAd.images')}
+                  </h3>
+
+                  <div className="space-y-3">
+                    {imageUrls.map((url, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="url"
+                          value={url}
+                          onChange={(e) => updateImageUrl(index, e.target.value)}
+                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          placeholder={t('createAd.imagePlaceholder')}
+                        />
+
+                        {imageUrls.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeImageField(index)}
+                            className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+
+                    {imageUrls.length < 10 && (
+                      <button
+                        type="button"
+                        onClick={addImageField}
+                        className="text-blue-900 hover:text-blue-700 text-sm font-medium"
+                      >
+                        {t('createAd.addImage')}
+                      </button>
                     )}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20">
-                <div className="text-gray-500 mb-4">
-                  {t('professionals.noFound')}
+
+                  <p className="text-xs text-gray-500 mt-2">
+                    {t('createAd.imageTip')}{' '}
+                    <a
+                      href="https://www.pexels.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      Pexels.com
+                    </a>
+                  </p>
+                </section>
+
+                <div className="pt-2">
+                  <MobileAdBanner variant="inline" />
                 </div>
 
-                <p className="text-gray-600 mb-6">
-                  {t('professionals.beFirst')}
-                </p>
-
                 <button
-                  onClick={() => navigateTo('/register')}
-                  type="button"
-                  className="inline-block bg-blue-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition"
+                  type="submit"
+                  disabled={loading || success}
+                  className="w-full btn-primary text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {t('professionals.registerAsProfessional')}
+                  {loading
+                    ? t('createAd.creating')
+                    : `${t('createAd.createButton')} - ${t('createAd.free')}`}
                 </button>
-              </div>
-            )}
-
-            <div className="mt-8">
-              <MobileAdBanner variant="inline" />
+              </form>
             </div>
           </main>
 
           {/* Права реклама */}
-          <aside className="hidden xl:block w-[240px] 2xl:w-[280px] flex-shrink-0">
+          <aside className="hidden xl:block w-[220px] 2xl:w-[260px] flex-shrink-0">
             <AdBanner position="right" sticky={true} />
           </aside>
         </div>
