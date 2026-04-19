@@ -24,30 +24,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<typeof LANGUAGES[number]>(LANGUAGES[0])
 
   useEffect(() => {
+    // Завантаження збереженої валюти з localStorage
     const savedCurrency = localStorage.getItem('buildster_currency')
+
+    // Завантаження збереженої мови з localStorage
     const savedLanguage = localStorage.getItem('buildster_language')
 
     if (savedCurrency) {
-      const found = CURRENCIES.find(c => c.code === savedCurrency)
+      const found = CURRENCIES.find((c) => c.code === savedCurrency)
       if (found) setCurrency(found)
     }
 
     if (savedLanguage) {
-      const found = LANGUAGES.find(l => l.code === savedLanguage)
+      const found = LANGUAGES.find((l) => l.code === savedLanguage)
       if (found) setLanguage(found)
     }
 
+    // Реєструємо відвідування лише 1 раз за поточну сесію вкладки.
+    // Це важливо, щоб один і той самий користувач не накручував
+    // total_visits на кожен дрібний ререндер сторінки.
+    registerVisitOncePerSession()
+
+    // Отримуємо активну сесію Supabase
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
+
       if (session?.user) {
         loadProfile(session.user.id)
       }
     })
 
+    // Слухаємо зміни авторизації
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
+
       if (session?.user) {
         loadProfile(session.user.id)
       } else {
@@ -58,7 +70,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  const registerVisitOncePerSession = async () => {
+    try {
+      // Якщо візит уже був зареєстрований у поточній сесії — не дублюємо
+      const alreadyTracked = sessionStorage.getItem('dimarket_visit_tracked')
+
+      if (alreadyTracked === '1') {
+        return
+      }
+
+      // Викликаємо SQL-функцію, яка збільшує total_visits
+      const { error } = await supabase.rpc('register_app_visit')
+
+      if (!error) {
+        sessionStorage.setItem('dimarket_visit_tracked', '1')
+      } else {
+        console.error('Помилка реєстрації візиту:', error)
+      }
+    } catch (err) {
+      console.error('Непередбачена помилка реєстрації візиту:', err)
+    }
+  }
+
   const loadProfile = async (userId: string) => {
+    // Завантажуємо профіль поточного користувача
     const { data } = await supabase
       .from('profiles')
       .select('*')
@@ -108,8 +143,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 export function useApp() {
   const context = useContext(AppContext)
+
   if (context === undefined) {
     throw new Error('useApp must be used within an AppProvider')
   }
+
   return context
 }
