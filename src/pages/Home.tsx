@@ -18,7 +18,6 @@ export function Home() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Вантажимо блоки паралельно, щоб головна сторінка відкривалась швидше
     const loadHomeData = async () => {
       setLoading(true)
 
@@ -53,14 +52,8 @@ export function Home() {
             .limit(8),
         ])
 
-        if (categoriesResult.data) {
-          setCategories(categoriesResult.data)
-        }
-
-        if (professionalsResult.data) {
-          setProfessionals(professionalsResult.data)
-        }
-
+        if (categoriesResult.data) setCategories(categoriesResult.data)
+        if (professionalsResult.data) setProfessionals(professionalsResult.data)
         if (listingsResult.data) {
           setFeaturedListings(listingsResult.data as ListingWithImages[])
         }
@@ -82,14 +75,13 @@ export function Home() {
       return
     }
 
-    // Передаємо пошуковий запит у query string
     navigateTo(`/listings?search=${encodeURIComponent(query)}`)
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Hero-блок */}
-      <section className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white py-20 overflow-hidden">
+    <div className="min-h-screen w-full">
+      {/* Hero */}
+      <section className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white py-20 overflow-hidden w-full">
         <div className="absolute inset-0 opacity-10">
           <div
             className="absolute inset-0"
@@ -102,7 +94,7 @@ export function Home() {
           />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative w-full px-4 md:px-6 xl:px-8 2xl:px-10">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
               {t('home.heroTitle')}
@@ -110,12 +102,12 @@ export function Home() {
               <span className="text-orange-400">{t('home.heroSubtitle')}</span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-5xl mx-auto">
               {t('home.heroDescription')}
             </p>
 
-            <form onSubmit={handleSearch} className="max-w-3xl mx-auto mb-8">
-              <div className="flex flex-col md:flex-row gap-3">
+            <form onSubmit={handleSearch} className="w-full max-w-none mb-8">
+              <div className="flex flex-col xl:flex-row gap-3">
                 <div className="flex-1 relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
@@ -127,7 +119,7 @@ export function Home() {
                   />
                 </div>
 
-                <button type="submit" className="btn-primary text-lg">
+                <button type="submit" className="btn-primary text-lg xl:min-w-[220px]">
                   {t('home.search')}
                 </button>
               </div>
@@ -155,8 +147,8 @@ export function Home() {
       </section>
 
       {/* Категорії */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 bg-gray-50 w-full">
+        <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
           <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">
             {t('home.browseByCategory')}
           </h2>
@@ -166,7 +158,7 @@ export function Home() {
               {t('listings.loading')}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-7 gap-6">
               {categories.map((category) => (
                 <CategoryCard key={category.id} category={category} />
               ))}
@@ -176,8 +168,8 @@ export function Home() {
       </section>
 
       {/* Майстри */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 bg-white w-full">
+        <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               {t('home.topRatedProfessionals')}
@@ -192,7 +184,7 @@ export function Home() {
               {t('listings.loading')}
             </div>
           ) : professionals.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
               {professionals.map((professional) => (
                 <ProfessionalCard key={professional.id} professional={professional} />
               ))}
@@ -218,8 +210,8 @@ export function Home() {
       </section>
 
       {/* Оголошення */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 bg-gray-50 w-full">
+        <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               {t('home.recentListings')}
@@ -234,7 +226,7 @@ export function Home() {
               {t('listings.loading')}
             </div>
           ) : featuredListings.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
               {featuredListings.map((listing) => (
                 <ListingCard key={listing.id} listing={listing} />
               ))}
@@ -259,8 +251,8 @@ export function Home() {
       </section>
 
       {/* Переваги */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 bg-white w-full">
+        <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
           <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">
             {t('home.whyChoose')}
           </h2>
@@ -312,8 +304,8 @@ export function Home() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="py-16 bg-gradient-to-br from-orange-500 to-orange-600 text-white w-full">
+        <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             {t('home.areYouProfessional')}
           </h2>
