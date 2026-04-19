@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useApp } from '../contexts/AppContext'
 import { Category, Listing } from '../lib/types'
 import { MobileAdBanner } from '../components/MobileAdBanner'
+import { AdBanner } from '../components/AdBanner'
 import { getCurrentLocation, searchLocations, LocationSuggestion } from '../lib/geocoding'
 import { navigateTo } from '../lib/navigation'
 
@@ -185,8 +186,11 @@ export function CreateAd() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 w-full">
       <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
-        {/* На цій сторінці прибираємо бокові колонки,
-            щоб форма займала всю ширину */}
+        {/* Верхній рекламний блок */}
+        <div className="mb-6">
+          <AdBanner position="top" />
+        </div>
+
         <div className="w-full">
           <div className="bg-white rounded-2xl shadow-lg p-5 md:p-8 xl:p-10 w-full">
             <div className="flex items-start md:items-center mb-8">
@@ -221,7 +225,6 @@ export function CreateAd() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Тип оголошення */}
               <section>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   {t('createAd.adType')} *
@@ -290,7 +293,6 @@ export function CreateAd() {
                 </div>
               </section>
 
-              {/* Основні дані */}
               <section className="grid grid-cols-1 xl:grid-cols-12 gap-6">
                 <div className="xl:col-span-8 space-y-6">
                   <div>
@@ -361,7 +363,6 @@ export function CreateAd() {
                   </div>
                 </div>
 
-                {/* Права колонка з параметрами */}
                 <div className="xl:col-span-4 space-y-6">
                   <div className="border border-gray-200 rounded-xl p-5 bg-gray-50">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -498,10 +499,13 @@ export function CreateAd() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Боковий рекламний блок ТІЛЬКИ всередині правої колонки форми,
+                      не окремою зовнішньою колоною */}
+                  <AdBanner position="right" />
                 </div>
               </section>
 
-              {/* Контакти */}
               <section className="border-t pt-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   {t('createAd.contactInfo')}
@@ -554,7 +558,6 @@ export function CreateAd() {
                 </p>
               </section>
 
-              {/* Зображення */}
               <section className="border-t pt-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <Upload className="w-5 h-5 mr-2" />
@@ -623,6 +626,11 @@ export function CreateAd() {
               </button>
             </form>
           </div>
+        </div>
+
+        {/* Нижній рекламний блок */}
+        <div className="mt-6">
+          <AdBanner position="bottom" />
         </div>
       </div>
     </div>
