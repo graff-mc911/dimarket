@@ -53,6 +53,7 @@ export interface Database {
           total_reviews: number
           created_at: string
           updated_at: string
+          profile_views?: number | null
         }
         Insert: {
           id: string
@@ -68,6 +69,7 @@ export interface Database {
           total_reviews?: number
           created_at?: string
           updated_at?: string
+          profile_views?: number | null
         }
         Update: {
           id?: string
@@ -83,6 +85,7 @@ export interface Database {
           total_reviews?: number
           created_at?: string
           updated_at?: string
+          profile_views?: number | null
         }
       }
       listings: {
@@ -106,6 +109,7 @@ export interface Database {
           status: 'active' | 'expired' | 'sold' | 'deleted'
           created_at: string
           updated_at: string
+          visibility_radius?: 'city' | 'district' | 'region' | 'country' | 'state' | 'land' | 'global' | null
         }
         Insert: {
           id?: string
@@ -127,6 +131,7 @@ export interface Database {
           status?: 'active' | 'expired' | 'sold' | 'deleted'
           created_at?: string
           updated_at?: string
+          visibility_radius?: 'city' | 'district' | 'region' | 'country' | 'state' | 'land' | 'global' | null
         }
         Update: {
           id?: string
@@ -148,6 +153,7 @@ export interface Database {
           status?: 'active' | 'expired' | 'sold' | 'deleted'
           created_at?: string
           updated_at?: string
+          visibility_radius?: 'city' | 'district' | 'region' | 'country' | 'state' | 'land' | 'global' | null
         }
       }
       listing_images: {
@@ -289,6 +295,35 @@ export interface Database {
           created_at?: string
         }
       }
+      app_site_stats: {
+        Row: {
+          id: number
+          total_visits: number
+          total_listings_created: number
+          total_successful_listings: number
+          total_professionals: number
+          country_ranking: Json
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          total_visits?: number
+          total_listings_created?: number
+          total_successful_listings?: number
+          total_professionals?: number
+          country_ranking?: Json
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          total_visits?: number
+          total_listings_created?: number
+          total_successful_listings?: number
+          total_professionals?: number
+          country_ranking?: Json
+          updated_at?: string
+        }
+      }
     }
   }
 }
@@ -300,6 +335,7 @@ export type ListingImage = Database['public']['Tables']['listing_images']['Row']
 export type PortfolioItem = Database['public']['Tables']['portfolio_items']['Row']
 export type Review = Database['public']['Tables']['reviews']['Row']
 export type Message = Database['public']['Tables']['messages']['Row']
+export type AppSiteStats = Database['public']['Tables']['app_site_stats']['Row']
 
 export interface ListingWithImages extends Listing {
   images: ListingImage[]
@@ -308,6 +344,14 @@ export interface ListingWithImages extends Listing {
 
 export interface ProfileWithPortfolio extends Profile {
   portfolio_items: PortfolioItem[]
+}
+
+export interface CountryRankingItem {
+  country: string
+  score: number
+  professionals: number
+  listings: number
+  responses: number
 }
 
 export const CURRENCIES = [
