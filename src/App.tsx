@@ -12,19 +12,18 @@ import { Dashboard } from './pages/Dashboard'
 import { Settings } from './pages/Settings'
 
 function AppContent() {
-  // Зберігаємо поточний шлях разом із query-параметрами,
-  // щоб React перемальовував сторінку без повного reload
+  // Зберігаємо поточний URL, щоб сторінка оновлювалась
+  // без повного перезавантаження браузера
   const [currentUrl, setCurrentUrl] = useState(
     `${window.location.pathname}${window.location.search}`
   )
 
   useEffect(() => {
-    // Оновлюємо адресу при внутрішній навігації
+    // Відстежуємо зміну маршруту
     const handleRouteChange = () => {
       setCurrentUrl(`${window.location.pathname}${window.location.search}`)
     }
 
-    // Підтримка кнопок "назад" / "вперед"
     window.addEventListener('popstate', handleRouteChange)
 
     return () => {
@@ -32,7 +31,7 @@ function AppContent() {
     }
   }, [])
 
-  // Для вибору сторінки нам потрібен тільки pathname без query
+  // Беремо тільки шлях без query-параметрів
   const path = window.location.pathname
 
   const getPage = () => {
@@ -62,24 +61,21 @@ function AppContent() {
         return <Settings />
 
       default:
-        // Якщо шлях невідомий — повертаємо на головну
         return <Home />
     }
   }
 
-  // На сторінках входу і реєстрації прибираємо шапку та футер,
-  // щоб форма виглядала чисто і без зайвих блоків
-  const hideHeaderFooter = path === '/login' || path === '/register'
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {!hideHeaderFooter && <Header key={`header-${currentUrl}`} />}
+      {/* Панель навігації тепер показується на ВСІХ сторінках */}
+      <Header key={`header-${currentUrl}`} />
 
       <main className="flex-1">
         {getPage()}
       </main>
 
-      {!hideHeaderFooter && <Footer />}
+      {/* Футер теж показується на всіх сторінках */}
+      <Footer />
     </div>
   )
 }
