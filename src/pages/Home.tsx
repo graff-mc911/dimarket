@@ -1,22 +1,23 @@
 import { useEffect, useState } from 'react'
 import {
-  Search,
-  MapPin,
-  PlusCircle,
-  Hammer,
-  Star,
-  Megaphone,
   ArrowRight,
+  Clock3,
+  Hammer,
+  MapPin,
+  Megaphone,
+  PlusCircle,
+  Search,
+  ShieldCheck,
+  Star,
+  UserRound,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { Category, ListingWithImages, Profile } from '../lib/types'
-import { CategoryCard } from '../components/CategoryCard'
-import { ProfessionalCard } from '../components/ProfessionalCard'
 import { useApp } from '../contexts/AppContext'
 import { navigateTo } from '../lib/navigation'
 
 export function Home() {
-  const { currency } = useApp()
+  const { currency, language, t } = useApp()
 
   const [categories, setCategories] = useState<Category[]>([])
   const [professionals, setProfessionals] = useState<Profile[]>([])
@@ -25,8 +26,48 @@ export function Home() {
   const [locationQuery, setLocationQuery] = useState('')
   const [loading, setLoading] = useState(true)
 
+  // Тимчасово тримаємо нові тексти home-сторінки inline,
+  // а на етапі clean translations винесемо їх у наявну i18n-систему для всіх 24 мов.
+  const copy = {
+    eyebrow: 'Global construction services',
+    title: 'Find a master for repair, installation, or building work.',
+    description:
+      'Clients post job requests, professionals respond directly, and Dimarket stays free for users.',
+    taskPlaceholder: 'What needs to be done?',
+    locationPlaceholder: 'City or country',
+    postJob: 'Post job',
+    popularCategoriesTitle: 'Popular categories',
+    popularCategoriesText:
+      'The most requested construction and renovation directions on Dimarket.',
+    browseRequests: 'Browse job requests',
+    freshRequestsTitle: 'Fresh job requests',
+    freshRequestsText:
+      'New client requests that professionals can review and answer right away.',
+    allRequests: 'All job requests',
+    popularProsTitle: 'Popular professionals',
+    popularProsText:
+      'Profiles with visible experience, steady ratings, and direct contact flow.',
+    allPros: 'All professionals',
+    adTitle: 'Advertising',
+    adText:
+      'Promote tools, materials, local services, or construction showrooms inside a focused demand audience.',
+    adButton: 'Advertise on Dimarket',
+    adCardOne: 'Materials partners',
+    adCardTwo: 'Tool brands',
+    adCardThree: 'Local showrooms',
+    noJobs: 'No active job requests yet.',
+    noProfessionals: 'No professionals available yet.',
+    noCategories: 'Categories will appear here soon.',
+    noLocation: 'Location not specified',
+    budgetLabel: 'Budget',
+    activeLabel: 'Active',
+    unknownCategory: 'Construction service',
+    noBudget: t('listing.contactForPrice'),
+    noBio: 'Construction professional profile is being completed.',
+  }
+
   useEffect(() => {
-    loadHomeData()
+    void loadHomeData()
   }, [])
 
   const loadHomeData = async () => {
@@ -35,19 +76,22 @@ export function Home() {
     try {
       const now = new Date().toISOString()
 
-      // Завантажуємо категорії, майстрів і свіжі заявки для головної сторінки.
+      // Для home беремо тільки job requests,
+      // щоб головна не виглядала як товарний маркетплейс.
       const [categoriesResult, professionalsResult, jobsResult] = await Promise.all([
         supabase
           .from('categories')
           .select('*')
           .is('parent_id', null)
-          .order('name'),
+          .order('name')
+          .limit(8),
 
         supabase
           .from('profiles')
           .select('*')
           .eq('is_professional', true)
           .order('rating', { ascending: false })
+          .order('total_reviews', { ascending: false })
           .limit(4),
 
         supabase
@@ -57,212 +101,312 @@ export function Home() {
             images:listing_images(*),
             category:categories(*)
           `)
+          .eq('listing_type', 'service_request')
           .eq('status', 'active')
           .gte('expires_at', now)
           .order('created_at', { ascending: false })
           .limit(6),
       ])
 
-      if (categoriesResult.data) setCategories(categoriesResult.data)
-      if (professionalsResult.data) setProfessionals(professionalsResult.data)
-      if (jobsResult.data) setJobs(jobsResult.data as ListingWithImages[])
+      setCategories(categoriesResult.data ?? [])
+      setProfessionals(professionalsResult.data ?? [])
+      setJobs((jobsResult.data as ListingWithImages[] | null) ?? [])
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSearch = (event: React.FormEvent) => {
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const params = new URLSearchParams()
 
-    if (searchQuery.trim()) params.set('search', searchQuery.trim())
-    if (locationQuery.trim()) params.set('location', locationQuery.trim())
+    if (searchQuery.trim()) {
+      params.set('search', searchQuery.trim())
+    }
 
+    if (locationQuery.trim()) {
+      params.set('location', locationQuery.trim())
+    }
+
+    // Формуємо URL через query params,
+    // щоб existing Listings page підхопив фільтри без зміни роутера.
     const query = params.toString()
     navigateTo(query ? `/listings?${query}` : '/listings')
   }
 
+  const translateUnsafe = (key: string) => {
+    return t(key as never)
+  }
+
+  const getCategoryName = (category: Category) => {
+    const newKey = `category.name.${category.slug}`
+    const newValue = translateUnsafe(newKey)
+
+    if (newValue !== newKey) {
+      return newValue
+    }
+
+    const legacyKey = `category.${category.slug}`
+    const legacyValue = translateUnsafe(legacyKey)
+
+    if (legacyValue !== legacyKey) {
+      return legacyValue
+    }
+
+    return category.name
+  }
+
+  const getCategoryDescription = (category: Category) => {
+    const legacyKey = `category.${category.slug}Desc`
+    const legacyValue = translateUnsafe(legacyKey)
+
+    if (legacyValue !== legacyKey) {
+      return legacyValue
+    }
+
+    return category.description || copy.unknownCategory
+  }
+
   return (
-    <div className="min-h-screen page-bg">
-      {/* Головний блок */}
-      <section className="w-full px-4 md:px-6 xl:px-8 2xl:px-10 py-10 md:py-16">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
-            <div className="glass-panel p-6 md:p-10">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50/80 border border-orange-100 text-orange-700 text-sm font-semibold mb-5">
-                <Hammer className="w-4 h-4" />
-                Будівельні послуги поруч
+    <div className="page-bg min-h-screen">
+      <section className="px-4 pb-6 pt-4 md:px-6 md:pb-8 xl:px-8 2xl:px-10">
+        <div className="mx-auto grid max-w-7xl gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="glass-panel overflow-hidden p-5 md:p-8">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(233,202,177,0.7)] bg-[rgba(255,247,239,0.88)] px-4 py-2 text-sm font-semibold text-[#a26233]">
+              <ShieldCheck className="h-4 w-4" />
+              <span>{copy.eyebrow}</span>
+            </div>
+
+            <h1 className="mt-5 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-[#2f2a24] md:text-5xl">
+              {copy.title}
+            </h1>
+
+            <p className="mt-4 max-w-2xl text-base leading-7 text-[#6f665d] md:text-lg">
+              {copy.description}
+            </p>
+
+            <form
+              onSubmit={handleSearch}
+              className="mt-7 grid gap-3 md:grid-cols-[minmax(0,1fr)_240px] xl:grid-cols-[minmax(0,1fr)_240px_180px]"
+            >
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#b59a84]" />
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder={copy.taskPlaceholder}
+                  className="input-glass h-14 pl-12"
+                />
               </div>
 
-              <h1 className="page-title max-w-3xl">
-                Знайди майстра для ремонту, будівництва або монтажу
-              </h1>
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#b59a84]" />
+                <input
+                  value={locationQuery}
+                  onChange={(event) => setLocationQuery(event.target.value)}
+                  placeholder={copy.locationPlaceholder}
+                  className="input-glass h-14 pl-12"
+                />
+              </div>
 
-              <p className="muted-text mt-4 max-w-2xl text-lg">
-                Створи заявку або знайди майстра у своєму місті. Dimarket безкоштовний для користувачів.
+              <button type="submit" className="btn-primary h-14 rounded-[20px]">
+                {t('home.findProfessionals')}
+              </button>
+            </form>
+
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={() => navigateTo('/create-ad')}
+                type="button"
+                className="btn-secondary rounded-[20px]"
+              >
+                <PlusCircle className="h-5 w-5" />
+                {copy.postJob}
+              </button>
+
+              <button
+                onClick={() => navigateTo('/listings')}
+                type="button"
+                className="btn-outline rounded-[20px]"
+              >
+                <Hammer className="h-5 w-5" />
+                {copy.browseRequests}
+              </button>
+            </div>
+
+            <div className="mt-7 flex flex-wrap gap-2">
+              {categories.slice(0, 4).map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => navigateTo(`/listings?category=${category.slug}`)}
+                  type="button"
+                  className="rounded-full border border-white/70 bg-white/60 px-4 py-2 text-sm font-semibold text-[#5f5a54] transition hover:bg-white/85 hover:text-[#2f2a24]"
+                >
+                  {getCategoryName(category)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <aside className="glass-card flex min-h-[320px] flex-col justify-between p-5">
+            <div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[rgba(245,166,109,0.18)] text-[#c96d2c]">
+                <Megaphone className="h-6 w-6" />
+              </div>
+
+              <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-[#2f2a24]">
+                {copy.adTitle}
+              </h2>
+
+              <p className="mt-3 text-sm leading-6 text-[#6f665d]">
+                {copy.adText}
               </p>
 
-              <form
-                onSubmit={handleSearch}
-                className="mt-7 grid md:grid-cols-[1fr_240px_150px] gap-3"
-              >
-                <div className="relative">
-                  <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                  <input
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    placeholder="Що потрібно зробити?"
-                    className="input-glass pl-12"
-                  />
-                </div>
-
-                <div className="relative">
-                  <MapPin className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                  <input
-                    value={locationQuery}
-                    onChange={(event) => setLocationQuery(event.target.value)}
-                    placeholder="Місто"
-                    className="input-glass pl-12"
-                  />
-                </div>
-
-                <button type="submit" className="btn-primary">
-                  Знайти
-                </button>
-              </form>
-
-              <div className="flex flex-col sm:flex-row gap-3 mt-5">
-                <button
-                  onClick={() => navigateTo('/create-ad')}
-                  type="button"
-                  className="btn-secondary"
-                >
-                  <PlusCircle className="w-5 h-5" />
-                  Створити заявку
-                </button>
-
-                <button
-                  onClick={() => navigateTo('/professionals')}
-                  type="button"
-                  className="btn-outline"
-                >
-                  <Hammer className="w-5 h-5" />
-                  Знайти майстра
-                </button>
+              <div className="mt-5 grid gap-3">
+                <AdPill label={copy.adCardOne} />
+                <AdPill label={copy.adCardTwo} />
+                <AdPill label={copy.adCardThree} />
               </div>
             </div>
 
-            {/* Реклама справа */}
-            <aside className="glass-card p-6 min-h-[280px] flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-orange-100/80 text-orange-600 flex items-center justify-center mb-4">
-                  <Megaphone className="w-6 h-6" />
-                </div>
-
-                <h3 className="text-xl font-extrabold text-gray-950">
-                  Реклама
-                </h3>
-
-                <p className="muted-text mt-2">
-                  Місце для будівельних магазинів, інструментів, матеріалів або локальних компаній.
-                </p>
-              </div>
-
-              <button
-                onClick={() => navigateTo('/advertise')}
-                type="button"
-                className="btn-primary w-full mt-6"
-              >
-                Розмістити рекламу
-              </button>
-            </aside>
-          </div>
+            <button
+              onClick={() => navigateTo('/advertise')}
+              type="button"
+              className="btn-primary mt-6 w-full rounded-[20px]"
+            >
+              {copy.adButton}
+            </button>
+          </aside>
         </div>
       </section>
 
-      {/* Категорії */}
-      <section className="w-full px-4 md:px-6 xl:px-8 2xl:px-10 py-8">
-        <div className="max-w-7xl mx-auto">
+      <section className="px-4 py-6 md:px-6 xl:px-8 2xl:px-10">
+        <div className="mx-auto max-w-7xl">
           <SectionHeader
-            title="Популярні категорії"
-            text="Основні напрямки будівельних і ремонтних робіт."
-            buttonText="Всі категорії"
+            title={copy.popularCategoriesTitle}
+            text={copy.popularCategoriesText}
+            buttonText={copy.browseRequests}
             onClick={() => navigateTo('/listings')}
           />
 
           {loading ? (
             <LoadingBlock />
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-              {categories.slice(0, 12).map((category) => (
-                <CategoryCard key={category.id} category={category} />
+          ) : categories.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => navigateTo(`/listings?category=${category.slug}`)}
+                  type="button"
+                  className="glass-card group p-5 text-left transition duration-200 hover:-translate-y-0.5"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="text-3xl text-[#c96d2c]">
+                        {category.icon || '...'}
+                      </div>
+                      <h3 className="mt-4 text-xl font-extrabold text-[#2f2a24] transition group-hover:text-[#9a5525]">
+                        {getCategoryName(category)}
+                      </h3>
+                    </div>
+
+                    <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-[#c3a58d] transition group-hover:text-[#9a5525]" />
+                  </div>
+
+                  <p className="mt-3 text-sm leading-6 text-[#6f665d]">
+                    {getCategoryDescription(category)}
+                  </p>
+                </button>
               ))}
             </div>
+          ) : (
+            <EmptyBlock text={copy.noCategories} />
           )}
         </div>
       </section>
 
-      {/* Свіжі заявки + реклама */}
-      <section className="w-full px-4 md:px-6 xl:px-8 2xl:px-10 py-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-[1fr_300px] gap-6">
-            <div>
-              <SectionHeader
-                title="Свіжі заявки"
-                text="Нові роботи, на які майстри можуть відповісти."
-                buttonText="Всі заявки"
-                onClick={() => navigateTo('/listings')}
-              />
+      <section className="px-4 py-6 md:px-6 xl:px-8 2xl:px-10">
+        <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <div>
+            <SectionHeader
+              title={copy.freshRequestsTitle}
+              text={copy.freshRequestsText}
+              buttonText={copy.allRequests}
+              onClick={() => navigateTo('/listings')}
+            />
 
-              {loading ? (
-                <LoadingBlock />
-              ) : jobs.length > 0 ? (
-                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {jobs.map((job) => (
-                    <JobCard
-                      key={job.id}
+            {loading ? (
+              <LoadingBlock />
+            ) : jobs.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {jobs.map((job, index) => (
+                  <div key={job.id} className="contents">
+                    <HomeJobCard
                       job={job}
                       currencySymbol={currency.symbol}
+                      locale={language.code}
+                      budgetLabel={copy.budgetLabel}
+                      activeLabel={copy.activeLabel}
+                      noBudgetLabel={copy.noBudget}
+                      noLocationLabel={copy.noLocation}
+                      unknownCategoryLabel={copy.unknownCategory}
                     />
-                  ))}
-                </div>
-              ) : (
-                <EmptyBlock text="Поки що немає активних заявок." />
-              )}
-            </div>
 
-            <div className="space-y-4">
-              <AdBox title="Реклама матеріалів" />
-              <AdBox title="Реклама інструментів" />
-            </div>
+                    {index === 1 && (
+                      <InlineAdCard
+                        title={copy.adTitle}
+                        text="Sponsored placement for tools, materials, logistics, or local construction partners."
+                        actionLabel={copy.adButton}
+                        onClick={() => navigateTo('/advertise')}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyBlock text={copy.noJobs} />
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <SidebarAdCard
+              title={copy.adCardOne}
+              text="Place brand visibility next to live construction demand."
+            />
+            <SidebarAdCard
+              title={copy.adCardTwo}
+              text="Reach professionals and clients while they search for work and services."
+            />
           </div>
         </div>
       </section>
 
-      {/* Майстри */}
-      <section className="w-full px-4 md:px-6 xl:px-8 2xl:px-10 py-8 pb-16">
-        <div className="max-w-7xl mx-auto">
+      <section className="px-4 pb-14 pt-6 md:px-6 xl:px-8 2xl:px-10">
+        <div className="mx-auto max-w-7xl">
           <SectionHeader
-            title="Популярні майстри"
-            text="Майстри з рейтингом, досвідом і профілем."
-            buttonText="Всі майстри"
+            title={copy.popularProsTitle}
+            text={copy.popularProsText}
+            buttonText={copy.allPros}
             onClick={() => navigateTo('/professionals')}
           />
 
           {loading ? (
             <LoadingBlock />
           ) : professionals.length > 0 ? (
-            <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {professionals.map((professional) => (
-                <ProfessionalCard
+                <ProfessionalPreviewCard
                   key={professional.id}
                   professional={professional}
+                  noBioLabel={copy.noBio}
+                  reviewLabel={t('professional.reviews')}
+                  actionLabel={t('professional.contact')}
                 />
               ))}
             </div>
           ) : (
-            <EmptyBlock text="Поки що немає майстрів." />
+            <EmptyBlock text={copy.noProfessionals} />
           )}
         </div>
       </section>
@@ -282,95 +426,244 @@ function SectionHeader({
   onClick: () => void
 }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
+    <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h2 className="section-title">{title}</h2>
-        <p className="muted-text mt-1">{text}</p>
+        <h2 className="text-2xl font-extrabold tracking-tight text-[#2f2a24] md:text-3xl">
+          {title}
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6f665d] md:text-base">
+          {text}
+        </p>
       </div>
 
       <button
         onClick={onClick}
         type="button"
-        className="btn-ghost self-start sm:self-auto"
+        className="btn-ghost self-start rounded-full px-0 sm:self-auto"
       >
         {buttonText}
-        <ArrowRight className="w-4 h-4" />
+        <ArrowRight className="h-4 w-4" />
       </button>
     </div>
   )
 }
 
-function JobCard({
+function HomeJobCard({
   job,
   currencySymbol,
+  locale,
+  budgetLabel,
+  activeLabel,
+  noBudgetLabel,
+  noLocationLabel,
+  unknownCategoryLabel,
 }: {
   job: ListingWithImages
   currencySymbol: string
+  locale: string
+  budgetLabel: string
+  activeLabel: string
+  noBudgetLabel: string
+  noLocationLabel: string
+  unknownCategoryLabel: string
 }) {
+  const createdLabel = new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+  }).format(new Date(job.created_at))
+
+  const budgetValue = job.price
+    ? `${currencySymbol}${job.price.toLocaleString()}`
+    : noBudgetLabel
+
   return (
     <button
       onClick={() => navigateTo(`/listing/${job.id}`)}
       type="button"
-      className="glass-card p-5 text-left hover:-translate-y-0.5 transition-all duration-200"
+      className="glass-card group p-5 text-left transition duration-200 hover:-translate-y-0.5"
     >
       <div className="flex items-start justify-between gap-3">
-        <h3 className="font-extrabold text-gray-950 line-clamp-2">
-          {job.title}
-        </h3>
+        <div className="min-w-0">
+          <span className="inline-flex rounded-full bg-[rgba(245,166,109,0.16)] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#9a5525]">
+            {job.category?.name || unknownCategoryLabel}
+          </span>
 
-        <span className="shrink-0 px-3 py-1 rounded-full bg-green-50/90 text-green-700 text-xs font-bold border border-green-100">
-          Активна
+          <h3 className="mt-3 line-clamp-2 text-xl font-extrabold text-[#2f2a24] transition group-hover:text-[#9a5525]">
+            {job.title}
+          </h3>
+        </div>
+
+        <span className="shrink-0 rounded-full bg-[rgba(126,180,141,0.16)] px-3 py-1 text-xs font-bold text-[#3d7a52]">
+          {activeLabel}
         </span>
       </div>
 
-      <p className="muted-text text-sm mt-3 line-clamp-3">
+      <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#6f665d]">
         {job.description}
       </p>
 
-      <div className="flex items-center gap-1 text-sm text-gray-500 mt-4">
-        <MapPin className="w-4 h-4" />
-        <span>{job.location || 'Локація не вказана'}</span>
+      <div className="mt-4 flex items-center gap-2 text-sm text-[#7a7168]">
+        <MapPin className="h-4 w-4" />
+        <span>{job.location || noLocationLabel}</span>
       </div>
 
-      <div className="flex items-center justify-between mt-5 pt-4 border-t border-gray-100">
-        <span className="text-sm text-gray-500">Бюджет</span>
+      <div className="mt-2 flex items-center gap-2 text-sm text-[#7a7168]">
+        <Clock3 className="h-4 w-4" />
+        <span>{createdLabel}</span>
+      </div>
 
-        <span className="font-extrabold text-gray-950">
-          {job.price ? `${currencySymbol}${job.price}` : 'За домовленістю'}
-        </span>
+      <div className="mt-5 flex items-center justify-between border-t border-[rgba(190,168,150,0.28)] pt-4">
+        <span className="text-sm text-[#7a7168]">{budgetLabel}</span>
+        <span className="text-lg font-extrabold text-[#2f2a24]">{budgetValue}</span>
       </div>
     </button>
   )
 }
 
-function AdBox({ title }: { title: string }) {
+function ProfessionalPreviewCard({
+  professional,
+  noBioLabel,
+  reviewLabel,
+  actionLabel,
+}: {
+  professional: Profile
+  noBioLabel: string
+  reviewLabel: string
+  actionLabel: string
+}) {
+  const initials = getInitials(professional.full_name)
+  const ratingLabel =
+    professional.rating > 0 ? professional.rating.toFixed(1) : 'New'
+
   return (
-    <div className="glass-card p-5 min-h-[180px] flex flex-col justify-center text-center">
-      <Megaphone className="w-8 h-8 text-orange-500 mx-auto mb-3" />
+    <div className="glass-card overflow-hidden p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] bg-[linear-gradient(135deg,rgba(255,244,234,0.95),rgba(244,186,134,0.72))] text-lg font-extrabold text-[#9a5525]">
+            {initials}
+          </div>
 
-      <h3 className="font-extrabold text-gray-950">
-        {title}
-      </h3>
+          <div className="min-w-0">
+            <h3 className="truncate text-lg font-extrabold text-[#2f2a24]">
+              {professional.full_name || 'Professional'}
+            </h3>
+            <p className="mt-1 text-sm text-[#7a7168]">
+              {professional.location || 'Global'}
+            </p>
+          </div>
+        </div>
 
-      <p className="text-sm text-gray-500 mt-2">
-        Рекламний блок Dimarket
+        <div className="inline-flex items-center gap-1 rounded-full bg-[rgba(255,249,236,0.96)] px-3 py-1 text-sm font-bold text-[#8c6728]">
+          <Star className="h-4 w-4 fill-current" />
+          <span>{ratingLabel}</span>
+        </div>
+      </div>
+
+      <p className="mt-4 line-clamp-3 text-sm leading-6 text-[#6f665d]">
+        {professional.bio || noBioLabel}
       </p>
+
+      <div className="mt-5 flex items-center justify-between border-t border-[rgba(190,168,150,0.28)] pt-4">
+        <div className="flex items-center gap-2 text-sm text-[#7a7168]">
+          <UserRound className="h-4 w-4" />
+          <span>
+            {professional.total_reviews} {reviewLabel}
+          </span>
+        </div>
+
+        <button
+          onClick={() => navigateTo(`/professional/${professional.id}`)}
+          type="button"
+          className="inline-flex items-center gap-2 rounded-full bg-[rgba(242,171,116,0.18)] px-4 py-2 text-sm font-bold text-[#9a5525] transition hover:bg-[rgba(242,171,116,0.26)]"
+        >
+          <ArrowRight className="h-4 w-4" />
+          <span>{actionLabel}</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function AdPill({ label }: { label: string }) {
+  return (
+    <div className="rounded-[20px] border border-white/70 bg-white/55 px-4 py-3 text-sm font-semibold text-[#5f5a54]">
+      {label}
+    </div>
+  )
+}
+
+function InlineAdCard({
+  title,
+  text,
+  actionLabel,
+  onClick,
+}: {
+  title: string
+  text: string
+  actionLabel: string
+  onClick: () => void
+}) {
+  return (
+    <div className="glass-card flex flex-col justify-between p-5 text-left">
+      <div>
+        <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[rgba(245,166,109,0.18)] text-[#c96d2c]">
+          <Megaphone className="h-6 w-6" />
+        </div>
+        <h3 className="mt-4 text-xl font-extrabold text-[#2f2a24]">{title}</h3>
+        <p className="mt-3 text-sm leading-6 text-[#6f665d]">{text}</p>
+      </div>
+
+      <button
+        onClick={onClick}
+        type="button"
+        className="btn-secondary mt-5 w-full rounded-[20px]"
+      >
+        {actionLabel}
+      </button>
+    </div>
+  )
+}
+
+function SidebarAdCard({
+  title,
+  text,
+}: {
+  title: string
+  text: string
+}) {
+  return (
+    <div className="glass-card p-5">
+      <div className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-[rgba(245,166,109,0.18)] text-[#c96d2c]">
+        <Megaphone className="h-5 w-5" />
+      </div>
+      <h3 className="mt-4 text-lg font-extrabold text-[#2f2a24]">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-[#6f665d]">{text}</p>
     </div>
   )
 }
 
 function LoadingBlock() {
   return (
-    <div className="glass-card p-8 text-center text-gray-500">
-      Завантаження...
+    <div className="glass-card p-8 text-center text-[#7a7168]">
+      Loading...
     </div>
   )
 }
 
 function EmptyBlock({ text }: { text: string }) {
   return (
-    <div className="glass-card p-8 text-center text-gray-500">
+    <div className="glass-card p-8 text-center text-[#7a7168]">
       {text}
     </div>
   )
+}
+
+function getInitials(fullName: string | null) {
+  if (!fullName) {
+    return 'DM'
+  }
+
+  const parts = fullName.trim().split(/\s+/).slice(0, 2)
+
+  return parts.map((part) => part[0]?.toUpperCase() || '').join('') || 'DM'
 }
