@@ -1,73 +1,135 @@
-import { Star, MapPin, MessageCircle } from 'lucide-react'
-import { Profile } from '../lib/types'
+import { ArrowRight, MapPin, Star } from 'lucide-react'
+import { Category, Profile } from '../lib/types'
+import { useApp } from '../contexts/AppContext'
 import { navigateTo } from '../lib/navigation'
 
+interface ProfessionalCategoryLink {
+  category_id: string
+  category?: Category | null
+}
+
+interface ProfessionalCardData extends Profile {
+  professional_categories?: ProfessionalCategoryLink[]
+}
+
 interface ProfessionalCardProps {
-  professional: Profile
+  professional: ProfessionalCardData
 }
 
 export function ProfessionalCard({ professional }: ProfessionalCardProps) {
-  const avatarUrl =
-    professional.avatar_url ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      professional.full_name || 'User'
-    )}&background=1e3a8a&color=fff`
+  const { t } = useApp()
 
+  const avatarUrl = professional.profile_photo || professional.avatar_url || null
   const ratingLabel =
-    professional.rating > 0 ? professional.rating.toFixed(1) : 'Новий'
+    professional.rating > 0 ? professional.rating.toFixed(1) : t('professional.new')
+
+  const translateUnsafe = (key: string) => {
+    return t(key as never)
+  }
+
+  const skills = (professional.professional_categories || [])
+    .map((item) => {
+      const category = item.category
+
+      if (!category) {
+        return null
+      }
+
+      const newKey = `category.name.${category.slug}`
+      const newValue = translateUnsafe(newKey)
+
+      if (newValue !== newKey) {
+        return newValue
+      }
+
+      const legacyKey = `category.${category.slug}`
+      const legacyValue = translateUnsafe(legacyKey)
+
+      if (legacyValue !== legacyKey) {
+        return legacyValue
+      }
+
+      return category.name
+    })
+    .filter(Boolean)
+    .slice(0, 3) as string[]
 
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all overflow-hidden border border-gray-200">
-      <div className="relative h-32 bg-gradient-to-br from-blue-900 to-blue-700">
-        <div className="absolute -bottom-12 left-6">
+    <div className="glass-card flex h-full flex-col overflow-hidden p-5">
+      <div className="flex items-start gap-4">
+        {avatarUrl ? (
           <img
             src={avatarUrl}
-            alt={professional.full_name || 'Майстер'}
-            className="w-24 h-24 rounded-full border-4 border-white object-cover"
+            alt={professional.full_name || 'Professional'}
+            className="h-16 w-16 shrink-0 rounded-[22px] object-cover"
           />
+        ) : (
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] bg-[linear-gradient(135deg,rgba(255,244,234,0.95),rgba(244,186,134,0.72))] text-lg font-extrabold text-[#9a5525]">
+            {getInitials(professional.full_name)}
+          </div>
+        )}
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="truncate text-xl font-extrabold text-[#2f2a24]">
+                {professional.full_name || 'Professional'}
+              </h3>
+
+              <div className="mt-2 flex items-center gap-2 text-sm text-[#7a7168]">
+                <MapPin className="h-4 w-4 shrink-0" />
+                <span className="truncate">{professional.location || 'Global'}</span>
+              </div>
+            </div>
+
+            <div className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[rgba(255,249,236,0.96)] px-3 py-1 text-sm font-bold text-[#8c6728]">
+              <Star className="h-4 w-4 fill-current" />
+              <span>{ratingLabel}</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="pt-14 px-6 pb-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-1">
-          {professional.full_name || 'Майстер'}
-        </h3>
-
-        {professional.location && (
-          <div className="flex items-center text-gray-500 text-sm mb-2">
-            <MapPin className="w-4 h-4 mr-1" />
-            <span>{professional.location}</span>
-          </div>
-        )}
-
-        <div className="flex items-center mb-3">
-          <div className="flex items-center">
-            <Star className="w-5 h-5 text-yellow-400 fill-current" />
-            <span className="ml-1 font-semibold text-gray-900">
-              {ratingLabel}
+      {skills.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {skills.map((skill) => (
+            <span
+              key={`${professional.id}-${skill}`}
+              className="rounded-full bg-[rgba(242,171,116,0.16)] px-3 py-1 text-xs font-semibold text-[#9a5525]"
+            >
+              {skill}
             </span>
-          </div>
-
-          <span className="text-gray-500 text-sm ml-2">
-            ({professional.total_reviews} відгуків)
-          </span>
+          ))}
         </div>
+      )}
 
-        {professional.bio && (
-          <p className="text-gray-600 text-sm line-clamp-3 mb-4">
-            {professional.bio}
-          </p>
-        )}
+      <p className="mt-4 line-clamp-4 text-sm leading-6 text-[#6f665d]">
+        {professional.bio || 'Construction professional profile is being completed.'}
+      </p>
+
+      <div className="mt-5 flex items-center justify-between border-t border-[rgba(190,168,150,0.28)] pt-4">
+        <div className="text-sm text-[#7a7168]">
+          {professional.total_reviews} {t('professional.reviews')}
+        </div>
 
         <button
           onClick={() => navigateTo(`/professional/${professional.id}`)}
           type="button"
-          className="flex items-center justify-center space-x-2 w-full bg-blue-900 text-white py-2 rounded-lg hover:bg-blue-800 transition font-medium"
+          className="inline-flex items-center gap-2 rounded-full bg-[rgba(242,171,116,0.18)] px-4 py-2 text-sm font-bold text-[#9a5525] transition hover:bg-[rgba(242,171,116,0.26)]"
         >
-          <MessageCircle className="w-4 h-4" />
-          <span>Переглянути</span>
+          <span>{t('professional.contact')}</span>
+          <ArrowRight className="h-4 w-4" />
         </button>
       </div>
     </div>
   )
+}
+
+function getInitials(fullName: string | null) {
+  if (!fullName) {
+    return 'DM'
+  }
+
+  const parts = fullName.trim().split(/\s+/).slice(0, 2)
+  return parts.map((part) => part[0]?.toUpperCase() || '').join('') || 'DM'
 }
