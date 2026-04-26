@@ -1,146 +1,115 @@
-import { useEffect, useState } from 'react'
-import { Star, MapPin, MessageCircle, Heart } from 'lucide-react'
-import { Profile } from '../lib/types'
-import { navigateTo } from '../lib/navigation'
+import { MapPin, Calendar, Star, Globe } from 'lucide-react'
+import { ListingWithImages } from '../lib/types'
 import { useApp } from '../contexts/AppContext'
-import { supabase } from '../lib/supabase'
 
-interface ProfessionalCardProps {
-  professional: Profile
+interface ListingCardProps {
+  listing: ListingWithImages
 }
 
-export function ProfessionalCard({ professional }: ProfessionalCardProps) {
-  const { user } = useApp()
+export function ListingCard({ listing }: ListingCardProps) {
+  const { currency, t } = useApp()
+  const primaryImage = listing.images?.[0]?.image_url || 'https://images.pexels.com/photos/1249611/pexels-photo-1249611.jpeg?auto=compress&cs=tinysrgb&w=600'
 
-  const [isFavorite, setIsFavorite] = useState(false)
-  const [favoriteLoading, setFavoriteLoading] = useState(false)
-
-  useEffect(() => {
-    if (!user) return
-    checkFavorite()
-  }, [user, professional.id])
-
-  const checkFavorite = async () => {
-    const { data } = await supabase
-      .from('favorite_professionals')
-      .select('id')
-      .eq('user_id', user?.id)
-      .eq('professional_id', professional.id)
-      .maybeSingle()
-
-    setIsFavorite(Boolean(data))
+  const formatPrice = (price: number | null) => {
+    if (!price) return 'Contact for price'
+    return `${currency.symbol}${price.toLocaleString()}`
   }
 
-  const toggleFavorite = async (event: React.MouseEvent) => {
-    event.stopPropagation()
-
-    if (!user) {
-      navigateTo('/login')
-      return
+  const getListingTypeLabel = (type: string) => {
+    const labels = {
+      service_request: 'Service Needed',
+      service_offer: 'Service Offered',
+      item_sale: 'For Sale',
+      item_wanted: 'Wanted',
     }
-
-    if (favoriteLoading) return
-    setFavoriteLoading(true)
-
-    try {
-      if (isFavorite) {
-        await supabase
-          .from('favorite_professionals')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('professional_id', professional.id)
-
-        setIsFavorite(false)
-      } else {
-        await supabase
-          .from('favorite_professionals')
-          .insert({
-            user_id: user.id,
-            professional_id: professional.id,
-          })
-
-        setIsFavorite(true)
-      }
-    } finally {
-      setFavoriteLoading(false)
-    }
+    return labels[type as keyof typeof labels] || type
   }
 
-  const avatarUrl =
-    professional.avatar_url ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      professional.full_name || 'User'
-    )}&background=1e3a8a&color=fff`
+  const daysRemaining = Math.ceil(
+    (new Date(listing.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+  )
 
-  const ratingLabel =
-    professional.rating > 0 ? professional.rating.toFixed(1) : 'Новий'
+  const getVisibilityLabel = (radius: string) => {
+    const labels: Record<string, string> = {
+      city: t('visibility.city') || 'Місто',
+      district: t('visibility.district') || 'Район',
+      region: t('visibility.region') || 'Область',
+      country: t('visibility.country') || 'Країна',
+      state: t('visibility.state') || 'Штат',
+      land: t('visibility.land') || 'Земля (DE)',
+      global: t('visibility.global') || 'Всі користувачі',
+    }
+    return labels[radius] || radius
+  }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all overflow-hidden border border-gray-200">
-      <div className="relative h-32 bg-gradient-to-br from-blue-900 to-blue-700">
-        <button
-          onClick={toggleFavorite}
-          disabled={favoriteLoading}
-          type="button"
-          className={`absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition z-10 ${
-            isFavorite
-              ? 'bg-red-500 text-white'
-              : 'bg-white/90 text-gray-700 hover:bg-white hover:text-red-500'
-          }`}
-          title={isFavorite ? 'Видалити з обраного' : 'Додати в обране'}
-        >
-          <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
-        </button>
+    <a
+      href={`/listing/${listing.id}`}
+      className={`group block bg-white rounded-xl shadow-sm hover:shadow-xl transition-all overflow-hidden border ${
+        listing.is_premium ? 'border-orange-300 ring-2 ring-orange-200' : 'border-gray-200 hover:border-blue-200'
+      }`}
+    >
+      {listing.is_premium && (
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs font-semibold px-3 py-1 flex items-center">
+          <Star className="w-3 h-3 mr-1 fill-current" />
+          PREMIUM
+        </div>
+      )}
 
-        <div className="absolute -bottom-12 left-6">
-          <img
-            src={avatarUrl}
-            alt={professional.full_name || 'Майстер'}
-            className="w-24 h-24 rounded-full border-4 border-white object-cover"
-          />
+      <div className="relative h-48 overflow-hidden bg-gray-100">
+        <img
+          src={primaryImage}
+          alt={listing.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        <div className="absolute top-2 right-2 bg-blue-900 text-white text-xs px-2 py-1 rounded-md">
+          {getListingTypeLabel(listing.listing_type)}
         </div>
       </div>
 
-      <div className="pt-14 px-6 pb-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-1">
-          {professional.full_name || 'Майстер'}
+      <div className="p-4">
+        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-900 transition line-clamp-2 mb-2">
+          {listing.title}
         </h3>
 
-        {professional.location && (
-          <div className="flex items-center text-gray-500 text-sm mb-2">
-            <MapPin className="w-4 h-4 mr-1" />
-            <span>{professional.location}</span>
-          </div>
-        )}
+        <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+          {listing.description}
+        </p>
 
-        <div className="flex items-center mb-3">
-          <div className="flex items-center">
-            <Star className="w-5 h-5 text-yellow-400 fill-current" />
-            <span className="ml-1 font-semibold text-gray-900">
-              {ratingLabel}
-            </span>
+        <div className="space-y-2 mb-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center text-gray-500 text-sm">
+              <MapPin className="w-4 h-4 mr-1" />
+              <span>{listing.location}</span>
+            </div>
+            {listing.price && (
+              <div className="text-lg font-bold text-blue-900">
+                {formatPrice(listing.price)}
+              </div>
+            )}
           </div>
-
-          <span className="text-gray-500 text-sm ml-2">
-            ({professional.total_reviews} відгуків)
-          </span>
+          {(listing as any).visibility_radius && (
+            <div className="flex items-center text-gray-500 text-xs">
+              <Globe className="w-3 h-3 mr-1" />
+              <span>{getVisibilityLabel((listing as any).visibility_radius)}</span>
+            </div>
+          )}
         </div>
 
-        {professional.bio && (
-          <p className="text-gray-600 text-sm line-clamp-3 mb-4">
-            {professional.bio}
-          </p>
+        {listing.category && (
+          <div className="inline-block text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md mb-2">
+            {listing.category.name}
+          </div>
         )}
 
-        <button
-          onClick={() => navigateTo(`/professional/${professional.id}`)}
-          type="button"
-          className="flex items-center justify-center space-x-2 w-full bg-blue-900 text-white py-2 rounded-lg hover:bg-blue-800 transition font-medium"
-        >
-          <MessageCircle className="w-4 h-4" />
-          <span>Переглянути</span>
-        </button>
+        <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+          <div className="flex items-center">
+            <Calendar className="w-3 h-3 mr-1" />
+            <span>{daysRemaining} days left</span>
+          </div>
+          <span>{listing.views_count} views</span>
+        </div>
       </div>
-    </div>
+    </a>
   )
 }
