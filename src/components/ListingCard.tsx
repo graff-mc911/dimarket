@@ -1,6 +1,7 @@
-import { MapPin, Calendar, Star, Globe } from 'lucide-react'
+import { Calendar, ClipboardList, Globe, MapPin } from 'lucide-react'
 import { ListingWithImages } from '../lib/types'
 import { useApp } from '../contexts/AppContext'
+import { navigateTo } from '../lib/navigation'
 
 interface ListingCardProps {
   listing: ListingWithImages
@@ -8,108 +9,165 @@ interface ListingCardProps {
 
 export function ListingCard({ listing }: ListingCardProps) {
   const { currency, t } = useApp()
-  const primaryImage = listing.images?.[0]?.image_url || 'https://images.pexels.com/photos/1249611/pexels-photo-1249611.jpeg?auto=compress&cs=tinysrgb&w=600'
 
-  const formatPrice = (price: number | null) => {
-    if (!price) return 'Contact for price'
-    return `${currency.symbol}${price.toLocaleString()}`
-  }
-
-  const getListingTypeLabel = (type: string) => {
-    const labels = {
-      service_request: 'Service Needed',
-      service_offer: 'Service Offered',
-      item_sale: 'For Sale',
-      item_wanted: 'Wanted',
-    }
-    return labels[type as keyof typeof labels] || type
-  }
-
-  const daysRemaining = Math.ceil(
-    (new Date(listing.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+  const primaryImage = listing.images?.[0]?.image_url || null
+  const daysRemaining = Math.max(
+    0,
+    Math.ceil(
+      (new Date(listing.expires_at).getTime() - new Date().getTime()) /
+        (1000 * 60 * 60 * 24)
+    )
   )
+
+  const translateUnsafe = (key: string) => {
+    return t(key as never)
+  }
+
+  const getListingTypeLabel = () => {
+    const labels: Record<string, string> = {
+      service_request: t('listings.typeServiceRequest'),
+      service_offer: t('listings.typeServiceOffer'),
+      item_sale: t('listings.typeItemSale'),
+      item_wanted: t('listings.typeItemWanted'),
+    }
+
+    return labels[listing.listing_type] || listing.listing_type
+  }
+
+  const getCategoryLabel = () => {
+    if (!listing.category) {
+      return 'Construction service'
+    }
+
+    const newKey = `category.name.${listing.category.slug}`
+    const newValue = translateUnsafe(newKey)
+
+    if (newValue !== newKey) {
+      return newValue
+    }
+
+    const legacyKey = `category.${listing.category.slug}`
+    const legacyValue = translateUnsafe(legacyKey)
+
+    if (legacyValue !== legacyKey) {
+      return legacyValue
+    }
+
+    return listing.category.name
+  }
 
   const getVisibilityLabel = (radius: string) => {
     const labels: Record<string, string> = {
-      city: t('visibility.city') || 'Місто',
-      district: t('visibility.district') || 'Район',
-      region: t('visibility.region') || 'Область',
-      country: t('visibility.country') || 'Країна',
-      state: t('visibility.state') || 'Штат',
-      land: t('visibility.land') || 'Земля (DE)',
-      global: t('visibility.global') || 'Всі користувачі',
+      city: t('visibility.city'),
+      district: t('visibility.district'),
+      region: t('visibility.region'),
+      country: t('visibility.country'),
+      state: t('visibility.state'),
+      land: t('visibility.land'),
+      global: t('visibility.global'),
     }
+
     return labels[radius] || radius
   }
 
+  const formatBudget = () => {
+    if (!listing.price) {
+      return t('listing.contactForPrice')
+    }
+
+    return `${currency.symbol}${listing.price.toLocaleString()}`
+  }
+
+  const typeLabel = getListingTypeLabel()
+  const categoryLabel = getCategoryLabel()
+  const visibilityRadius = (listing as { visibility_radius?: string | null }).visibility_radius
+
   return (
-    <a
-      href={`/listing/${listing.id}`}
-      className={`group block bg-white rounded-xl shadow-sm hover:shadow-xl transition-all overflow-hidden border ${
-        listing.is_premium ? 'border-orange-300 ring-2 ring-orange-200' : 'border-gray-200 hover:border-blue-200'
-      }`}
+    <button
+      onClick={() => navigateTo(`/listing/${listing.id}`)}
+      type="button"
+      className="glass-card group flex h-full flex-col overflow-hidden text-left transition duration-200 hover:-translate-y-0.5"
     >
-      {listing.is_premium && (
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs font-semibold px-3 py-1 flex items-center">
-          <Star className="w-3 h-3 mr-1 fill-current" />
-          PREMIUM
-        </div>
-      )}
+      <div className="flex flex-1 flex-col gap-4 p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <span className="rounded-full bg-[rgba(242,171,116,0.18)] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#9a5525]">
+              {typeLabel}
+            </span>
 
-      <div className="relative h-48 overflow-hidden bg-gray-100">
-        <img
-          src={primaryImage}
-          alt={listing.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-        <div className="absolute top-2 right-2 bg-blue-900 text-white text-xs px-2 py-1 rounded-md">
-          {getListingTypeLabel(listing.listing_type)}
-        </div>
-      </div>
-
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-900 transition line-clamp-2 mb-2">
-          {listing.title}
-        </h3>
-
-        <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-          {listing.description}
-        </p>
-
-        <div className="space-y-2 mb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center text-gray-500 text-sm">
-              <MapPin className="w-4 h-4 mr-1" />
-              <span>{listing.location}</span>
-            </div>
-            {listing.price && (
-              <div className="text-lg font-bold text-blue-900">
-                {formatPrice(listing.price)}
-              </div>
-            )}
+            <span className="rounded-full bg-white/65 px-3 py-1 text-xs font-semibold text-[#6f665d]">
+              {categoryLabel}
+            </span>
           </div>
-          {(listing as any).visibility_radius && (
-            <div className="flex items-center text-gray-500 text-xs">
-              <Globe className="w-3 h-3 mr-1" />
-              <span>{getVisibilityLabel((listing as any).visibility_radius)}</span>
+
+          <span className="rounded-full bg-[rgba(126,180,141,0.16)] px-3 py-1 text-xs font-bold text-[#3d7a52]">
+            {listing.status}
+          </span>
+        </div>
+
+        <div className="flex gap-4">
+          {primaryImage ? (
+            <img
+              src={primaryImage}
+              alt={listing.title}
+              className="h-24 w-24 shrink-0 rounded-[22px] object-cover"
+            />
+          ) : (
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[22px] bg-[linear-gradient(135deg,rgba(255,244,234,0.95),rgba(244,186,134,0.72))] text-[#9a5525]">
+              <ClipboardList className="h-8 w-8" />
+            </div>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <h3 className="line-clamp-2 text-xl font-extrabold leading-tight text-[#2f2a24] transition group-hover:text-[#9a5525]">
+              {listing.title}
+            </h3>
+
+            <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#6f665d]">
+              {listing.description}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-2 text-sm text-[#7a7168]">
+          <div className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 shrink-0" />
+            <span>{listing.location || 'Location not specified'}</span>
+          </div>
+
+          {visibilityRadius && (
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4 shrink-0" />
+              <span>{getVisibilityLabel(visibilityRadius)}</span>
             </div>
           )}
         </div>
+      </div>
 
-        {listing.category && (
-          <div className="inline-block text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md mb-2">
-            {listing.category.name}
+      <div className="mt-auto border-t border-[rgba(190,168,150,0.28)] px-5 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9d8b7a]">
+              Budget
+            </div>
+            <div className="mt-1 text-lg font-extrabold text-[#2f2a24]">
+              {formatBudget()}
+            </div>
           </div>
-        )}
 
-        <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
-          <div className="flex items-center">
-            <Calendar className="w-3 h-3 mr-1" />
-            <span>{daysRemaining} days left</span>
+          <div className="text-right text-xs text-[#7a7168]">
+            <div className="flex items-center justify-end gap-1">
+              <Calendar className="h-3.5 w-3.5" />
+              <span>
+                {daysRemaining} {t('listing.daysLeft')}
+              </span>
+            </div>
+            <div className="mt-1">
+              {listing.views_count} {t('listing.views')}
+            </div>
           </div>
-          <span>{listing.views_count} views</span>
         </div>
       </div>
-    </a>
+    </button>
   )
 }
