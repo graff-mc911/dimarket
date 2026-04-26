@@ -10,16 +10,14 @@ import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 import { Dashboard } from './pages/Dashboard'
 import { Settings } from './pages/Settings'
+import { Favorites } from './pages/Favorites'
 
 function AppContent() {
-  // Зберігаємо поточний URL, щоб сторінка оновлювалась
-  // без повного перезавантаження браузера
   const [currentUrl, setCurrentUrl] = useState(
     `${window.location.pathname}${window.location.search}`
   )
 
   useEffect(() => {
-    // Відстежуємо зміну маршруту
     const handleRouteChange = () => {
       setCurrentUrl(`${window.location.pathname}${window.location.search}`)
     }
@@ -31,7 +29,6 @@ function AppContent() {
     }
   }, [])
 
-  // Беремо тільки шлях без query-параметрів
   const path = window.location.pathname
 
   const getPage = () => {
@@ -47,6 +44,9 @@ function AppContent() {
 
       case '/create-ad':
         return <CreateAd />
+
+      case '/favorites':
+        return <Favorites />
 
       case '/login':
         return <Login />
@@ -67,14 +67,12 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col w-full">
-      {/* Панель навігації тепер є на всіх сторінках */}
       <Header key={`header-${currentUrl}`} />
 
       <main className="flex-1 w-full">
         {getPage()}
       </main>
 
-      {/* Футер також є на всіх сторінках */}
       <Footer />
     </div>
   )
