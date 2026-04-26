@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Search, Star, SlidersHorizontal } from 'lucide-react'
+import { MapPin, Search, SlidersHorizontal, Star } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { Profile, Category } from '../lib/types'
 import { ProfessionalCard } from '../components/ProfessionalCard'
@@ -8,341 +8,326 @@ import { AdBanner } from '../components/AdBanner'
 import { useApp } from '../contexts/AppContext'
 import { navigateTo } from '../lib/navigation'
 
+interface ProfessionalCategoryLink {
+  category_id: string
+  category?: Category | null
+}
+
+interface ProfessionalWithCategories extends Profile {
+  professional_categories?: ProfessionalCategoryLink[]
+}
+
 export function Professionals() {
-  // Отримуємо функцію перекладу з глобального контексту додатка
   const { t } = useApp()
 
-  // Список усіх майстрів / компаній
-  const [professionals, setProfessionals] = useState<Profile[]>([])
-
-  // Список категорій для фільтра
+  const [professionals, setProfessionals] = useState<ProfessionalWithCategories[]>([])
   const [categories, setCategories] = useState<Category[]>([])
-
-  // Стан завантаження сторінки
   const [loading, setLoading] = useState(true)
 
-  // Пошуковий запит
   const [searchQuery, setSearchQuery] = useState('')
-
-  // Вибрана категорія
   const [selectedCategory, setSelectedCategory] = useState('')
-
-  // Сортування:
-  // rating  -> за рейтингом
-  // newest  -> за новизною
-  // views   -> за переглядами
-  const [sortBy, setSortBy] = useState<'rating' | 'newest' | 'views'>('rating')
-
-  // Показати / сховати розширені фільтри
+  const [sortBy, setSortBy] = useState<'rating' | 'reviews' | 'newest'>('rating')
   const [showFilters, setShowFilters] = useState(false)
-
-  // Мінімальний рейтинг для фільтра
   const [minRating, setMinRating] = useState(0)
-
-  // Фільтр по локації
   const [locationFilter, setLocationFilter] = useState('')
 
+  // Тимчасові тексти нового professionals-екрана.
+  // Після стабілізації UI винесемо їх у загальний словник перекладів.
+  const copy = {
+    eyebrow: 'Professionals / Masters',
+    title: 'Construction professionals ready for direct contact',
+    description:
+      'Search masters by city, skill, or rating and contact them directly after reviewing their public profile.',
+    searchPlaceholder: 'Name, skill, or service',
+    locationPlaceholder: 'City or country',
+    filtersButton: 'Filters',
+    categoryLabel: 'Category',
+    allCategories: 'All categories',
+    sortLabel: 'Sort by',
+    minRatingLabel: 'Minimum rating',
+    anyRating: 'Any rating',
+    sortRating: 'Highest rating',
+    sortReviews: 'Most reviews',
+    sortNewest: 'Newest profiles',
+    clearFilters: 'Clear filters',
+    countSuffix: 'professionals found',
+    loading: 'Loading professionals...',
+    postJob: 'Post job',
+    emptyTitle: 'No professionals match these filters',
+    emptyText:
+      'Try another location, remove the category filter, or lower the minimum rating.',
+  }
+
   useEffect(() => {
-    // При першому відкритті сторінки:
-    // 1) вантажимо категорії
-    // 2) вантажимо список майстрів
-    loadCategories()
-    loadProfessionals()
+    void loadCategories()
+    void loadProfessionals()
   }, [])
 
   const loadCategories = async () => {
-    // Отримуємо всі категорії з бази
-    const { data } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name')
-
-    if (data) setCategories(data)
+    const { data } = await supabase.from('categories').select('*').order('name')
+    setCategories(data ?? [])
   }
 
   const loadProfessionals = async () => {
-    // Вмикаємо стан завантаження
     setLoading(true)
 
-    // Тягнемо всіх професіоналів
-    // Спочатку сортуємо по рейтингу, потім по кількості відгуків
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('is_professional', true)
-      .order('rating', { ascending: false })
-      .order('total_reviews', { ascending: false })
+    try {
+      // Підтягуємо й звʼязки category -> profile,
+      // щоб фільтр категорій працював по-справжньому.
+      const { data } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          professional_categories(
+            category_id,
+            category:categories(*)
+          )
+        `)
+        .eq('is_professional', true)
+        .order('rating', { ascending: false })
+        .order('total_reviews', { ascending: false })
 
-    if (data) setProfessionals(data)
-
-    // Вимикаємо стан завантаження
-    setLoading(false)
+      setProfessionals((data as ProfessionalWithCategories[] | null) ?? [])
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // useMemo потрібен для того, щоб не перераховувати
-  // фільтрацію та сортування на кожен дрібний ререндер без потреби
+  const translateUnsafe = (key: string) => {
+    return t(key as never)
+  }
+
+  const translateCategory = (category: Category) => {
+    const newKey = `category.name.${category.slug}`
+    const newValue = translateUnsafe(newKey)
+
+    if (newValue !== newKey) {
+      return newValue
+    }
+
+    const legacyKey = `category.${category.slug}`
+    const legacyValue = translateUnsafe(legacyKey)
+
+    if (legacyValue !== legacyKey) {
+      return legacyValue
+    }
+
+    return category.name
+  }
+
   const filteredProfessionals = useMemo(() => {
-    return professionals
-      .filter((prof) => {
-        // Пошук по:
-        // - імені
-        // - опису
-        // - локації
+    const normalizedSearch = searchQuery.trim().toLowerCase()
+    const normalizedLocation = locationFilter.trim().toLowerCase()
+
+    return [...professionals]
+      .filter((professional) => {
+        const skills = (professional.professional_categories || [])
+          .map((item) => item.category?.name?.toLowerCase() || '')
+          .join(' ')
+
         const matchesSearch =
-          searchQuery === '' ||
-          prof.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          prof.bio?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          prof.location?.toLowerCase().includes(searchQuery.toLowerCase())
+          normalizedSearch === '' ||
+          professional.full_name?.toLowerCase().includes(normalizedSearch) ||
+          professional.bio?.toLowerCase().includes(normalizedSearch) ||
+          skills.includes(normalizedSearch)
 
-        // Якщо minRating = 0, то не фільтруємо по рейтингу
-        const matchesRating = minRating === 0 || (prof.rating || 0) >= minRating
+        const matchesRating =
+          minRating === 0 || (professional.rating || 0) >= minRating
 
-        // Якщо locationFilter порожній — фільтр по місцю не застосовується
         const matchesLocation =
-          locationFilter === '' ||
-          prof.location?.toLowerCase().includes(locationFilter.toLowerCase())
+          normalizedLocation === '' ||
+          professional.location?.toLowerCase().includes(normalizedLocation)
 
-        // Тут category-фільтр поки що м'який.
-        // Якщо в профілях немає category_id, ми не ламаємо логіку.
-        const matchesCategory = selectedCategory === '' || true
+        const matchesCategory =
+          selectedCategory === '' ||
+          (professional.professional_categories || []).some((item) => {
+            const slug = item.category?.slug || ''
+            return slug === selectedCategory || item.category_id === selectedCategory
+          })
 
         return matchesSearch && matchesRating && matchesLocation && matchesCategory
       })
       .sort((a, b) => {
-        // Сортування залежно від вибору користувача
         switch (sortBy) {
-          case 'rating':
-            return (b.rating || 0) - (a.rating || 0)
-
-          case 'views':
-            return (b.profile_views || 0) - (a.profile_views || 0)
-
+          case 'reviews':
+            return (b.total_reviews || 0) - (a.total_reviews || 0)
           case 'newest':
-            return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          case 'rating':
           default:
-            return 0
+            return (b.rating || 0) - (a.rating || 0)
         }
       })
-  }, [professionals, searchQuery, minRating, locationFilter, selectedCategory, sortBy])
+  }, [locationFilter, minRating, professionals, searchQuery, selectedCategory, sortBy])
+
+  const activeFiltersCount = [selectedCategory, minRating > 0 ? 'rating' : '', locationFilter].filter(Boolean).length
+
+  const resetFilters = () => {
+    setMinRating(0)
+    setLocationFilter('')
+    setSortBy('rating')
+    setSelectedCategory('')
+    setSearchQuery('')
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 w-full">
-      {/* 
-        Головний full-width контейнер сторінки.
-        Саме тут сторінка розтягується майже на всю ширину монітора.
-        Ми НЕ використовуємо max-w-7xl, тому контент не стискається в центрі.
-      */}
+    <div className="page-bg min-h-screen py-8">
       <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
-        {/* 
-          Триколонковий layout:
-          - ліва реклама
-          - центральний контент
-          - права реклама
-
-          Раніше вся проблема була в тому, що:
-          1) загальний контейнер був вузький
-          2) центр був надто вузький
-          3) бокові рекламні блоки "з'їдали" простір
-
-          Тепер:
-          - весь контейнер широкий
-          - реклама має фіксовану ширину
-          - центральна колонка займає все інше місце
-        */}
-        <div className="flex gap-6 items-start">
-          {/* 
-            ЛІВА БОКОВА РЕКЛАМА
-            hidden xl:block -> показуємо тільки на великих екранах
-            flex-shrink-0   -> не дозволяємо колонці стискатись
-          */}
+        <div className="flex gap-6">
           <aside className="hidden xl:block w-[240px] 2xl:w-[280px] flex-shrink-0">
             <AdBanner position="left" sticky={true} />
           </aside>
 
-          {/* 
-            ГОЛОВНА ЦЕНТРАЛЬНА КОЛОНКА
+          <main className="min-w-0 flex-1">
+            <section className="glass-panel mb-6 p-5 md:p-6">
+              <div className="inline-flex items-center rounded-full border border-[rgba(233,202,177,0.7)] bg-[rgba(255,247,239,0.88)] px-4 py-2 text-sm font-semibold text-[#a26233]">
+                {copy.eyebrow}
+              </div>
 
-            flex-1  -> займає весь доступний простір між лівою і правою рекламою
-            min-w-0 -> важливо для правильного стискання внутрішніх блоків без поломки layout
-          */}
-          <main className="flex-1 min-w-0">
-            <div className="mb-8">
-              {/* Верхній заголовок сторінки */}
-              <div className="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between gap-4 mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    {t('professionals.title')}
+              <div className="mt-4 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                <div className="max-w-3xl">
+                  <h1 className="text-3xl font-extrabold tracking-tight text-[#2f2a24] md:text-4xl">
+                    {copy.title}
                   </h1>
-                  <p className="text-gray-600">
-                    {t('professionals.subtitle')}
+                  <p className="mt-3 text-sm leading-6 text-[#6f665d] md:text-base">
+                    {copy.description}
                   </p>
                 </div>
 
-                {/* Декоративний блок про рейтинг */}
-                <div className="flex items-center space-x-2 text-yellow-500">
-                  <Star className="w-5 h-5 fill-current" />
-                  <span className="text-gray-700 font-medium">
-                    {t('professionals.topRated')}
-                  </span>
-                </div>
-              </div>
-
-              {/* 
-                Верхня панель керування:
-                - пошук
-                - вибір категорії
-                - кнопка відкриття фільтрів
-
-                На великих екранах ця панель стає горизонтальною.
-              */}
-              <div className="flex flex-col 2xl:flex-row gap-4 mb-4">
-                {/* Поле пошуку */}
-                <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={t('professionals.searchPlaceholder')}
-                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  />
-                </div>
-
-                {/* Вибір категорії */}
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full 2xl:w-[280px] px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                >
-                  <option value="">{t('listings.allCategories')}</option>
-
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.icon} {cat.name}
-                    </option>
-                  ))}
-                </select>
-
-                {/* Кнопка показу додаткових фільтрів */}
                 <button
-                  onClick={() => setShowFilters(!showFilters)}
+                  onClick={() => navigateTo('/create-ad')}
                   type="button"
-                  className="w-full 2xl:w-[200px] px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 bg-white"
+                  className="btn-secondary rounded-full"
                 >
-                  <SlidersHorizontal className="w-5 h-5" />
-                  {t('listings.filters')}
+                  {copy.postJob}
                 </button>
               </div>
 
-              {/* 
-                Розширені фільтри.
-                Показуються лише тоді, коли showFilters = true
-              */}
-              {showFilters && (
-                <div className="mt-4 p-5 bg-white rounded-xl border border-gray-200 space-y-4 shadow-sm">
-                  <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4">
-                    {/* Сортування */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('professionals.sortBy')}
-                      </label>
+              <div className="mt-6 grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px_160px]">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#b59a84]" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder={copy.searchPlaceholder}
+                    className="input-glass h-14 pl-12"
+                  />
+                </div>
 
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#b59a84]" />
+                  <input
+                    type="text"
+                    value={locationFilter}
+                    onChange={(event) => setLocationFilter(event.target.value)}
+                    placeholder={copy.locationPlaceholder}
+                    className="input-glass h-14 pl-12"
+                  />
+                </div>
+
+                <button
+                  onClick={() => setShowFilters((value) => !value)}
+                  type="button"
+                  className="btn-outline h-14 rounded-[20px]"
+                >
+                  <SlidersHorizontal className="h-5 w-5" />
+                  {activeFiltersCount > 0
+                    ? `${copy.filtersButton} (${activeFiltersCount})`
+                    : copy.filtersButton}
+                </button>
+              </div>
+
+              {showFilters && (
+                <div className="mt-4 rounded-[26px] border border-white/70 bg-white/45 p-4">
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                        {copy.categoryLabel}
+                      </label>
+                      <select
+                        value={selectedCategory}
+                        onChange={(event) => setSelectedCategory(event.target.value)}
+                        className="select-glass bg-white/80"
+                      >
+                        <option value="">{copy.allCategories}</option>
+
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.slug}>
+                            {translateCategory(category)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                        {copy.sortLabel}
+                      </label>
                       <select
                         value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as 'rating' | 'newest' | 'views')}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                        onChange={(event) =>
+                          setSortBy(event.target.value as 'rating' | 'reviews' | 'newest')
+                        }
+                        className="select-glass bg-white/80"
                       >
-                        <option value="rating">{t('professionals.topRated')}</option>
-                        <option value="views">{t('professionals.mostViewed')}</option>
-                        <option value="newest">{t('professionals.newest')}</option>
+                        <option value="rating">{copy.sortRating}</option>
+                        <option value="reviews">{copy.sortReviews}</option>
+                        <option value="newest">{copy.sortNewest}</option>
                       </select>
                     </div>
 
-                    {/* Мінімальний рейтинг */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('professionals.minRating')}
+                      <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                        {copy.minRatingLabel}
                       </label>
-
                       <select
                         value={minRating}
-                        onChange={(e) => setMinRating(Number(e.target.value))}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                        onChange={(event) => setMinRating(Number(event.target.value))}
+                        className="select-glass bg-white/80"
                       >
-                        <option value="0">{t('professionals.anyRating')}</option>
-                        <option value="3">3+ Stars</option>
-                        <option value="4">4+ Stars</option>
-                        <option value="4.5">4.5+ Stars</option>
+                        <option value="0">{copy.anyRating}</option>
+                        <option value="3">3+</option>
+                        <option value="4">4+</option>
+                        <option value="4.5">4.5+</option>
                       </select>
                     </div>
 
-                    {/* Фільтр по місцю */}
-                    <div className="md:col-span-2 2xl:col-span-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('professionals.location')}
-                      </label>
-
-                      <input
-                        type="text"
-                        value={locationFilter}
-                        onChange={(e) => setLocationFilter(e.target.value)}
-                        placeholder={t('professionals.locationPlaceholder')}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-                      />
-                    </div>
-
-                    {/* Кнопка скидання фільтрів */}
                     <div className="flex items-end">
                       <button
-                        onClick={() => {
-                          setMinRating(0)
-                          setLocationFilter('')
-                          setSortBy('rating')
-                          setSelectedCategory('')
-                          setSearchQuery('')
-                        }}
+                        onClick={resetFilters}
                         type="button"
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-medium transition"
+                        className="btn-ghost justify-start rounded-full px-0 md:justify-center"
                       >
-                        {t('listings.clearFilters')}
+                        {copy.clearFilters}
                       </button>
                     </div>
                   </div>
-
-                  {/* Підсумок кількості знайдених майстрів */}
-                  <div className="pt-2 border-t">
-                    <span className="text-sm text-gray-600">
-                      {filteredProfessionals.length} {t('professionals.found')}
-                    </span>
-                  </div>
                 </div>
               )}
+            </section>
 
-              {/* Мобільний рекламний блок під фільтрами */}
-              <div className="mt-4">
-                <MobileAdBanner variant="horizontal" />
-              </div>
+            <div className="mb-4">
+              <MobileAdBanner variant="horizontal" />
             </div>
 
-            {/* Стан завантаження */}
+            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#6f665d]">
+              <Star className="h-4 w-4 text-[#c3912c]" />
+              <span>
+                {loading ? copy.loading : `${filteredProfessionals.length} ${copy.countSuffix}`}
+              </span>
+            </div>
+
             {loading ? (
-              <div className="flex justify-center items-center py-20">
-                <div className="text-gray-500">{t('professionals.loading')}</div>
+              <div className="glass-card p-8 text-center text-[#7a7168]">
+                {copy.loading}
               </div>
             ) : filteredProfessionals.length > 0 ? (
-              /* 
-                Сітка карточок майстрів.
-                На дуже широких екранах показуємо 3 карточки в ряд у центрі.
-                Це дає широку сторінку без надто дрібних карточок.
-              */
-              <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
                 {filteredProfessionals.map((professional, index) => (
                   <div key={professional.id}>
                     <ProfessionalCard professional={professional} />
 
-                    {/* Вставка мобільної реклами між карточками */}
                     {(index + 1) % 6 === 0 && index < filteredProfessionals.length - 1 && (
                       <div className="mt-6">
                         <MobileAdBanner variant="inline" />
@@ -352,36 +337,37 @@ export function Professionals() {
                 ))}
               </div>
             ) : (
-              /* Стан, коли нікого не знайдено */
-              <div className="text-center py-20">
-                <div className="text-gray-500 mb-4">
-                  {t('professionals.noFound')}
-                </div>
-
-                <p className="text-gray-600 mb-6">
-                  {t('professionals.beFirst')}
+              <div className="glass-card p-10 text-center">
+                <h2 className="text-xl font-extrabold text-[#2f2a24]">
+                  {copy.emptyTitle}
+                </h2>
+                <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#6f665d]">
+                  {copy.emptyText}
                 </p>
-
-                <button
-                  onClick={() => navigateTo('/register')}
-                  type="button"
-                  className="inline-block bg-blue-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition"
-                >
-                  {t('professionals.registerAsProfessional')}
-                </button>
+                <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <button
+                    onClick={resetFilters}
+                    type="button"
+                    className="btn-secondary rounded-full"
+                  >
+                    {copy.clearFilters}
+                  </button>
+                  <button
+                    onClick={() => navigateTo('/register')}
+                    type="button"
+                    className="btn-primary rounded-full"
+                  >
+                    {t('professionals.registerAsProfessional')}
+                  </button>
+                </div>
               </div>
             )}
 
-            {/* Нижній мобільний рекламний блок */}
             <div className="mt-8">
               <MobileAdBanner variant="inline" />
             </div>
           </main>
 
-          {/* 
-            ПРАВА БОКОВА РЕКЛАМА
-            Аналогічна логіка, як і зліва
-          */}
           <aside className="hidden xl:block w-[240px] 2xl:w-[280px] flex-shrink-0">
             <AdBanner position="right" sticky={true} />
           </aside>
