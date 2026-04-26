@@ -2,19 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Глобальна основа сайту */
+/* Базові стилі всього сайту */
 @layer base {
   html {
     scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-cream text-ink antialiased;
+    margin: 0;
+    min-height: 100vh;
+    color: #1f2937;
     font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #eaeaea;
+    antialiased: true;
   }
 
   * {
-    @apply box-border;
+    box-sizing: border-box;
   }
 
   button,
@@ -25,98 +29,163 @@
   }
 
   button {
-    @apply cursor-pointer;
+    cursor: pointer;
   }
 
   ::selection {
-    @apply bg-orange-200 text-gray-900;
+    background: rgba(249, 115, 22, 0.25);
+    color: #111827;
   }
 }
 
-/* Глобальні готові класи для Dimarket */
+/* Глобальні стилі Dimarket */
 @layer components {
-  /* Легка glass-картка */
+  /* Головний фон сторінки — мʼякий, з глибиною */
+  .page-bg {
+    background:
+      radial-gradient(circle at 8% 8%, rgba(249, 115, 22, 0.16), transparent 32%),
+      radial-gradient(circle at 92% 14%, rgba(20, 184, 166, 0.12), transparent 30%),
+      radial-gradient(circle at 50% 100%, rgba(15, 23, 42, 0.10), transparent 35%),
+      linear-gradient(180deg, #f5f5f5 0%, #e8e8e8 55%, #dedede 100%);
+  }
+
+  /* Звичайна glass-картка */
   .glass-card {
-    @apply bg-white/70 backdrop-blur-xl border border-white/70 rounded-glass shadow-glass;
+    background: rgba(255, 255, 255, 0.58);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border: 1px solid rgba(255, 255, 255, 0.48);
+    border-radius: 24px;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
   }
 
-  /* Трохи сильніша картка для важливих блоків */
+  /* Головна glass-панель */
   .glass-panel {
-    @apply bg-white/80 backdrop-blur-2xl border border-white/80 rounded-[28px] shadow-glass;
+    background: rgba(255, 255, 255, 0.64);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.58);
+    border-radius: 30px;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.10);
   }
 
-  /* Світла картка без агресивного кольору */
+  /* Темніша hero-панель для головної сторінки */
+  .hero-glass {
+    background:
+      linear-gradient(135deg, rgba(31, 41, 55, 0.72), rgba(17, 24, 39, 0.60)),
+      radial-gradient(circle at top left, rgba(249, 115, 22, 0.20), transparent 34%);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 32px;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.22);
+  }
+
+  /* Світла проста картка */
   .soft-card {
-    @apply bg-white border border-gray-100 rounded-3xl shadow-soft;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(229, 231, 235, 0.9);
+    border-radius: 24px;
+    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.06);
   }
 
-  /* Основна кнопка — прозорий помаранчевий glass */
+  /* Основна кнопка */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2;
-    @apply px-6 py-3 rounded-2xl font-semibold text-white;
-    @apply bg-orange-500/80 backdrop-blur-xl border border-orange-300/40;
-    @apply shadow-lg shadow-orange-500/20;
-    @apply hover:bg-orange-500/90 hover:shadow-xl hover:shadow-orange-500/25;
-    @apply active:scale-[0.98] transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold text-white transition-all duration-200 active:scale-[0.98];
+    background: rgba(249, 115, 22, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    box-shadow: 0 14px 30px rgba(249, 115, 22, 0.25);
   }
 
-  /* Другорядна кнопка — біла glass */
+  .btn-primary:hover {
+    background: rgba(234, 88, 12, 0.94);
+    box-shadow: 0 18px 40px rgba(249, 115, 22, 0.32);
+    transform: translateY(-1px);
+  }
+
+  /* Друга кнопка */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2;
-    @apply px-6 py-3 rounded-2xl font-semibold text-gray-800;
-    @apply bg-white/70 backdrop-blur-xl border border-white/80;
-    @apply shadow-soft hover:bg-white hover:shadow-glass;
-    @apply active:scale-[0.98] transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold text-gray-900 transition-all duration-200 active:scale-[0.98];
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.58);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.88);
+    transform: translateY(-1px);
   }
 
   /* Контурна кнопка */
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2;
-    @apply px-6 py-3 rounded-2xl font-semibold text-gray-800;
-    @apply bg-white/40 backdrop-blur-xl border border-gray-200/80;
-    @apply hover:bg-orange-50/80 hover:border-orange-200 hover:text-orange-700;
-    @apply active:scale-[0.98] transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold text-gray-800 transition-all duration-200 active:scale-[0.98];
+    background: rgba(255, 255, 255, 0.42);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.48);
   }
 
-  /* Маленька текстова кнопка */
+  .btn-outline:hover {
+    background: rgba(249, 115, 22, 0.10);
+    color: #c2410c;
+  }
+
+  /* Текстова кнопка */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2;
-    @apply px-4 py-2 rounded-xl font-medium text-gray-700;
-    @apply hover:bg-orange-50/80 hover:text-orange-700;
-    @apply transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold text-gray-700 transition-all duration-200;
   }
 
-  /* Поля вводу */
+  .btn-ghost:hover {
+    background: rgba(249, 115, 22, 0.10);
+    color: #c2410c;
+  }
+
+  /* Поле вводу */
   .input-glass {
-    @apply w-full px-4 py-3 rounded-2xl;
-    @apply bg-white/70 backdrop-blur-xl border border-white/80;
-    @apply text-gray-900 placeholder-gray-400 outline-none;
-    @apply focus:ring-2 focus:ring-orange-300/60 focus:border-orange-200;
-    @apply transition-all duration-200;
+    @apply w-full px-4 py-3 rounded-2xl outline-none transition-all duration-200 text-gray-900 placeholder-gray-500;
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.58);
   }
 
-  /* Селект */
+  .input-glass:focus {
+    border-color: rgba(249, 115, 22, 0.42);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.14);
+  }
+
+  /* Темне поле вводу для hero */
+  .input-hero {
+    @apply w-full px-4 py-3 rounded-2xl outline-none transition-all duration-200 text-white placeholder-gray-300;
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .input-hero:focus {
+    border-color: rgba(249, 115, 22, 0.55);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.16);
+  }
+
+  /* Select */
   .select-glass {
-    @apply w-full px-4 py-3 rounded-2xl;
-    @apply bg-white/70 backdrop-blur-xl border border-white/80;
-    @apply text-gray-900 outline-none;
-    @apply focus:ring-2 focus:ring-orange-300/60 focus:border-orange-200;
-    @apply transition-all duration-200;
-  }
-
-  /* Світлий фон секцій */
-  .section-light {
-    @apply bg-gradient-to-br from-white via-orange-50/20 to-teal-50/20;
-  }
-
-  /* М’який фон сторінки */
-  .page-bg {
-    @apply bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.10),transparent_32%),radial-gradient(circle_at_top_right,rgba(20,184,166,0.08),transparent_28%),linear-gradient(180deg,#fffdfc,#fafaf7)];
+    @apply w-full px-4 py-3 rounded-2xl outline-none transition-all duration-200 text-gray-900;
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.58);
   }
 
   /* Заголовки */
   .page-title {
     @apply text-3xl md:text-5xl font-extrabold tracking-tight text-gray-950;
+  }
+
+  .hero-title {
+    @apply text-3xl md:text-5xl font-extrabold tracking-tight text-white;
   }
 
   .section-title {
@@ -125,5 +194,9 @@
 
   .muted-text {
     @apply text-gray-600 leading-relaxed;
+  }
+
+  .hero-muted-text {
+    @apply text-gray-200 leading-relaxed;
   }
 }
