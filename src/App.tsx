@@ -13,11 +13,15 @@ import { Settings } from './pages/Settings'
 import { Favorites } from './pages/Favorites'
 
 function AppContent() {
+  // Поточний URL зберігається в стані,
+  // щоб додаток міг перемальовувати сторінку без повного перезавантаження браузера.
   const [currentUrl, setCurrentUrl] = useState(
     `${window.location.pathname}${window.location.search}`
   )
 
   useEffect(() => {
+    // Ця функція спрацьовує після navigateTo(...)
+    // або після кнопок "назад / вперед" у браузері.
     const handleRouteChange = () => {
       setCurrentUrl(`${window.location.pathname}${window.location.search}`)
     }
@@ -29,6 +33,7 @@ function AppContent() {
     }
   }, [])
 
+  // Для вибору сторінки використовуємо тільки pathname без query-параметрів.
   const path = window.location.pathname
 
   const getPage = () => {
@@ -61,6 +66,7 @@ function AppContent() {
         return <Settings />
 
       default:
+        // Якщо сторінка поки не створена — повертаємо на головну.
         return <Home />
     }
   }
