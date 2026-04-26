@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { MapPin, Search, SlidersHorizontal } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { ListingWithImages, Category } from '../lib/types'
 import { ListingCard } from '../components/ListingCard'
@@ -16,18 +16,50 @@ export function Listings() {
   const [loading, setLoading] = useState(true)
 
   const [searchQuery, setSearchQuery] = useState('')
+  const [locationQuery, setLocationQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
-  const [selectedType, setSelectedType] = useState('')
   const [showFilters, setShowFilters] = useState(false)
 
+  // Тимчасові тексти для оновленого listings-екрана.
+  // Після стабілізації UI винесемо їх у поточну систему перекладів.
+  const copy = {
+    eyebrow: 'Job requests',
+    title: 'Construction jobs from clients',
+    description:
+      'Browse active client requests, filter by category or place, and reply directly when a job matches your skills.',
+    searchPlaceholder: 'What needs to be done?',
+    locationPlaceholder: 'City or country',
+    findButton: 'Find requests',
+    filtersButton: 'Filters',
+    categoryLabel: 'Category',
+    allCategories: 'All categories',
+    clearFilters: 'Clear filters',
+    postJob: 'Post job',
+    countSuffix: 'job requests found',
+    loading: 'Loading job requests...',
+    emptyTitle: 'No job requests match these filters',
+    emptyText:
+      'Try another keyword, choose a different category, or clear location filtering.',
+  }
+
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const urlSearch = params.get('search') || ''
-    setSearchQuery(urlSearch)
+    const syncFiltersFromUrl = () => {
+      const params = new URLSearchParams(window.location.search)
+      setSearchQuery(params.get('search') || '')
+      setLocationQuery(params.get('location') || '')
+      setSelectedCategory(params.get('category') || '')
+    }
+
+    syncFiltersFromUrl()
+    window.addEventListener('popstate', syncFiltersFromUrl)
+
+    return () => {
+      window.removeEventListener('popstate', syncFiltersFromUrl)
+    }
   }, [])
 
   useEffect(() => {
-    loadInitialData()
+    void loadInitialData()
   }, [])
 
   const loadInitialData = async () => {
@@ -36,12 +68,10 @@ export function Listings() {
     try {
       const now = new Date().toISOString()
 
+      // На сторінці listings показуємо саме service requests,
+      // щоб Dimarket залишався платформою пошуку робіт, а не продажу товарів.
       const [categoriesResult, listingsResult] = await Promise.all([
-        supabase
-          .from('categories')
-          .select('*')
-          .order('name'),
-
+        supabase.from('categories').select('*').order('name'),
         supabase
           .from('listings')
           .select(`
@@ -49,191 +79,243 @@ export function Listings() {
             images:listing_images(*),
             category:categories(*)
           `)
+          .eq('listing_type', 'service_request')
           .eq('status', 'active')
           .gte('expires_at', now)
-          .order('is_premium', { ascending: false })
           .order('created_at', { ascending: false }),
       ])
 
-      if (categoriesResult.data) setCategories(categoriesResult.data)
-      if (listingsResult.data) {
-        setAllListings(listingsResult.data as ListingWithImages[])
-      }
+      setCategories(categoriesResult.data ?? [])
+      setAllListings((listingsResult.data as ListingWithImages[] | null) ?? [])
     } finally {
       setLoading(false)
     }
   }
 
-  const getCategoryTranslation = (categoryName: string) => {
-    const key = `category.name.${categoryName.toLowerCase()}` as never
-    return t(key) || categoryName
+  const translateUnsafe = (key: string) => {
+    return t(key as never)
+  }
+
+  const translateCategory = (category: Category) => {
+    const newKey = `category.name.${category.slug}`
+    const newValue = translateUnsafe(newKey)
+
+    if (newValue !== newKey) {
+      return newValue
+    }
+
+    const legacyKey = `category.${category.slug}`
+    const legacyValue = translateUnsafe(legacyKey)
+
+    if (legacyValue !== legacyKey) {
+      return legacyValue
+    }
+
+    return category.name
   }
 
   const filteredListings = useMemo(() => {
     let result = [...allListings]
 
-    if (selectedCategory) {
-      result = result.filter((listing) => listing.category_id === selectedCategory)
-    }
-
-    if (selectedType) {
-      result = result.filter((listing) => listing.listing_type === selectedType)
-    }
-
     const normalizedSearch = searchQuery.trim().toLowerCase()
+    const normalizedLocation = locationQuery.trim().toLowerCase()
+
+    if (selectedCategory) {
+      result = result.filter((listing) => {
+        const categorySlug = listing.category?.slug || ''
+        return categorySlug === selectedCategory || listing.category_id === selectedCategory
+      })
+    }
 
     if (normalizedSearch) {
       result = result.filter((listing) => {
         const title = listing.title?.toLowerCase() || ''
         const description = listing.description?.toLowerCase() || ''
-        const location = listing.location?.toLowerCase() || ''
         const categoryName = listing.category?.name?.toLowerCase() || ''
 
         return (
           title.includes(normalizedSearch) ||
           description.includes(normalizedSearch) ||
-          location.includes(normalizedSearch) ||
           categoryName.includes(normalizedSearch)
         )
       })
     }
 
-    return result
-  }, [allListings, selectedCategory, selectedType, searchQuery])
-
-  const handleSearch = () => {
-    const query = searchQuery.trim()
-
-    if (query) {
-      navigateTo(`/listings?search=${encodeURIComponent(query)}`)
-      return
+    if (normalizedLocation) {
+      result = result.filter((listing) => {
+        const location = listing.location?.toLowerCase() || ''
+        return location.includes(normalizedLocation)
+      })
     }
 
-    navigateTo('/listings')
+    return result
+  }, [allListings, locationQuery, searchQuery, selectedCategory])
+
+  const activeFiltersCount = [searchQuery, locationQuery, selectedCategory].filter(Boolean).length
+
+  const applyFiltersToUrl = () => {
+    const params = new URLSearchParams()
+
+    if (searchQuery.trim()) {
+      params.set('search', searchQuery.trim())
+    }
+
+    if (locationQuery.trim()) {
+      params.set('location', locationQuery.trim())
+    }
+
+    if (selectedCategory) {
+      params.set('category', selectedCategory)
+    }
+
+    const query = params.toString()
+    navigateTo(query ? `/listings?${query}` : '/listings')
   }
 
   const resetFilters = () => {
-    setSelectedCategory('')
-    setSelectedType('')
     setSearchQuery('')
+    setLocationQuery('')
+    setSelectedCategory('')
     navigateTo('/listings')
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 w-full">
+    <div className="page-bg min-h-screen py-8">
       <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
         <div className="flex gap-6">
           <div className="hidden xl:block w-[260px] 2xl:w-[300px] flex-shrink-0">
             <AdBanner position="left" sticky={true} />
           </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                {t('listings.title')}
-              </h1>
+          <div className="min-w-0 flex-1">
+            <section className="glass-panel mb-6 p-5 md:p-6">
+              <div className="inline-flex items-center rounded-full border border-[rgba(233,202,177,0.7)] bg-[rgba(255,247,239,0.88)] px-4 py-2 text-sm font-semibold text-[#a26233]">
+                {copy.eyebrow}
+              </div>
 
-              <div className="flex flex-col xl:flex-row gap-4 mb-6">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <div className="mt-4 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                <div className="max-w-3xl">
+                  <h1 className="text-3xl font-extrabold tracking-tight text-[#2f2a24] md:text-4xl">
+                    {copy.title}
+                  </h1>
+                  <p className="mt-3 text-sm leading-6 text-[#6f665d] md:text-base">
+                    {copy.description}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => navigateTo('/create-ad')}
+                  type="button"
+                  className="btn-secondary rounded-full"
+                >
+                  {copy.postJob}
+                </button>
+              </div>
+
+              <div className="mt-6 grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px_180px_160px]">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#b59a84]" />
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSearch()
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        applyFiltersToUrl()
+                      }
                     }}
-                    placeholder={t('listings.searchPlaceholder')}
-                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={copy.searchPlaceholder}
+                    className="input-glass h-14 pl-12"
+                  />
+                </div>
+
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#b59a84]" />
+                  <input
+                    type="text"
+                    value={locationQuery}
+                    onChange={(event) => setLocationQuery(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        applyFiltersToUrl()
+                      }
+                    }}
+                    placeholder={copy.locationPlaceholder}
+                    className="input-glass h-14 pl-12"
                   />
                 </div>
 
                 <button
-                  onClick={handleSearch}
+                  onClick={applyFiltersToUrl}
                   type="button"
-                  className="bg-blue-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition xl:min-w-[180px]"
+                  className="btn-primary h-14 rounded-[20px]"
                 >
-                  {t('listings.search')}
+                  {copy.findButton}
                 </button>
 
                 <button
-                  onClick={() => setShowFilters(!showFilters)}
+                  onClick={() => setShowFilters((value) => !value)}
                   type="button"
-                  className="flex items-center justify-center space-x-2 bg-white text-gray-700 px-6 py-3 rounded-lg border border-gray-300 hover:bg-gray-50 transition xl:min-w-[180px]"
+                  className="btn-outline h-14 rounded-[20px]"
                 >
-                  <SlidersHorizontal className="w-5 h-5" />
-                  <span>{t('listings.filters')}</span>
+                  <SlidersHorizontal className="h-5 w-5" />
+                  {activeFiltersCount > 0
+                    ? `${copy.filtersButton} (${activeFiltersCount})`
+                    : copy.filtersButton}
                 </button>
               </div>
 
               {showFilters && (
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="mt-4 rounded-[26px] border border-white/70 bg-white/45 p-4">
+                  <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('listings.category')}
+                      <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                        {copy.categoryLabel}
                       </label>
-
                       <select
                         value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(event) => setSelectedCategory(event.target.value)}
+                        className="select-glass bg-white/80"
                       >
-                        <option value="">{t('listings.allCategories')}</option>
+                        <option value="">{copy.allCategories}</option>
 
-                        {categories.map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.icon} {getCategoryTranslation(cat.name)}
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.slug}>
+                            {translateCategory(category)}
                           </option>
                         ))}
                       </select>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('listings.listingType')}
-                      </label>
-
-                      <select
-                        value={selectedType}
-                        onChange={(e) => setSelectedType(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">{t('listings.allTypes')}</option>
-                        <option value="service_request">{t('listings.typeServiceRequest')}</option>
-                        <option value="service_offer">{t('listings.typeServiceOffer')}</option>
-                        <option value="item_sale">{t('listings.typeItemSale')}</option>
-                        <option value="item_wanted">{t('listings.typeItemWanted')}</option>
-                      </select>
-                    </div>
-
-                    <div className="flex items-end">
-                      <button
-                        onClick={resetFilters}
-                        type="button"
-                        className="text-gray-600 hover:text-gray-800 text-sm font-medium"
-                      >
-                        {t('listings.clearFilters')}
-                      </button>
-                    </div>
+                    <button
+                      onClick={resetFilters}
+                      type="button"
+                      className="btn-ghost justify-start rounded-full px-0 md:justify-center"
+                    >
+                      {copy.clearFilters}
+                    </button>
                   </div>
                 </div>
               )}
+            </section>
 
-              <MobileAdBanner variant="horizontal" />
+            <MobileAdBanner variant="horizontal" />
+
+            <div className="mb-4 mt-6 text-sm font-semibold text-[#6f665d]">
+              {loading ? copy.loading : `${filteredListings.length} ${copy.countSuffix}`}
             </div>
 
             {loading ? (
-              <div className="flex justify-center items-center py-20">
-                <div className="text-gray-500">{t('listings.loading')}</div>
+              <div className="glass-card p-8 text-center text-[#7a7168]">
+                {copy.loading}
               </div>
             ) : filteredListings.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
                 {filteredListings.map((listing, index) => (
                   <Fragment key={listing.id}>
                     <ListingCard listing={listing} />
 
-                    {(index + 1) % 6 === 0 && index < filteredListings.length - 1 && (
+                    {(index + 1) % 4 === 0 && index < filteredListings.length - 1 && (
                       <div className="md:col-span-2 2xl:col-span-3">
                         <MobileAdBanner variant="inline" />
                       </div>
@@ -242,16 +324,29 @@ export function Listings() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20">
-                <div className="text-gray-500 mb-4">{t('listings.noFound')}</div>
-
-                <button
-                  onClick={() => navigateTo('/create-ad')}
-                  type="button"
-                  className="inline-block bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition"
-                >
-                  {t('listings.createFirst')}
-                </button>
+              <div className="glass-card p-10 text-center">
+                <h2 className="text-xl font-extrabold text-[#2f2a24]">
+                  {copy.emptyTitle}
+                </h2>
+                <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#6f665d]">
+                  {copy.emptyText}
+                </p>
+                <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <button
+                    onClick={resetFilters}
+                    type="button"
+                    className="btn-secondary rounded-full"
+                  >
+                    {copy.clearFilters}
+                  </button>
+                  <button
+                    onClick={() => navigateTo('/create-ad')}
+                    type="button"
+                    className="btn-primary rounded-full"
+                  >
+                    {copy.postJob}
+                  </button>
+                </div>
               </div>
             )}
 
