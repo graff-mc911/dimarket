@@ -3,7 +3,6 @@ import { type User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { Profile, CURRENCIES, LANGUAGES } from '../lib/types'
 import { getTranslation, type LanguageCode } from '../lib/i18n'
-import { getUiText } from '../lib/uiText'
 
 interface AppContextType {
   user: User | null
@@ -47,7 +46,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    // Реєструємо відвідування лише один раз за поточну сесію вкладки,
+    // Реєструємо візит лише один раз за поточну сесію вкладки,
     // щоб не накручувати статистику через звичайні перерендери.
     void registerVisitOncePerSession()
 
@@ -130,16 +129,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   const t = (key: string): string => {
-    // Спочатку шукаємо ключ у старому базовому словнику перекладів.
-    const baseTranslation = getTranslation(language.code as LanguageCode, key as never)
-
-    if (baseTranslation !== key) {
-      return baseTranslation
-    }
-
-    // Якщо ключа немає у старому словнику,
-    // тоді беремо його з нового UI-словника.
-    return getUiText(language.code, key)
+    return getTranslation(language.code as LanguageCode, key as never)
   }
 
   return (
