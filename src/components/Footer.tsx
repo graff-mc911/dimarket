@@ -1,39 +1,26 @@
+import { useApp } from '../contexts/AppContext'
 import { navigateTo } from '../lib/navigation'
 import { FooterStats } from './FooterStats'
 import { Logo } from './Logo'
 
 export function Footer() {
+  const { t } = useApp()
   const currentYear = new Date().getFullYear()
 
-  // Тимчасові тексти нового footer-блоку.
-  // Після стабілізації контенту винесемо їх у словник перекладів.
-  const copy = {
-    brandText:
-      'Dimarket is a free global platform for construction services where clients post work and professionals respond directly.',
-    monetization:
-      'No fees for users. No subscriptions. Platform revenue comes only from advertising.',
-    platformTitle: 'Platform',
-    platformLinks: [
-      { label: 'Job requests', path: '/listings' },
-      { label: 'Professionals', path: '/professionals' },
-      { label: 'Post job', path: '/create-ad' },
-      { label: 'Favorites', path: '/favorites' },
-    ],
-    accountTitle: 'Account',
-    accountLinks: [
-      { label: 'Messages', path: '/messages' },
-      { label: 'Login', path: '/login' },
-      { label: 'Register', path: '/register' },
-      { label: 'Dashboard', path: '/dashboard' },
-      { label: 'Settings', path: '/settings' },
-    ],
-    adsTitle: 'Advertising',
-    adsText:
-      'Construction brands, materials, tools, logistics, and local services can reach active demand across listings and professional pages.',
-    adsButton: 'Advertising page',
-    legalLeft: `© ${currentYear} Dimarket. All rights reserved.`,
-    legalRight: 'Free construction-services platform with advertising-only monetization.',
-  }
+  const platformLinks = [
+    { label: t('header.jobRequests'), path: '/listings' },
+    { label: t('header.findProfessionals'), path: '/professionals' },
+    { label: t('header.postJob'), path: '/create-ad' },
+    { label: t('header.favorites'), path: '/favorites' },
+  ]
+
+  const accountLinks = [
+    { label: t('header.messages'), path: '/messages' },
+    { label: t('footer.signIn'), path: '/login' },
+    { label: t('footer.register'), path: '/register' },
+    { label: t('header.dashboard'), path: '/dashboard' },
+    { label: t('header.myProfile'), path: '/settings' },
+  ]
 
   return (
     <footer className="mt-auto w-full px-4 pb-6 md:px-6 xl:px-8 2xl:px-10">
@@ -49,30 +36,30 @@ export function Footer() {
             </button>
 
             <p className="mt-4 max-w-md text-sm leading-7 text-[#6f665d]">
-              {copy.brandText}
+              {t('footer.brandText')}
             </p>
 
             <p className="mt-4 max-w-md text-sm font-semibold leading-7 text-[#9a5525]">
-              {copy.monetization}
+              {t('footer.monetization')}
             </p>
           </div>
 
           <FooterLinkGroup
-            title={copy.platformTitle}
-            links={copy.platformLinks}
+            title={t('footer.platformTitleSimple')}
+            links={platformLinks}
           />
 
           <FooterLinkGroup
-            title={copy.accountTitle}
-            links={copy.accountLinks}
+            title={t('footer.accountTitleSimple')}
+            links={accountLinks}
           />
 
           <div>
             <h3 className="text-sm font-extrabold uppercase tracking-[0.18em] text-[#9d8b7a]">
-              {copy.adsTitle}
+              {t('footer.adsTitle')}
             </h3>
             <p className="mt-4 text-sm leading-7 text-[#6f665d]">
-              {copy.adsText}
+              {t('footer.adsText')}
             </p>
 
             <button
@@ -80,7 +67,7 @@ export function Footer() {
               type="button"
               className="btn-secondary mt-5 rounded-full"
             >
-              {copy.adsButton}
+              {t('footer.adsButton')}
             </button>
           </div>
         </div>
@@ -88,8 +75,8 @@ export function Footer() {
         <FooterStats />
 
         <div className="mt-8 flex flex-col gap-2 border-t border-[rgba(190,168,150,0.28)] pt-5 text-sm text-[#7a7168] md:flex-row md:items-center md:justify-between">
-          <span>{copy.legalLeft}</span>
-          <span>{copy.legalRight}</span>
+          <span>{`© ${currentYear} Dimarket. ${t('footer.allRightsReserved')}`}</span>
+          <span>{t('footer.legalRight')}</span>
         </div>
       </div>
     </footer>
