@@ -24,15 +24,15 @@ import { navigateTo } from './lib/navigation'
 function AppContent() {
   const { t } = useApp()
 
-  // Зберігаємо поточну адресу сторінки в стані.
-  // Це потрібно, бо ми використовуємо власну просту навігацію без react-router.
+  // Зберігаємо поточну адресу сторінки в стані,
+  // бо тут використовується власна проста навігація без react-router.
   const [currentUrl, setCurrentUrl] = useState(
     `${window.location.pathname}${window.location.search}`
   )
 
   useEffect(() => {
-    // Оновлюємо стан, коли користувач переходить між сторінками
-    // або натискає кнопки браузера "назад / вперед".
+    // Оновлюємо адресу після переходів
+    // та після натискання кнопок браузера назад / вперед.
     const handleRouteChange = () => {
       setCurrentUrl(`${window.location.pathname}${window.location.search}`)
     }
@@ -44,8 +44,8 @@ function AppContent() {
     }
   }, [])
 
-  // Беремо pathname саме з currentUrl, а не напряму з window.location.
-  // Так React стабільно перемальовує сторінку після navigateTo().
+  // Беремо pathname саме зі стану,
+  // щоб React стабільно перемальовував потрібну сторінку після navigateTo().
   const path = useMemo(() => {
     return currentUrl.split('?')[0] || '/'
   }, [currentUrl])
@@ -59,18 +59,18 @@ function AppContent() {
       return <Professionals />
     }
 
-    // Тимчасово показуємо чесний placeholder замість тихого редіректу,
-    // щоб користувач розумів, що сторінка майстра ще в роботі.
+    // Окремо показуємо зрозумілу заглушку замість тихого редіректу,
+    // щоб користувач бачив, що сторінка профілю майстра ще в роботі.
     if (path.startsWith('/professional/')) {
       return (
         <RoutePlaceholder
           icon={UserRound}
-          eyebrow="Professional profile"
-          title="Professional profile page is being prepared"
-          description="Clients will be able to review a master's profile, rating, reviews, and completed jobs here."
+          eyebrow={t('route.professionalProfileEyebrow')}
+          title={t('route.professionalProfileTitle')}
+          description={t('route.professionalProfileDescription')}
           primaryLabel={t('header.findProfessionals')}
           primaryPath="/professionals"
-          secondaryLabel={t('header.createAd')}
+          secondaryLabel={t('header.postJob')}
           secondaryPath="/create-ad"
         />
       )
@@ -80,18 +80,18 @@ function AppContent() {
       return <Listings />
     }
 
-    // Тимчасово показуємо окрему заглушку для деталей заявки,
-    // щоб маршрут не повертав користувача мовчки назад у список.
+    // Те саме робимо для детальної сторінки запиту на роботу,
+    // щоб маршрут не зникав без пояснення для користувача.
     if (path.startsWith('/listing/')) {
       return (
         <RoutePlaceholder
           icon={ClipboardList}
-          eyebrow="Job request"
-          title="Job request details are being prepared"
-          description="This page will show the full request, attachments, budget, and direct contact options for professionals."
-          primaryLabel={t('home.viewAllListings')}
+          eyebrow={t('route.jobRequestEyebrow')}
+          title={t('route.jobRequestTitle')}
+          description={t('route.jobRequestDescription')}
+          primaryLabel={t('home.allRequests')}
           primaryPath="/listings"
-          secondaryLabel={t('header.createAd')}
+          secondaryLabel={t('header.postJob')}
           secondaryPath="/create-ad"
         />
       )
@@ -105,14 +105,15 @@ function AppContent() {
       return <Favorites />
     }
 
-    // Тимчасовий текст залишаємо inline і винесемо в переклади окремим кроком.
+    // Тимчасова заглушка для повідомлень,
+    // доки повноцінний direct messaging ще не реалізований.
     if (path === '/messages') {
       return (
         <RoutePlaceholder
           icon={MessageSquare}
-          eyebrow="Messages"
-          title="Direct messages will appear here"
-          description="Clients and professionals will be able to communicate directly in one conversation thread for each job."
+          eyebrow={t('route.messagesEyebrow')}
+          title={t('route.messagesTitle')}
+          description={t('route.messagesDescription')}
           primaryLabel={t('header.dashboard')}
           primaryPath="/dashboard"
           secondaryLabel={t('header.findProfessionals')}
@@ -141,24 +142,25 @@ function AppContent() {
       return <Advertising />
     }
 
-    // Невідомі маршрути теж не редіректимо мовчки,
-    // а даємо зрозумілу сторінку-заглушку з безпечними діями.
+    // Для невідомих маршрутів також показуємо осмислену сторінку,
+    // а не кидаємо користувача кудись без пояснення.
     return (
       <RoutePlaceholder
         icon={AlertCircle}
-        eyebrow="Page not found"
-        title="This page does not exist yet"
-        description="The route is available for future growth, but there is no finished screen for it yet."
-        primaryLabel={t('home.search')}
+        eyebrow={t('route.notFoundEyebrow')}
+        title={t('route.notFoundTitle')}
+        description={t('route.notFoundDescription')}
+        primaryLabel={t('advertising.secondaryButton')}
         primaryPath="/"
-        secondaryLabel={t('home.viewAllListings')}
+        secondaryLabel={t('home.allRequests')}
         secondaryPath="/listings"
       />
     )
   }, [path, t])
 
   return (
-    <div className="min-h-screen bg-[#f6efe5] flex flex-col w-full">
+    <div className="flex min-h-screen w-full flex-col bg-[#f6efe5]">
+      {/* key потрібен, щоб Header коректно оновлював активні стани після переходів */}
       <Header key={`header-${currentUrl}`} />
 
       <main className="flex-1 w-full">
