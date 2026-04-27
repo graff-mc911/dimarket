@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2, Eye, FileText, Globe2, Users } from 'lucide-react'
+import { useApp } from '../contexts/AppContext'
 import { supabase } from '../lib/supabase'
 
 interface CountryRankingItem {
@@ -29,30 +30,9 @@ const EMPTY_STATS: FooterStatsData = {
 }
 
 export function FooterStats() {
+  const { t } = useApp()
   const [stats, setStats] = useState<FooterStatsData>(EMPTY_STATS)
   const [loading, setLoading] = useState(true)
-
-  // Тимчасові тексти для stats-блоку.
-  // Після стабілізації UI винесемо їх у словник перекладів.
-  const copy = {
-    title: 'Platform activity',
-    subtitle: 'Live indicators from Dimarket usage and construction-service demand.',
-    visits: 'Visits',
-    listings: 'Job requests created',
-    successful: 'Requests completed',
-    professionals: 'Professionals',
-    countries: 'Countries ranked',
-    rankingTitle: 'Country ranking',
-    rankingSubtitle:
-      'The score combines professionals, requests, and activity across countries.',
-    updatedPrefix: 'Updated:',
-    loading: 'Loading statistics...',
-    empty: 'Not enough data yet to build the country ranking.',
-    score: 'Score',
-    prosShort: 'Pros',
-    jobsShort: 'Jobs',
-    repliesShort: 'Replies',
-  }
 
   useEffect(() => {
     void loadStats()
@@ -99,18 +79,18 @@ export function FooterStats() {
   }
 
   const statCards = [
-    { icon: Eye, label: copy.visits, value: stats.total_visits, color: 'text-sky-600' },
-    { icon: FileText, label: copy.listings, value: stats.total_listings_created, color: 'text-[#c96d2c]' },
-    { icon: CheckCircle2, label: copy.successful, value: stats.total_successful_listings, color: 'text-emerald-600' },
-    { icon: Users, label: copy.professionals, value: stats.total_professionals, color: 'text-teal-700' },
-    { icon: Globe2, label: copy.countries, value: stats.country_ranking.length, color: 'text-[#8b6f3d]' },
+    { icon: Eye, label: t('footerStats.visits'), value: stats.total_visits, color: 'text-sky-600' },
+    { icon: FileText, label: t('footerStats.listings'), value: stats.total_listings_created, color: 'text-[#c96d2c]' },
+    { icon: CheckCircle2, label: t('footerStats.successful'), value: stats.total_successful_listings, color: 'text-emerald-600' },
+    { icon: Users, label: t('footerStats.professionals'), value: stats.total_professionals, color: 'text-teal-700' },
+    { icon: Globe2, label: t('footerStats.countries'), value: stats.country_ranking.length, color: 'text-[#8b6f3d]' },
   ]
 
   return (
     <section className="mt-10 border-t border-[rgba(190,168,150,0.28)] pt-8">
       <div className="mb-6">
-        <h3 className="text-xl font-extrabold text-[#2f2a24]">{copy.title}</h3>
-        <p className="mt-2 text-sm leading-6 text-[#6f665d]">{copy.subtitle}</p>
+        <h3 className="text-xl font-extrabold text-[#2f2a24]">{t('footerStats.title')}</h3>
+        <p className="mt-2 text-sm leading-6 text-[#6f665d]">{t('footerStats.subtitle')}</p>
       </div>
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -134,21 +114,21 @@ export function FooterStats() {
       <div className="rounded-[28px] border border-white/70 bg-white/55 p-5 shadow-[0_10px_28px_rgba(89,63,48,0.06)]">
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h4 className="text-lg font-extrabold text-[#2f2a24]">{copy.rankingTitle}</h4>
-            <p className="mt-1 text-sm leading-6 text-[#6f665d]">{copy.rankingSubtitle}</p>
+            <h4 className="text-lg font-extrabold text-[#2f2a24]">{t('footerStats.rankingTitle')}</h4>
+            <p className="mt-1 text-sm leading-6 text-[#6f665d]">{t('footerStats.rankingSubtitle')}</p>
           </div>
 
           {stats.updated_at && !loading && (
             <span className="text-xs text-[#7a7168]">
-              {copy.updatedPrefix} {new Date(stats.updated_at).toLocaleString()}
+              {t('footerStats.updatedPrefix')} {new Date(stats.updated_at).toLocaleString()}
             </span>
           )}
         </div>
 
         {loading ? (
-          <div className="text-sm text-[#7a7168]">{copy.loading}</div>
+          <div className="text-sm text-[#7a7168]">{t('footerStats.loading')}</div>
         ) : stats.country_ranking.length === 0 ? (
-          <div className="text-sm text-[#7a7168]">{copy.empty}</div>
+          <div className="text-sm text-[#7a7168]">{t('footerStats.empty')}</div>
         ) : (
           <div className="space-y-3">
             {stats.country_ranking.map((item, index) => (
@@ -166,15 +146,15 @@ export function FooterStats() {
                       {item.country}
                     </div>
                     <div className="text-xs text-[#7a7168]">
-                      {copy.score}: {formatNumber(item.score)}
+                      {t('footerStats.score')}: {formatNumber(item.score)}
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 text-sm">
-                  <RankingMetric label={copy.prosShort} value={item.professionals} />
-                  <RankingMetric label={copy.jobsShort} value={item.listings} />
-                  <RankingMetric label={copy.repliesShort} value={item.responses} />
+                  <RankingMetric label={t('footerStats.prosShort')} value={item.professionals} />
+                  <RankingMetric label={t('footerStats.jobsShort')} value={item.listings} />
+                  <RankingMetric label={t('footerStats.repliesShort')} value={item.responses} />
                 </div>
               </div>
             ))}
