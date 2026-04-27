@@ -36,7 +36,7 @@ export function ListingCard({ listing }: ListingCardProps) {
 
   const getCategoryLabel = () => {
     if (!listing.category) {
-      return 'Construction service'
+      return t('listing.constructionService')
     }
 
     const newKey = `category.name.${listing.category.slug}`
@@ -70,6 +70,16 @@ export function ListingCard({ listing }: ListingCardProps) {
     return labels[radius] || radius
   }
 
+  const getStatusLabel = () => {
+    // Для активних запитів показуємо локалізований статус,
+    // а для решти залишаємо fallback на сире значення.
+    if (listing.status === 'active') {
+      return t('home.activeLabel')
+    }
+
+    return listing.status
+  }
+
   const formatBudget = () => {
     if (!listing.price) {
       return t('listing.contactForPrice')
@@ -101,7 +111,7 @@ export function ListingCard({ listing }: ListingCardProps) {
           </div>
 
           <span className="rounded-full bg-[rgba(126,180,141,0.16)] px-3 py-1 text-xs font-bold text-[#3d7a52]">
-            {listing.status}
+            {getStatusLabel()}
           </span>
         </div>
 
@@ -132,7 +142,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         <div className="grid gap-2 text-sm text-[#7a7168]">
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 shrink-0" />
-            <span>{listing.location || 'Location not specified'}</span>
+            <span>{listing.location || t('listing.locationNotSpecified')}</span>
           </div>
 
           {visibilityRadius && (
@@ -148,7 +158,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9d8b7a]">
-              Budget
+              {t('listing.budget')}
             </div>
             <div className="mt-1 text-lg font-extrabold text-[#2f2a24]">
               {formatBudget()}
