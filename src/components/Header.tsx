@@ -46,13 +46,11 @@ export function Header() {
 
   const currentPath = window.location.pathname
 
-  // Тимчасово тримаємо короткі назви деяких пунктів inline,
-  // бо поточний словник перекладів ще не містить нових коротких labels для 24 мов.
   const navItems: NavItem[] = [
-    { label: 'Job requests', path: '/listings', icon: ClipboardList },
+    { label: t('header.jobRequests'), path: '/listings', icon: ClipboardList },
     { label: t('header.findProfessionals'), path: '/professionals', icon: Hammer },
-    { label: 'Favorites', path: '/favorites', icon: Heart },
-    { label: 'Messages', path: '/messages', icon: MessageSquare },
+    { label: t('header.favorites'), path: '/favorites', icon: Heart },
+    { label: t('header.messages'), path: '/messages', icon: MessageSquare },
   ]
 
   const closeAllMenus = () => {
@@ -157,7 +155,7 @@ export function Header() {
                 Dimarket
               </div>
               <div className="mt-1 truncate text-[11px] font-medium uppercase tracking-[0.18em] text-[#9d8b7a]">
-                Free construction platform
+                {t('header.brandTagline')}
               </div>
             </div>
           </button>
@@ -317,7 +315,7 @@ export function Header() {
               className="btn-primary rounded-full px-5 py-3"
             >
               <PlusCircle className="h-4 w-4" />
-              Post job
+              {t('header.postJob')}
             </button>
           </div>
 
@@ -461,7 +459,7 @@ export function Header() {
                   className="btn-primary mt-1 w-full justify-center rounded-full py-3 text-base"
                 >
                   <PlusCircle className="h-5 w-5" />
-                  Post job
+                  {t('header.postJob')}
                 </button>
               </div>
             </div>
