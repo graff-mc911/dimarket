@@ -26,6 +26,46 @@ export function Home() {
   const [locationQuery, setLocationQuery] = useState('')
   const [loading, setLoading] = useState(true)
 
+  // Тимчасово тримаємо нові тексти home-сторінки inline,
+  // а на етапі clean translations винесемо їх у наявну i18n-систему для всіх 24 мов.
+  const copy = {
+    eyebrow: 'Global construction services',
+    title: 'Find a master for repair, installation, or building work.',
+    description:
+      'Clients post job requests, professionals respond directly, and Dimarket stays free for users.',
+    taskPlaceholder: 'What needs to be done?',
+    locationPlaceholder: 'City or country',
+    postJob: 'Post job',
+    popularCategoriesTitle: 'Popular categories',
+    popularCategoriesText:
+      'The most requested construction and renovation directions on Dimarket.',
+    browseRequests: 'Browse job requests',
+    freshRequestsTitle: 'Fresh job requests',
+    freshRequestsText:
+      'New client requests that professionals can review and answer right away.',
+    allRequests: 'All job requests',
+    popularProsTitle: 'Popular professionals',
+    popularProsText:
+      'Profiles with visible experience, steady ratings, and direct contact flow.',
+    allPros: 'All professionals',
+    adTitle: 'Advertising',
+    adText:
+      'Promote tools, materials, local services, or construction showrooms inside a focused demand audience.',
+    adButton: 'Advertise on Dimarket',
+    adCardOne: 'Materials partners',
+    adCardTwo: 'Tool brands',
+    adCardThree: 'Local showrooms',
+    noJobs: 'No active job requests yet.',
+    noProfessionals: 'No professionals available yet.',
+    noCategories: 'Categories will appear here soon.',
+    noLocation: 'Location not specified',
+    budgetLabel: 'Budget',
+    activeLabel: 'Active',
+    unknownCategory: 'Construction service',
+    noBudget: t('listing.contactForPrice'),
+    noBio: 'Construction professional profile is being completed.',
+  }
+
   useEffect(() => {
     void loadHomeData()
   }, [])
@@ -36,8 +76,8 @@ export function Home() {
     try {
       const now = new Date().toISOString()
 
-      // Для головної беремо лише будівельні job requests,
-      // щоб сторінка не перетворювалась на маркетплейс товарів.
+      // Для home беремо тільки job requests,
+      // щоб головна не виглядала як товарний маркетплейс.
       const [categoriesResult, professionalsResult, jobsResult] = await Promise.all([
         supabase
           .from('categories')
@@ -90,13 +130,13 @@ export function Home() {
     }
 
     // Формуємо URL через query params,
-    // щоб сторінка listings підхопила фільтри без зміни роутера.
+    // щоб existing Listings page підхопив фільтри без зміни роутера.
     const query = params.toString()
     navigateTo(query ? `/listings?${query}` : '/listings')
   }
 
   const translateUnsafe = (key: string) => {
-    return t(key)
+    return t(key as never)
   }
 
   const getCategoryName = (category: Category) => {
@@ -125,15 +165,7 @@ export function Home() {
       return legacyValue
     }
 
-    return category.description || t('home.unknownCategory')
-  }
-
-  const getListingCategoryName = (job: ListingWithImages) => {
-    if (!job.category) {
-      return t('home.unknownCategory')
-    }
-
-    return getCategoryName(job.category)
+    return category.description || copy.unknownCategory
   }
 
   return (
@@ -143,15 +175,15 @@ export function Home() {
           <div className="glass-panel overflow-hidden p-5 md:p-8">
             <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(233,202,177,0.7)] bg-[rgba(255,247,239,0.88)] px-4 py-2 text-sm font-semibold text-[#a26233]">
               <ShieldCheck className="h-4 w-4" />
-              <span>{t('home.globalEyebrow')}</span>
+              <span>{copy.eyebrow}</span>
             </div>
 
             <h1 className="mt-5 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-[#2f2a24] md:text-5xl">
-              {t('home.heroSimpleTitle')}
+              {copy.title}
             </h1>
 
             <p className="mt-4 max-w-2xl text-base leading-7 text-[#6f665d] md:text-lg">
-              {t('home.heroSimpleDescription')}
+              {copy.description}
             </p>
 
             <form
@@ -163,7 +195,7 @@ export function Home() {
                 <input
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder={t('home.whatNeedsToBeDone')}
+                  placeholder={copy.taskPlaceholder}
                   className="input-glass h-14 pl-12"
                 />
               </div>
@@ -173,7 +205,7 @@ export function Home() {
                 <input
                   value={locationQuery}
                   onChange={(event) => setLocationQuery(event.target.value)}
-                  placeholder={t('home.cityOrCountry')}
+                  placeholder={copy.locationPlaceholder}
                   className="input-glass h-14 pl-12"
                 />
               </div>
@@ -190,7 +222,7 @@ export function Home() {
                 className="btn-secondary rounded-[20px]"
               >
                 <PlusCircle className="h-5 w-5" />
-                {t('home.postJob')}
+                {copy.postJob}
               </button>
 
               <button
@@ -199,7 +231,7 @@ export function Home() {
                 className="btn-outline rounded-[20px]"
               >
                 <Hammer className="h-5 w-5" />
-                {t('home.browseRequests')}
+                {copy.browseRequests}
               </button>
             </div>
 
@@ -224,17 +256,17 @@ export function Home() {
               </div>
 
               <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-[#2f2a24]">
-                {t('home.adTitle')}
+                {copy.adTitle}
               </h2>
 
               <p className="mt-3 text-sm leading-6 text-[#6f665d]">
-                {t('home.adText')}
+                {copy.adText}
               </p>
 
               <div className="mt-5 grid gap-3">
-                <AdPill label={t('home.adCardOne')} />
-                <AdPill label={t('home.adCardTwo')} />
-                <AdPill label={t('home.adCardThree')} />
+                <AdPill label={copy.adCardOne} />
+                <AdPill label={copy.adCardTwo} />
+                <AdPill label={copy.adCardThree} />
               </div>
             </div>
 
@@ -243,7 +275,7 @@ export function Home() {
               type="button"
               className="btn-primary mt-6 w-full rounded-[20px]"
             >
-              {t('home.adButton')}
+              {copy.adButton}
             </button>
           </aside>
         </div>
@@ -252,14 +284,14 @@ export function Home() {
       <section className="px-4 py-6 md:px-6 xl:px-8 2xl:px-10">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
-            title={t('home.popularCategoriesTitle')}
-            text={t('home.popularCategoriesText')}
-            buttonText={t('home.browseRequests')}
+            title={copy.popularCategoriesTitle}
+            text={copy.popularCategoriesText}
+            buttonText={copy.browseRequests}
             onClick={() => navigateTo('/listings')}
           />
 
           {loading ? (
-            <LoadingBlock text={t('home.loading')} />
+            <LoadingBlock />
           ) : categories.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {categories.map((category) => (
@@ -289,7 +321,7 @@ export function Home() {
               ))}
             </div>
           ) : (
-            <EmptyBlock text={t('home.noCategories')} />
+            <EmptyBlock text={copy.noCategories} />
           )}
         </div>
       </section>
@@ -298,35 +330,34 @@ export function Home() {
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div>
             <SectionHeader
-              title={t('home.freshRequestsTitle')}
-              text={t('home.freshRequestsText')}
-              buttonText={t('home.allRequests')}
+              title={copy.freshRequestsTitle}
+              text={copy.freshRequestsText}
+              buttonText={copy.allRequests}
               onClick={() => navigateTo('/listings')}
             />
 
             {loading ? (
-              <LoadingBlock text={t('home.loading')} />
+              <LoadingBlock />
             ) : jobs.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {jobs.map((job, index) => (
                   <div key={job.id} className="contents">
                     <HomeJobCard
                       job={job}
-                      categoryLabel={getListingCategoryName(job)}
                       currencySymbol={currency.symbol}
                       locale={language.code}
-                      budgetLabel={t('home.budgetLabel')}
-                      activeLabel={t('home.activeLabel')}
-                      noBudgetLabel={t('listing.contactForPrice')}
-                      noLocationLabel={t('home.noLocation')}
-                      unknownCategoryLabel={t('home.unknownCategory')}
+                      budgetLabel={copy.budgetLabel}
+                      activeLabel={copy.activeLabel}
+                      noBudgetLabel={copy.noBudget}
+                      noLocationLabel={copy.noLocation}
+                      unknownCategoryLabel={copy.unknownCategory}
                     />
 
                     {index === 1 && (
                       <InlineAdCard
-                        title={t('home.adTitle')}
-                        text={t('home.sponsoredPlacement')}
-                        actionLabel={t('home.adButton')}
+                        title={copy.adTitle}
+                        text="Sponsored placement for tools, materials, logistics, or local construction partners."
+                        actionLabel={copy.adButton}
                         onClick={() => navigateTo('/advertise')}
                       />
                     )}
@@ -334,18 +365,18 @@ export function Home() {
                 ))}
               </div>
             ) : (
-              <EmptyBlock text={t('home.noJobs')} />
+              <EmptyBlock text={copy.noJobs} />
             )}
           </div>
 
           <div className="space-y-4">
             <SidebarAdCard
-              title={t('home.adCardOne')}
-              text={t('home.sidebarAdOne')}
+              title={copy.adCardOne}
+              text="Place brand visibility next to live construction demand."
             />
             <SidebarAdCard
-              title={t('home.adCardTwo')}
-              text={t('home.sidebarAdTwo')}
+              title={copy.adCardTwo}
+              text="Reach professionals and clients while they search for work and services."
             />
           </div>
         </div>
@@ -354,31 +385,28 @@ export function Home() {
       <section className="px-4 pb-14 pt-6 md:px-6 xl:px-8 2xl:px-10">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
-            title={t('home.popularProsTitle')}
-            text={t('home.popularProsText')}
-            buttonText={t('home.allPros')}
+            title={copy.popularProsTitle}
+            text={copy.popularProsText}
+            buttonText={copy.allPros}
             onClick={() => navigateTo('/professionals')}
           />
 
           {loading ? (
-            <LoadingBlock text={t('home.loading')} />
+            <LoadingBlock />
           ) : professionals.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {professionals.map((professional) => (
                 <ProfessionalPreviewCard
                   key={professional.id}
                   professional={professional}
-                  noBioLabel={t('home.noBio')}
-                  defaultNameLabel={t('professional.defaultName')}
-                  globalLabel={t('professional.global')}
-                  newLabel={t('professional.new')}
+                  noBioLabel={copy.noBio}
                   reviewLabel={t('professional.reviews')}
                   actionLabel={t('professional.contact')}
                 />
               ))}
             </div>
           ) : (
-            <EmptyBlock text={t('home.noProfessionals')} />
+            <EmptyBlock text={copy.noProfessionals} />
           )}
         </div>
       </section>
@@ -422,7 +450,6 @@ function SectionHeader({
 
 function HomeJobCard({
   job,
-  categoryLabel,
   currencySymbol,
   locale,
   budgetLabel,
@@ -432,7 +459,6 @@ function HomeJobCard({
   unknownCategoryLabel,
 }: {
   job: ListingWithImages
-  categoryLabel: string
   currencySymbol: string
   locale: string
   budgetLabel: string
@@ -459,7 +485,7 @@ function HomeJobCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <span className="inline-flex rounded-full bg-[rgba(245,166,109,0.16)] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#9a5525]">
-            {categoryLabel || unknownCategoryLabel}
+            {job.category?.name || unknownCategoryLabel}
           </span>
 
           <h3 className="mt-3 line-clamp-2 text-xl font-extrabold text-[#2f2a24] transition group-hover:text-[#9a5525]">
@@ -497,23 +523,17 @@ function HomeJobCard({
 function ProfessionalPreviewCard({
   professional,
   noBioLabel,
-  defaultNameLabel,
-  globalLabel,
-  newLabel,
   reviewLabel,
   actionLabel,
 }: {
   professional: Profile
   noBioLabel: string
-  defaultNameLabel: string
-  globalLabel: string
-  newLabel: string
   reviewLabel: string
   actionLabel: string
 }) {
   const initials = getInitials(professional.full_name)
   const ratingLabel =
-    professional.rating > 0 ? professional.rating.toFixed(1) : newLabel
+    professional.rating > 0 ? professional.rating.toFixed(1) : 'New'
 
   return (
     <div className="glass-card overflow-hidden p-5">
@@ -525,10 +545,10 @@ function ProfessionalPreviewCard({
 
           <div className="min-w-0">
             <h3 className="truncate text-lg font-extrabold text-[#2f2a24]">
-              {professional.full_name || defaultNameLabel}
+              {professional.full_name || 'Professional'}
             </h3>
             <p className="mt-1 text-sm text-[#7a7168]">
-              {professional.location || globalLabel}
+              {professional.location || 'Global'}
             </p>
           </div>
         </div>
@@ -622,10 +642,10 @@ function SidebarAdCard({
   )
 }
 
-function LoadingBlock({ text }: { text: string }) {
+function LoadingBlock() {
   return (
     <div className="glass-card p-8 text-center text-[#7a7168]">
-      {text}
+      Loading...
     </div>
   )
 }

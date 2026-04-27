@@ -20,6 +20,28 @@ export function Listings() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [showFilters, setShowFilters] = useState(false)
 
+  // Тимчасові тексти для оновленого listings-екрана.
+  // Після стабілізації UI винесемо їх у поточну систему перекладів.
+  const copy = {
+    eyebrow: 'Job requests',
+    title: 'Construction jobs from clients',
+    description:
+      'Browse active client requests, filter by category or place, and reply directly when a job matches your skills.',
+    searchPlaceholder: 'What needs to be done?',
+    locationPlaceholder: 'City or country',
+    findButton: 'Find requests',
+    filtersButton: 'Filters',
+    categoryLabel: 'Category',
+    allCategories: 'All categories',
+    clearFilters: 'Clear filters',
+    postJob: 'Post job',
+    countSuffix: 'job requests found',
+    loading: 'Loading job requests...',
+    emptyTitle: 'No job requests match these filters',
+    emptyText:
+      'Try another keyword, choose a different category, or clear location filtering.',
+  }
+
   useEffect(() => {
     const syncFiltersFromUrl = () => {
       const params = new URLSearchParams(window.location.search)
@@ -28,8 +50,6 @@ export function Listings() {
       setSelectedCategory(params.get('category') || '')
     }
 
-    // Синхронізуємо локальний стан фільтрів з URL,
-    // щоб сторінка коректно працювала після back/forward та прямого відкриття посилання.
     syncFiltersFromUrl()
     window.addEventListener('popstate', syncFiltersFromUrl)
 
@@ -48,8 +68,8 @@ export function Listings() {
     try {
       const now = new Date().toISOString()
 
-      // На сторінці listings показуємо лише service_request,
-      // щоб Dimarket залишався платформою запитів на будівельні роботи.
+      // На сторінці listings показуємо саме service requests,
+      // щоб Dimarket залишався платформою пошуку робіт, а не продажу товарів.
       const [categoriesResult, listingsResult] = await Promise.all([
         supabase.from('categories').select('*').order('name'),
         supabase
@@ -73,7 +93,7 @@ export function Listings() {
   }
 
   const translateUnsafe = (key: string) => {
-    return t(key)
+    return t(key as never)
   }
 
   const translateCategory = (category: Category) => {
@@ -148,8 +168,6 @@ export function Listings() {
       params.set('category', selectedCategory)
     }
 
-    // Зберігаємо фільтри в URL,
-    // щоб посиланням на конкретну вибірку можна було поділитися.
     const query = params.toString()
     navigateTo(query ? `/listings?${query}` : '/listings')
   }
@@ -172,16 +190,16 @@ export function Listings() {
           <div className="min-w-0 flex-1">
             <section className="glass-panel mb-6 p-5 md:p-6">
               <div className="inline-flex items-center rounded-full border border-[rgba(233,202,177,0.7)] bg-[rgba(255,247,239,0.88)] px-4 py-2 text-sm font-semibold text-[#a26233]">
-                {t('listings.eyebrow')}
+                {copy.eyebrow}
               </div>
 
               <div className="mt-4 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                 <div className="max-w-3xl">
                   <h1 className="text-3xl font-extrabold tracking-tight text-[#2f2a24] md:text-4xl">
-                    {t('listings.simpleTitle')}
+                    {copy.title}
                   </h1>
                   <p className="mt-3 text-sm leading-6 text-[#6f665d] md:text-base">
-                    {t('listings.simpleDescription')}
+                    {copy.description}
                   </p>
                 </div>
 
@@ -190,7 +208,7 @@ export function Listings() {
                   type="button"
                   className="btn-secondary rounded-full"
                 >
-                  {t('listings.postJob')}
+                  {copy.postJob}
                 </button>
               </div>
 
@@ -206,7 +224,7 @@ export function Listings() {
                         applyFiltersToUrl()
                       }
                     }}
-                    placeholder={t('listings.whatNeedsToBeDone')}
+                    placeholder={copy.searchPlaceholder}
                     className="input-glass h-14 pl-12"
                   />
                 </div>
@@ -222,7 +240,7 @@ export function Listings() {
                         applyFiltersToUrl()
                       }
                     }}
-                    placeholder={t('listings.cityOrCountry')}
+                    placeholder={copy.locationPlaceholder}
                     className="input-glass h-14 pl-12"
                   />
                 </div>
@@ -232,7 +250,7 @@ export function Listings() {
                   type="button"
                   className="btn-primary h-14 rounded-[20px]"
                 >
-                  {t('listings.findRequests')}
+                  {copy.findButton}
                 </button>
 
                 <button
@@ -242,8 +260,8 @@ export function Listings() {
                 >
                   <SlidersHorizontal className="h-5 w-5" />
                   {activeFiltersCount > 0
-                    ? `${t('listings.filtersButton')} (${activeFiltersCount})`
-                    : t('listings.filtersButton')}
+                    ? `${copy.filtersButton} (${activeFiltersCount})`
+                    : copy.filtersButton}
                 </button>
               </div>
 
@@ -252,14 +270,14 @@ export function Listings() {
                   <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
-                        {t('listings.categoryLabel')}
+                        {copy.categoryLabel}
                       </label>
                       <select
                         value={selectedCategory}
                         onChange={(event) => setSelectedCategory(event.target.value)}
                         className="select-glass bg-white/80"
                       >
-                        <option value="">{t('listings.allCategoriesSimple')}</option>
+                        <option value="">{copy.allCategories}</option>
 
                         {categories.map((category) => (
                           <option key={category.id} value={category.slug}>
@@ -274,7 +292,7 @@ export function Listings() {
                       type="button"
                       className="btn-ghost justify-start rounded-full px-0 md:justify-center"
                     >
-                      {t('listings.clearFiltersSimple')}
+                      {copy.clearFilters}
                     </button>
                   </div>
                 </div>
@@ -284,14 +302,12 @@ export function Listings() {
             <MobileAdBanner variant="horizontal" />
 
             <div className="mb-4 mt-6 text-sm font-semibold text-[#6f665d]">
-              {loading
-                ? t('listings.loadingRequests')
-                : `${filteredListings.length} ${t('listings.countSuffix')}`}
+              {loading ? copy.loading : `${filteredListings.length} ${copy.countSuffix}`}
             </div>
 
             {loading ? (
               <div className="glass-card p-8 text-center text-[#7a7168]">
-                {t('listings.loadingRequests')}
+                {copy.loading}
               </div>
             ) : filteredListings.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
@@ -310,10 +326,10 @@ export function Listings() {
             ) : (
               <div className="glass-card p-10 text-center">
                 <h2 className="text-xl font-extrabold text-[#2f2a24]">
-                  {t('listings.emptyTitle')}
+                  {copy.emptyTitle}
                 </h2>
                 <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#6f665d]">
-                  {t('listings.emptyText')}
+                  {copy.emptyText}
                 </p>
                 <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <button
@@ -321,14 +337,14 @@ export function Listings() {
                     type="button"
                     className="btn-secondary rounded-full"
                   >
-                    {t('listings.clearFiltersSimple')}
+                    {copy.clearFilters}
                   </button>
                   <button
                     onClick={() => navigateTo('/create-ad')}
                     type="button"
                     className="btn-primary rounded-full"
                   >
-                    {t('listings.postJob')}
+                    {copy.postJob}
                   </button>
                 </div>
               </div>

@@ -1,6 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, X } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import { useState } from 'react'
 import { useApp } from '../contexts/AppContext'
 
 interface AdBannerProps {
@@ -8,250 +6,63 @@ interface AdBannerProps {
   sticky?: boolean
 }
 
-interface AdRecord {
-  id: string | number
-  title?: string | null
-  description?: string | null
-  image_url?: string | null
-  link_url?: string | null
-  cta_text?: string | null
-  company_name?: string | null
-  slot?: string | null
-  position?: string | null
-  placement?: string | null
-  device?: string | null
-  is_active?: boolean | null
-  status?: string | null
-  starts_at?: string | null
-  ends_at?: string | null
-}
-
 export function AdBanner({ position, sticky = true }: AdBannerProps) {
   const { t } = useApp()
+  const [adVisible, setAdVisible] = useState(true)
 
-  const [ads, setAds] = useState<AdRecord[]>([])
-  const [loading, setLoading] = useState(true)
-  const [dismissed, setDismissed] = useState(false)
-
-  useEffect(() => {
-    void loadAds()
-  }, [])
-
-  // Вибираємо лише ту рекламу, яка підходить під desktop-позицію банера.
-  const activeAd = useMemo(() => {
-    return ads.find((ad) => matchesDesktopPlacement(ad, position)) || null
-  }, [ads, position])
-
-  const loadAds = async () => {
-    setLoading(true)
-
-    try {
-      const resolvedAds = await resolveActiveAds()
-      setAds(resolvedAds)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleOpenAd = () => {
-    if (!activeAd?.link_url) {
-      return
-    }
-
-    window.open(activeAd.link_url, '_blank', 'noopener,noreferrer')
-  }
-
-  if (dismissed || loading || !activeAd) {
-    return null
-  }
-
-  const headline =
-    activeAd.title || activeAd.company_name || t('ads.advertiseHere')
-  const description = activeAd.description || ''
-  const ctaText = activeAd.cta_text || 'Open'
-  const isClickable = Boolean(activeAd.link_url)
+  if (!adVisible) return null
 
   return (
     <aside
       className={`hidden lg:block w-full ${sticky ? 'sticky top-20' : ''} h-fit`}
       style={{ maxHeight: sticky ? 'calc(100vh - 6rem)' : undefined }}
     >
-      <div className="glass-card relative overflow-hidden p-3">
+      <div className="bg-gradient-to-br from-cream-50 to-cream rounded-lg p-6 relative overflow-hidden border-2 border-primary/20">
         <button
-          onClick={() => setDismissed(true)}
-          type="button"
-          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(255,251,247,0.82)] text-[#7a7168] transition hover:bg-white hover:text-[#2f2a24]"
+          onClick={() => setAdVisible(false)}
+          className="absolute top-2 right-2 text-dark-gray/40 hover:text-dark-gray text-xs transition"
           aria-label={t('ads.close')}
         >
-          <X className="h-4 w-4" />
+          ✕
         </button>
 
-        {isClickable ? (
-          <button
-            onClick={handleOpenAd}
-            type="button"
-            className="block w-full text-left"
-          >
-            <AdCardContent
-              headline={headline}
-              description={description}
-              imageUrl={activeAd.image_url || null}
-              ctaText={ctaText}
-              showCta={true}
-            />
-          </button>
-        ) : (
-          <AdCardContent
-            headline={headline}
-            description={description}
-            imageUrl={activeAd.image_url || null}
-            ctaText={ctaText}
-            showCta={false}
-          />
-        )}
-      </div>
-    </aside>
-  )
-}
-
-function AdCardContent({
-  headline,
-  description,
-  imageUrl,
-  ctaText,
-  showCta,
-}: {
-  headline: string
-  description: string
-  imageUrl: string | null
-  ctaText: string
-  showCta: boolean
-}) {
-  return (
-    <div>
-      {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={headline}
-          className="h-[220px] w-full rounded-[20px] object-cover"
-        />
-      ) : (
-        <div className="flex h-[220px] w-full items-end rounded-[20px] bg-[linear-gradient(180deg,rgba(236,227,216,0.82),rgba(214,198,180,0.92))] p-5">
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8e7b69]">
-              Advertising
+        <div className="text-center space-y-4">
+          <div className="bg-white rounded-lg p-8 shadow-sm">
+            <div className="w-full h-48 bg-gradient-to-br from-primary to-primary-hover rounded-lg flex items-center justify-center text-white font-bold text-xl mb-4">
+              {t('ads.adSpace')}
             </div>
-            <div className="mt-2 text-xl font-extrabold leading-tight text-[#2f2a24]">
-              {headline}
-            </div>
+            <p className="text-sm text-dark-gray mb-2">
+              {t('ads.advertiseHere')}
+            </p>
+            <p className="text-xs text-dark-gray/60">
+              300 x 250px
+            </p>
           </div>
+
+          <div className="bg-white rounded-lg p-6 shadow-sm">
+            <div className="w-full h-32 bg-gradient-to-br from-secondary to-secondary-hover rounded-lg flex items-center justify-center text-white font-bold mb-3">
+              {t('ads.bannerAd')}
+            </div>
+            <p className="text-xs text-dark-gray/60">
+              300 x 100px
+            </p>
+          </div>
+
+          <div className="text-xs text-dark-gray/60 pt-2 border-t border-primary/20">
+            <p>{t('ads.premiumPlacement')}</p>
+            <p className="text-primary font-semibold mt-1">{t('ads.contactRates')}</p>
+          </div>
+        </div>
+      </div>
+
+      {sticky && (
+        <div className="bg-white border-2 border-secondary/20 rounded-lg p-4 mt-4">
+          <div className="w-full h-24 bg-gradient-to-r from-secondary to-secondary-hover rounded flex items-center justify-center text-white font-bold text-sm">
+            {t('ads.stickyAdBlock')}
+          </div>
+          <p className="text-xs text-dark-gray/60 text-center mt-2">300 x 80px</p>
         </div>
       )}
-
-      <div className="px-1 pb-1 pt-4">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9b8773]">
-          Advertising
-        </div>
-
-        <h3 className="mt-2 text-lg font-extrabold leading-tight text-[#2f2a24]">
-          {headline}
-        </h3>
-
-        {description && (
-          <p className="mt-2 text-sm leading-6 text-[#6f665d]">
-            {description}
-          </p>
-        )}
-
-        {showCta && (
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[rgba(170,111,71,0.12)] px-4 py-2 text-sm font-semibold text-[#8d5b38]">
-            <span>{ctaText}</span>
-            <ExternalLink className="h-4 w-4" />
-          </div>
-        )}
-      </div>
-    </div>
+    </aside>
   )
-}
-
-async function resolveActiveAds(): Promise<AdRecord[]> {
-  const client = supabase as any
-  const now = new Date().toISOString()
-  const tableNames = ['advertising', 'ad_slots']
-
-  for (const tableName of tableNames) {
-    try {
-      const { data, error } = await client.from(tableName).select('*').limit(24)
-
-      if (error || !Array.isArray(data)) {
-        continue
-      }
-
-      return data
-        .filter((item) => isRenderableAd(item))
-        .filter((item) => isAdActiveNow(item, now))
-    } catch {
-      continue
-    }
-  }
-
-  return []
-}
-
-function isRenderableAd(ad: AdRecord) {
-  return Boolean(ad.title || ad.company_name || ad.image_url || ad.description)
-}
-
-function isAdActiveNow(ad: AdRecord, nowIso: string) {
-  if (ad.is_active === false) {
-    return false
-  }
-
-  if (ad.status) {
-    const normalizedStatus = ad.status.toLowerCase()
-    const activeStatuses = ['active', 'published', 'running']
-
-    if (!activeStatuses.includes(normalizedStatus)) {
-      return false
-    }
-  }
-
-  if (ad.starts_at && ad.starts_at > nowIso) {
-    return false
-  }
-
-  if (ad.ends_at && ad.ends_at < nowIso) {
-    return false
-  }
-
-  return true
-}
-
-function matchesDesktopPlacement(ad: AdRecord, position: 'left' | 'right') {
-  const placementValue = [ad.slot, ad.position, ad.placement]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase()
-
-  const deviceValue = (ad.device || '').toLowerCase()
-
-  const matchesDevice =
-    deviceValue === '' ||
-    deviceValue === 'all' ||
-    deviceValue === 'desktop' ||
-    deviceValue === 'web'
-
-  if (!matchesDevice) {
-    return false
-  }
-
-  if (placementValue === '') {
-    return true
-  }
-
-  if (position === 'left') {
-    return placementValue.includes('left') || placementValue.includes('sidebar')
-  }
-
-  return placementValue.includes('right') || placementValue.includes('sidebar')
 }

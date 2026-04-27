@@ -1,113 +1,165 @@
-import { useApp } from '../contexts/AppContext'
 import { navigateTo } from '../lib/navigation'
+import { useApp } from '../contexts/AppContext'
 import { FooterStats } from './FooterStats'
 import { Logo } from './Logo'
 
 export function Footer() {
   const { t } = useApp()
+
   const currentYear = new Date().getFullYear()
 
-  const platformLinks = [
-    { label: t('header.jobRequests'), path: '/listings' },
-    { label: t('header.findProfessionals'), path: '/professionals' },
-    { label: t('header.postJob'), path: '/create-ad' },
-    { label: t('header.favorites'), path: '/favorites' },
-  ]
-
-  const accountLinks = [
-    { label: t('header.messages'), path: '/messages' },
-    { label: t('footer.signIn'), path: '/login' },
-    { label: t('footer.register'), path: '/register' },
-    { label: t('header.dashboard'), path: '/dashboard' },
-    { label: t('header.myProfile'), path: '/settings' },
-  ]
-
   return (
-    <footer className="mt-auto w-full px-4 pb-6 md:px-6 xl:px-8 2xl:px-10">
-      <div className="mx-auto max-w-7xl rounded-[32px] border border-white/70 bg-[rgba(252,246,240,0.82)] p-6 shadow-[0_18px_50px_rgba(89,63,48,0.08)] backdrop-blur-xl md:p-8">
-        <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-[1.35fr_0.8fr_0.8fr_1fr]">
+    <footer className="bg-gray-950 text-white mt-auto w-full">
+      <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          
+          {/* Блок бренду Dimarket */}
           <div>
             <button
               onClick={() => navigateTo('/')}
               type="button"
-              className="rounded-full"
+              className="mb-4"
             >
-              <Logo size="lg" />
+              <Logo size="lg" className="[&>span]:text-white" />
             </button>
 
-            <p className="mt-4 max-w-md text-sm leading-7 text-[#6f665d]">
-              {t('footer.brandText')}
+            <p className="text-gray-400 leading-relaxed max-w-md">
+              Dimarket — міжнародна безкоштовна платформа для будівельних послуг.
+              Клієнт створює заявку, майстри відповідають, сторони домовляються напряму.
             </p>
 
-            <p className="mt-4 max-w-md text-sm font-semibold leading-7 text-[#9a5525]">
-              {t('footer.monetization')}
+            <p className="text-orange-400 font-semibold mt-4">
+              Без комісій. Без підписок. Заробіток тільки з реклами.
             </p>
           </div>
 
-          <FooterLinkGroup
-            title={t('footer.platformTitleSimple')}
-            links={platformLinks}
-          />
-
-          <FooterLinkGroup
-            title={t('footer.accountTitleSimple')}
-            links={accountLinks}
-          />
-
+          {/* Основні розділи платформи */}
           <div>
-            <h3 className="text-sm font-extrabold uppercase tracking-[0.18em] text-[#9d8b7a]">
-              {t('footer.adsTitle')}
+            <h3 className="font-semibold mb-4 text-white">
+              Платформа
             </h3>
-            <p className="mt-4 text-sm leading-7 text-[#6f665d]">
-              {t('footer.adsText')}
-            </p>
 
-            <button
-              onClick={() => navigateTo('/advertise')}
-              type="button"
-              className="btn-secondary mt-5 rounded-full"
-            >
-              {t('footer.adsButton')}
-            </button>
+            <ul className="space-y-2 text-gray-400">
+              <li>
+                <button
+                  onClick={() => navigateTo('/listings')}
+                  type="button"
+                  className="hover:text-white transition"
+                >
+                  Заявки на роботи
+                </button>
+              </li>
+
+              <li>
+                <button
+                  onClick={() => navigateTo('/professionals')}
+                  type="button"
+                  className="hover:text-white transition"
+                >
+                  {t('header.findProfessionals')}
+                </button>
+              </li>
+
+              <li>
+                <button
+                  onClick={() => navigateTo('/create-ad')}
+                  type="button"
+                  className="hover:text-white transition"
+                >
+                  Створити заявку
+                </button>
+              </li>
+
+              <li>
+                <button
+                  onClick={() => navigateTo('/favorites')}
+                  type="button"
+                  className="hover:text-white transition"
+                >
+                  Обране
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          {/* Кабінет користувача */}
+          <div>
+            <h3 className="font-semibold mb-4 text-white">
+              Акаунт
+            </h3>
+
+            <ul className="space-y-2 text-gray-400">
+              <li>
+                <button
+                  onClick={() => navigateTo('/login')}
+                  type="button"
+                  className="hover:text-white transition"
+                >
+                  {t('footer.signIn')}
+                </button>
+              </li>
+
+              <li>
+                <button
+                  onClick={() => navigateTo('/register')}
+                  type="button"
+                  className="hover:text-white transition"
+                >
+                  {t('footer.register')}
+                </button>
+              </li>
+
+              <li>
+                <button
+                  onClick={() => navigateTo('/settings')}
+                  type="button"
+                  className="hover:text-white transition"
+                >
+                  {t('header.myProfile')}
+                </button>
+              </li>
+
+              <li>
+                <button
+                  onClick={() => navigateTo('/dashboard')}
+                  type="button"
+                  className="hover:text-white transition"
+                >
+                  {t('header.dashboard')}
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          {/* Реклама як єдина монетизація */}
+          <div>
+            <h3 className="font-semibold mb-4 text-white">
+              Реклама
+            </h3>
+
+            <ul className="space-y-2 text-gray-400">
+              <li>Банери для будівельних компаній</li>
+              <li>Реклама інструментів і матеріалів</li>
+              <li>Локальна реклама по містах і країнах</li>
+              <li>Dimarket © {currentYear}</li>
+            </ul>
           </div>
         </div>
 
+        {/* Жива статистика платформи */}
         <FooterStats />
 
-        <div className="mt-8 flex flex-col gap-2 border-t border-[rgba(190,168,150,0.28)] pt-5 text-sm text-[#7a7168] md:flex-row md:items-center md:justify-between">
-          <span>{`© ${currentYear} Dimarket. ${t('footer.allRightsReserved')}`}</span>
-          <span>{t('footer.legalRight')}</span>
+        {/* Нижня лінія футера */}
+        <div className="border-t border-gray-800 mt-8 pt-6 text-sm text-gray-400 flex flex-col md:flex-row md:justify-between gap-2">
+          <span>
+            © {currentYear} Dimarket. {t('footer.allRightsReserved')}
+          </span>
+
+          <span>
+            Global free construction services marketplace
+          </span>
         </div>
       </div>
     </footer>
-  )
-}
-
-function FooterLinkGroup({
-  title,
-  links,
-}: {
-  title: string
-  links: Array<{ label: string; path: string }>
-}) {
-  return (
-    <div>
-      <h3 className="text-sm font-extrabold uppercase tracking-[0.18em] text-[#9d8b7a]">
-        {title}
-      </h3>
-
-      <div className="mt-4 flex flex-col gap-3">
-        {links.map((link) => (
-          <button
-            key={link.path}
-            onClick={() => navigateTo(link.path)}
-            type="button"
-            className="text-left text-sm font-medium text-[#5f5a54] transition hover:text-[#2f2a24]"
-          >
-            {link.label}
-          </button>
-        ))}
-      </div>
-    </div>
   )
 }

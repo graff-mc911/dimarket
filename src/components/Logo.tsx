@@ -25,7 +25,7 @@ export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProp
   if (variant === 'text') {
     return (
       <span className={`font-bold text-dark ${currentSize.text} ${className}`}>
-        Dimarket
+        DImarket
       </span>
     )
   }
@@ -35,7 +35,7 @@ export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProp
       <div className={`bg-gradient-to-br from-primary to-secondary p-2 rounded-lg`}>
         <div className="text-white font-bold text-xl">DI</div>
       </div>
-      <span className={`font-bold text-dark ${currentSize.text}`}>Dimarket</span>
+      <span className={`font-bold text-dark ${currentSize.text}`}>DImarket</span>
     </div>
   )
 }
