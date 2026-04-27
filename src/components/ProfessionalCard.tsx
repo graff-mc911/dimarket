@@ -60,7 +60,7 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
         {avatarUrl ? (
           <img
             src={avatarUrl}
-            alt={professional.full_name || 'Professional'}
+            alt={professional.full_name || t('professional.defaultName')}
             className="h-16 w-16 shrink-0 rounded-[22px] object-cover"
           />
         ) : (
@@ -73,12 +73,12 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h3 className="truncate text-xl font-extrabold text-[#2f2a24]">
-                {professional.full_name || 'Professional'}
+                {professional.full_name || t('professional.defaultName')}
               </h3>
 
               <div className="mt-2 flex items-center gap-2 text-sm text-[#7a7168]">
                 <MapPin className="h-4 w-4 shrink-0" />
-                <span className="truncate">{professional.location || 'Global'}</span>
+                <span className="truncate">{professional.location || t('professional.global')}</span>
               </div>
             </div>
 
@@ -104,7 +104,7 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
       )}
 
       <p className="mt-4 line-clamp-4 text-sm leading-6 text-[#6f665d]">
-        {professional.bio || 'Construction professional profile is being completed.'}
+        {professional.bio || t('professional.profileInProgress')}
       </p>
 
       <div className="mt-5 flex items-center justify-between border-t border-[rgba(190,168,150,0.28)] pt-4">
