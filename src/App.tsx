@@ -159,7 +159,6 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-[#f6efe5] flex flex-col w-full">
-      {/* key потрібен, щоб Header оновлював активні стани після переходів */}
       <Header key={`header-${currentUrl}`} />
 
       <main className="flex-1 w-full">
