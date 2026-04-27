@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Heart, FileText, Users } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { ClipboardList, Heart, UserRound } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useApp } from '../contexts/AppContext'
 import { ListingWithImages, Profile } from '../lib/types'
@@ -10,37 +10,47 @@ import { navigateTo } from '../lib/navigation'
 export function Favorites() {
   const { user } = useApp()
 
-  // Активна вкладка:
-  // listings       -> обрані оголошення
-  // professionals  -> обрані майстри
   const [activeTab, setActiveTab] = useState<'listings' | 'professionals'>('listings')
-
-  // Збережені оголошення користувача
   const [favoriteListings, setFavoriteListings] = useState<ListingWithImages[]>([])
-
-  // Збережені майстри користувача
   const [favoriteProfessionals, setFavoriteProfessionals] = useState<Profile[]>([])
-
-  // Стан завантаження
   const [loading, setLoading] = useState(true)
 
+  // Тимчасові тексти для нового favorites-екрана.
+  // Після стабілізації UI винесемо їх у систему перекладів.
+  const copy = {
+    title: 'Favorites',
+    description:
+      'Save job requests and professionals you want to revisit later.',
+    loginTitle: 'Sign in to keep your favorites',
+    loginText:
+      'Saved job requests and saved professionals are available only inside your account.',
+    loginButton: 'Go to sign in',
+    listingsTab: 'Job requests',
+    professionalsTab: 'Professionals',
+    loading: 'Loading favorites...',
+    emptyListingsTitle: 'No saved job requests yet',
+    emptyListingsText:
+      'Use the favorite action on listings so they stay here for quick access later.',
+    emptyListingsButton: 'Browse job requests',
+    emptyProfessionalsTitle: 'No saved professionals yet',
+    emptyProfessionalsText:
+      'Save professionals you want to compare, contact, or revisit later.',
+    emptyProfessionalsButton: 'Browse professionals',
+  }
+
   useEffect(() => {
-    // Якщо користувач не увійшов, немає сенсу вантажити обране.
     if (!user) {
       setLoading(false)
       return
     }
 
-    loadFavorites()
+    void loadFavorites()
   }, [user])
 
   const loadFavorites = async () => {
     setLoading(true)
 
     try {
-      // Одночасно вантажимо:
-      // 1) обрані оголошення
-      // 2) обраних майстрів
       const [listingsResult, professionalsResult] = await Promise.all([
         supabase
           .from('favorite_listings')
@@ -61,53 +71,47 @@ export function Favorites() {
           .eq('user_id', user?.id),
       ])
 
-      // Supabase повертає вкладений обʼєкт listing.
-      // Ми витягуємо тільки самі оголошення.
-      if (listingsResult.data) {
-        const listings = listingsResult.data
-          .map((item: any) => item.listing)
-          .filter(Boolean)
+      const listings = (listingsResult.data || [])
+        .map((item: any) => item.listing)
+        .filter(Boolean) as ListingWithImages[]
 
-        setFavoriteListings(listings as ListingWithImages[])
-      }
+      const professionals = (professionalsResult.data || [])
+        .map((item: any) => item.professional)
+        .filter(Boolean) as Profile[]
 
-      // Supabase повертає вкладений обʼєкт professional.
-      // Ми витягуємо тільки самих майстрів.
-      if (professionalsResult.data) {
-        const professionals = professionalsResult.data
-          .map((item: any) => item.professional)
-          .filter(Boolean)
-
-        setFavoriteProfessionals(professionals as Profile[])
-      }
+      setFavoriteListings(listings)
+      setFavoriteProfessionals(professionals)
     } finally {
       setLoading(false)
     }
   }
 
-  // Якщо користувач не авторизований — показуємо красивий блок входу.
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 py-10 w-full">
+      <div className="page-bg min-h-screen py-10">
         <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center">
-            <Heart className="w-14 h-14 mx-auto mb-4 text-gray-300" />
+          <div className="mx-auto max-w-3xl">
+            <div className="glass-panel p-8 text-center md:p-10">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-[rgba(242,171,116,0.18)] text-[#9a5525]">
+                <Heart className="h-8 w-8" />
+              </div>
 
-            <h1 className="text-3xl font-bold text-gray-900 mb-3">
-              Обране
-            </h1>
+              <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-[#2f2a24]">
+                {copy.loginTitle}
+              </h1>
 
-            <p className="text-gray-600 mb-6">
-              Щоб зберігати оголошення та майстрів, потрібно увійти в акаунт.
-            </p>
+              <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#6f665d] md:text-base">
+                {copy.loginText}
+              </p>
 
-            <button
-              onClick={() => navigateTo('/login')}
-              type="button"
-              className="px-6 py-3 rounded-lg font-semibold bg-gradient-to-r from-primary to-secondary text-white hover:shadow-lg transition"
-            >
-              Увійти
-            </button>
+              <button
+                onClick={() => navigateTo('/login')}
+                type="button"
+                className="btn-primary mt-7 rounded-full"
+              >
+                {copy.loginButton}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -115,115 +119,129 @@ export function Favorites() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 w-full">
+    <div className="page-bg min-h-screen py-10">
       <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-              <Heart className="w-6 h-6 text-white fill-white" />
+        <div className="mx-auto max-w-7xl">
+          <section className="glass-panel p-5 md:p-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(233,202,177,0.7)] bg-[rgba(255,247,239,0.88)] px-4 py-2 text-sm font-semibold text-[#a26233]">
+                  <Heart className="h-4 w-4" />
+                  <span>{copy.title}</span>
+                </div>
+
+                <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-[#2f2a24]">
+                  {copy.title}
+                </h1>
+                <p className="mt-2 text-sm leading-6 text-[#6f665d] md:text-base">
+                  {copy.description}
+                </p>
+              </div>
             </div>
 
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Обране
-              </h1>
-
-              <p className="text-gray-600">
-                Тут зберігаються оголошення та майстри, які тобі цікаві.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Перемикач між обраними оголошеннями і майстрами */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 mb-8 inline-flex gap-2">
-          <button
-            onClick={() => setActiveTab('listings')}
-            type="button"
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition ${
-              activeTab === 'listings'
-                ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-md'
-                : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            <FileText className="w-5 h-5" />
-            Оголошення ({favoriteListings.length})
-          </button>
-
-          <button
-            onClick={() => setActiveTab('professionals')}
-            type="button"
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition ${
-              activeTab === 'professionals'
-                ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-md'
-                : 'text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            <Users className="w-5 h-5" />
-            Майстри ({favoriteProfessionals.length})
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="py-20 text-center text-gray-500">
-            Завантаження обраного…
-          </div>
-        ) : activeTab === 'listings' ? (
-          favoriteListings.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-              {favoriteListings.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl p-10 text-center border border-gray-100">
-              <FileText className="w-14 h-14 mx-auto mb-4 text-gray-300" />
-
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Немає збережених оголошень
-              </h2>
-
-              <p className="text-gray-600 mb-6">
-                Натискай сердечко на оголошеннях, щоб додавати їх сюди.
-              </p>
+            <div className="mt-6 inline-flex flex-wrap gap-2 rounded-full border border-white/70 bg-white/45 p-2">
+              <button
+                onClick={() => setActiveTab('listings')}
+                type="button"
+                className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition ${
+                  activeTab === 'listings'
+                    ? 'bg-[rgba(242,171,116,0.18)] text-[#9a5525]'
+                    : 'text-[#5f5a54] hover:bg-white/75'
+                }`}
+              >
+                <ClipboardList className="h-4 w-4" />
+                <span>{copy.listingsTab}</span>
+                <span>({favoriteListings.length})</span>
+              </button>
 
               <button
-                onClick={() => navigateTo('/listings')}
+                onClick={() => setActiveTab('professionals')}
                 type="button"
-                className="px-6 py-3 rounded-lg font-semibold bg-blue-900 text-white hover:bg-blue-800 transition"
+                className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition ${
+                  activeTab === 'professionals'
+                    ? 'bg-[rgba(242,171,116,0.18)] text-[#9a5525]'
+                    : 'text-[#5f5a54] hover:bg-white/75'
+                }`}
               >
-                Перейти до оголошень
+                <UserRound className="h-4 w-4" />
+                <span>{copy.professionalsTab}</span>
+                <span>({favoriteProfessionals.length})</span>
               </button>
             </div>
-          )
-        ) : favoriteProfessionals.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-            {favoriteProfessionals.map((professional) => (
-              <ProfessionalCard key={professional.id} professional={professional} />
-            ))}
+          </section>
+
+          <div className="mt-8">
+            {loading ? (
+              <div className="glass-card p-8 text-center text-[#7a7168]">
+                {copy.loading}
+              </div>
+            ) : activeTab === 'listings' ? (
+              favoriteListings.length > 0 ? (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                  {favoriteListings.map((listing) => (
+                    <ListingCard key={listing.id} listing={listing} />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={<ClipboardList className="h-8 w-8" />}
+                  title={copy.emptyListingsTitle}
+                  text={copy.emptyListingsText}
+                  buttonLabel={copy.emptyListingsButton}
+                  onClick={() => navigateTo('/listings')}
+                />
+              )
+            ) : favoriteProfessionals.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                {favoriteProfessionals.map((professional) => (
+                  <ProfessionalCard key={professional.id} professional={professional} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={<UserRound className="h-8 w-8" />}
+                title={copy.emptyProfessionalsTitle}
+                text={copy.emptyProfessionalsText}
+                buttonLabel={copy.emptyProfessionalsButton}
+                onClick={() => navigateTo('/professionals')}
+              />
+            )}
           </div>
-        ) : (
-          <div className="bg-white rounded-2xl p-10 text-center border border-gray-100">
-            <Users className="w-14 h-14 mx-auto mb-4 text-gray-300" />
-
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Немає збережених майстрів
-            </h2>
-
-            <p className="text-gray-600 mb-6">
-              Натискай сердечко на картках майстрів, щоб зберігати їх.
-            </p>
-
-            <button
-              onClick={() => navigateTo('/professionals')}
-              type="button"
-              className="px-6 py-3 rounded-lg font-semibold bg-blue-900 text-white hover:bg-blue-800 transition"
-            >
-              Знайти майстрів
-            </button>
-          </div>
-        )}
+        </div>
       </div>
+    </div>
+  )
+}
+
+function EmptyState({
+  icon,
+  title,
+  text,
+  buttonLabel,
+  onClick,
+}: {
+  icon: ReactNode
+  title: string
+  text: string
+  buttonLabel: string
+  onClick: () => void
+}) {
+  return (
+    <div className="glass-card p-10 text-center">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-[rgba(242,171,116,0.18)] text-[#9a5525]">
+        {icon}
+      </div>
+
+      <h2 className="mt-5 text-xl font-extrabold text-[#2f2a24]">{title}</h2>
+      <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#6f665d]">{text}</p>
+
+      <button
+        onClick={onClick}
+        type="button"
+        className="btn-secondary mt-6 rounded-full"
+      >
+        {buttonLabel}
+      </button>
     </div>
   )
 }
