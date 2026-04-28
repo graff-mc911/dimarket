@@ -1,8 +1,8 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { User } from '@supabase/supabase-js'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { type User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { Profile, CURRENCIES, LANGUAGES } from '../lib/types'
-import { getTranslation, TranslationKey, LanguageCode } from '../lib/i18n'
+import { getTranslation, type LanguageCode } from '../lib/i18n'
 
 interface AppContextType {
   user: User | null
@@ -12,7 +12,7 @@ interface AppContextType {
   setCurrency: (currency: typeof CURRENCIES[number]) => void
   setLanguage: (language: typeof LANGUAGES[number]) => void
   signOut: () => Promise<void>
-  t: (key: TranslationKey) => string
+  t: (key: string) => string
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -24,83 +24,82 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<typeof LANGUAGES[number]>(LANGUAGES[0])
 
   useEffect(() => {
-    // Завантаження збереженої валюти з localStorage
     const savedCurrency = localStorage.getItem('buildster_currency')
-
-    // Завантаження збереженої мови з localStorage
     const savedLanguage = localStorage.getItem('buildster_language')
 
     if (savedCurrency) {
-      const found = CURRENCIES.find((c) => c.code === savedCurrency)
-      if (found) setCurrency(found)
+      const foundCurrency = CURRENCIES.find((item) => item.code === savedCurrency)
+
+      if (foundCurrency) {
+        setCurrency(foundCurrency)
+      }
     }
 
     if (savedLanguage) {
-      const found = LANGUAGES.find((l) => l.code === savedLanguage)
-      if (found) setLanguage(found)
+      const foundLanguage = LANGUAGES.find((item) => item.code === savedLanguage)
+
+      if (foundLanguage) {
+        setLanguage(foundLanguage)
+      }
     }
 
-    // Реєструємо відвідування лише 1 раз за поточну сесію вкладки.
-    // Це важливо, щоб один і той самий користувач не накручував
-    // total_visits на кожен дрібний ререндер сторінки.
-    registerVisitOncePerSession()
+    void registerVisitOncePerSession()
 
-    // Отримуємо активну сесію Supabase
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
 
       if (session?.user) {
-        loadProfile(session.user.id)
+        void loadProfile(session.user.id)
       }
     })
 
-    // Слухаємо зміни авторизації
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
 
       if (session?.user) {
-        loadProfile(session.user.id)
+        void loadProfile(session.user.id)
       } else {
         setProfile(null)
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
   const registerVisitOncePerSession = async () => {
     try {
-      // Якщо візит уже був зареєстрований у поточній сесії — не дублюємо
       const alreadyTracked = sessionStorage.getItem('dimarket_visit_tracked')
 
       if (alreadyTracked === '1') {
         return
       }
 
-      // Викликаємо SQL-функцію, яка збільшує total_visits
       const { error } = await supabase.rpc('register_app_visit')
 
       if (!error) {
         sessionStorage.setItem('dimarket_visit_tracked', '1')
       } else {
-        console.error('Помилка реєстрації візиту:', error)
+        console.error('Visit registration error:', error)
       }
-    } catch (err) {
-      console.error('Непередбачена помилка реєстрації візиту:', err)
+    } catch (error) {
+      console.error('Unexpected visit registration error:', error)
     }
   }
 
   const loadProfile = async (userId: string) => {
-    // Завантажуємо профіль поточного користувача
     const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .maybeSingle()
 
-    if (data) setProfile(data)
+    if (data) {
+      setProfile(data)
+    }
   }
 
   const handleSetCurrency = (newCurrency: typeof CURRENCIES[number]) => {
@@ -119,8 +118,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setProfile(null)
   }
 
-  const t = (key: TranslationKey): string => {
-    return getTranslation(language.code as LanguageCode, key)
+  const t = (key: string): string => {
+    return getTranslation(language.code as LanguageCode, key as never)
   }
 
   return (
