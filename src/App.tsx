@@ -24,15 +24,11 @@ import { navigateTo } from './lib/navigation'
 function AppContent() {
   const { t } = useApp()
 
-  // Зберігаємо поточну адресу сторінки в стані.
-  // Це потрібно, бо ми використовуємо власну просту навігацію без react-router.
   const [currentUrl, setCurrentUrl] = useState(
     `${window.location.pathname}${window.location.search}`
   )
 
   useEffect(() => {
-    // Оновлюємо стан, коли користувач переходить між сторінками
-    // або натискає кнопки браузера "назад / вперед".
     const handleRouteChange = () => {
       setCurrentUrl(`${window.location.pathname}${window.location.search}`)
     }
@@ -44,8 +40,6 @@ function AppContent() {
     }
   }, [])
 
-  // Беремо pathname саме з currentUrl, а не напряму з window.location.
-  // Так React стабільно перемальовує сторінку після navigateTo().
   const path = useMemo(() => {
     return currentUrl.split('?')[0] || '/'
   }, [currentUrl])
@@ -59,15 +53,13 @@ function AppContent() {
       return <Professionals />
     }
 
-    // Тимчасово показуємо чесний placeholder замість тихого редіректу,
-    // щоб користувач розумів, що сторінка майстра ще в роботі.
     if (path.startsWith('/professional/')) {
       return (
         <RoutePlaceholder
           icon={UserRound}
-          eyebrow="Professional profile"
-          title="Professional profile page is being prepared"
-          description="Clients will be able to review a master's profile, rating, reviews, and completed jobs here."
+          eyebrow={t('route.professionalProfileEyebrow')}
+          title={t('route.professionalProfileTitle')}
+          description={t('route.professionalProfileDescription')}
           primaryLabel={t('header.findProfessionals')}
           primaryPath="/professionals"
           secondaryLabel={t('header.createAd')}
@@ -80,15 +72,13 @@ function AppContent() {
       return <Listings />
     }
 
-    // Тимчасово показуємо окрему заглушку для деталей заявки,
-    // щоб маршрут не повертав користувача мовчки назад у список.
     if (path.startsWith('/listing/')) {
       return (
         <RoutePlaceholder
           icon={ClipboardList}
-          eyebrow="Job request"
-          title="Job request details are being prepared"
-          description="This page will show the full request, attachments, budget, and direct contact options for professionals."
+          eyebrow={t('route.jobRequestEyebrow')}
+          title={t('route.jobRequestTitle')}
+          description={t('route.jobRequestDescription')}
           primaryLabel={t('home.viewAllListings')}
           primaryPath="/listings"
           secondaryLabel={t('header.createAd')}
@@ -105,14 +95,13 @@ function AppContent() {
       return <Favorites />
     }
 
-    // Тимчасовий текст залишаємо inline і винесемо в переклади окремим кроком.
     if (path === '/messages') {
       return (
         <RoutePlaceholder
           icon={MessageSquare}
-          eyebrow="Messages"
-          title="Direct messages will appear here"
-          description="Clients and professionals will be able to communicate directly in one conversation thread for each job."
+          eyebrow={t('route.messagesEyebrow')}
+          title={t('route.messagesTitle')}
+          description={t('route.messagesDescription')}
           primaryLabel={t('header.dashboard')}
           primaryPath="/dashboard"
           secondaryLabel={t('header.findProfessionals')}
@@ -141,14 +130,12 @@ function AppContent() {
       return <Advertising />
     }
 
-    // Невідомі маршрути теж не редіректимо мовчки,
-    // а даємо зрозумілу сторінку-заглушку з безпечними діями.
     return (
       <RoutePlaceholder
         icon={AlertCircle}
-        eyebrow="Page not found"
-        title="This page does not exist yet"
-        description="The route is available for future growth, but there is no finished screen for it yet."
+        eyebrow={t('route.notFoundEyebrow')}
+        title={t('route.notFoundTitle')}
+        description={t('route.notFoundDescription')}
         primaryLabel={t('home.search')}
         primaryPath="/"
         secondaryLabel={t('home.viewAllListings')}
@@ -158,13 +145,10 @@ function AppContent() {
   }, [path, t])
 
   return (
-    <div className="min-h-screen bg-[#f6efe5] flex flex-col w-full">
-      {/* key потрібен, щоб Header оновлював активні стани після переходів */}
+    <div className="flex min-h-screen w-full flex-col bg-[#f6efe5]">
       <Header key={`header-${currentUrl}`} />
 
-      <main className="flex-1 w-full">
-        {page}
-      </main>
+      <main className="flex-1 w-full">{page}</main>
 
       <Footer />
     </div>
