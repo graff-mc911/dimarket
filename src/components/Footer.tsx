@@ -9,11 +9,9 @@ export function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="bg-gray-950 text-white mt-auto w-full">
-      <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          
-          {/* Блок бренду Dimarket */}
+    <footer className="mt-auto w-full bg-gray-950 text-white">
+      <div className="w-full px-4 py-12 md:px-6 xl:px-8 2xl:px-10">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div>
             <button
               onClick={() => navigateTo('/')}
@@ -23,20 +21,18 @@ export function Footer() {
               <Logo size="lg" className="[&>span]:text-white" />
             </button>
 
-            <p className="text-gray-400 leading-relaxed max-w-md">
-              Dimarket — міжнародна безкоштовна платформа для будівельних послуг.
-              Клієнт створює заявку, майстри відповідають, сторони домовляються напряму.
+            <p className="max-w-md leading-relaxed text-gray-400">
+              {t('footer.brandText')}
             </p>
 
-            <p className="text-orange-400 font-semibold mt-4">
-              Без комісій. Без підписок. Заробіток тільки з реклами.
+            <p className="mt-4 font-semibold text-orange-400">
+              {t('footer.monetization')}
             </p>
           </div>
 
-          {/* Основні розділи платформи */}
           <div>
-            <h3 className="font-semibold mb-4 text-white">
-              Платформа
+            <h3 className="mb-4 font-semibold text-white">
+              {t('footer.platformTitleSimple')}
             </h3>
 
             <ul className="space-y-2 text-gray-400">
@@ -44,9 +40,9 @@ export function Footer() {
                 <button
                   onClick={() => navigateTo('/listings')}
                   type="button"
-                  className="hover:text-white transition"
+                  className="transition hover:text-white"
                 >
-                  Заявки на роботи
+                  {t('header.jobRequests')}
                 </button>
               </li>
 
@@ -54,7 +50,7 @@ export function Footer() {
                 <button
                   onClick={() => navigateTo('/professionals')}
                   type="button"
-                  className="hover:text-white transition"
+                  className="transition hover:text-white"
                 >
                   {t('header.findProfessionals')}
                 </button>
@@ -64,9 +60,9 @@ export function Footer() {
                 <button
                   onClick={() => navigateTo('/create-ad')}
                   type="button"
-                  className="hover:text-white transition"
+                  className="transition hover:text-white"
                 >
-                  Створити заявку
+                  {t('header.postJob')}
                 </button>
               </li>
 
@@ -74,18 +70,17 @@ export function Footer() {
                 <button
                   onClick={() => navigateTo('/favorites')}
                   type="button"
-                  className="hover:text-white transition"
+                  className="transition hover:text-white"
                 >
-                  Обране
+                  {t('header.favorites')}
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Кабінет користувача */}
           <div>
-            <h3 className="font-semibold mb-4 text-white">
-              Акаунт
+            <h3 className="mb-4 font-semibold text-white">
+              {t('footer.accountTitleSimple')}
             </h3>
 
             <ul className="space-y-2 text-gray-400">
@@ -93,7 +88,7 @@ export function Footer() {
                 <button
                   onClick={() => navigateTo('/login')}
                   type="button"
-                  className="hover:text-white transition"
+                  className="transition hover:text-white"
                 >
                   {t('footer.signIn')}
                 </button>
@@ -103,7 +98,7 @@ export function Footer() {
                 <button
                   onClick={() => navigateTo('/register')}
                   type="button"
-                  className="hover:text-white transition"
+                  className="transition hover:text-white"
                 >
                   {t('footer.register')}
                 </button>
@@ -113,7 +108,7 @@ export function Footer() {
                 <button
                   onClick={() => navigateTo('/settings')}
                   type="button"
-                  className="hover:text-white transition"
+                  className="transition hover:text-white"
                 >
                   {t('header.myProfile')}
                 </button>
@@ -123,7 +118,7 @@ export function Footer() {
                 <button
                   onClick={() => navigateTo('/dashboard')}
                   type="button"
-                  className="hover:text-white transition"
+                  className="transition hover:text-white"
                 >
                   {t('header.dashboard')}
                 </button>
@@ -131,33 +126,33 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Реклама як єдина монетизація */}
           <div>
-            <h3 className="font-semibold mb-4 text-white">
-              Реклама
+            <h3 className="mb-4 font-semibold text-white">
+              {t('footer.adsTitle')}
             </h3>
 
-            <ul className="space-y-2 text-gray-400">
-              <li>Банери для будівельних компаній</li>
-              <li>Реклама інструментів і матеріалів</li>
-              <li>Локальна реклама по містах і країнах</li>
-              <li>Dimarket © {currentYear}</li>
-            </ul>
+            <p className="leading-relaxed text-gray-400">
+              {t('footer.adsText')}
+            </p>
+
+            <button
+              onClick={() => navigateTo('/advertise')}
+              type="button"
+              className="mt-4 text-sm font-semibold text-orange-400 transition hover:text-orange-300"
+            >
+              {t('footer.adsButton')}
+            </button>
           </div>
         </div>
 
-        {/* Жива статистика платформи */}
         <FooterStats />
 
-        {/* Нижня лінія футера */}
-        <div className="border-t border-gray-800 mt-8 pt-6 text-sm text-gray-400 flex flex-col md:flex-row md:justify-between gap-2">
+        <div className="mt-8 flex flex-col gap-2 border-t border-gray-800 pt-6 text-sm text-gray-400 md:flex-row md:justify-between">
           <span>
             © {currentYear} Dimarket. {t('footer.allRightsReserved')}
           </span>
 
-          <span>
-            Global free construction services marketplace
-          </span>
+          <span>{t('footer.legalRight')}</span>
         </div>
       </div>
     </footer>
