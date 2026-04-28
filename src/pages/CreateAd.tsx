@@ -42,49 +42,6 @@ export function CreateAd() {
 
   const [visibilityRadius, setVisibilityRadius] = useState<VisibilityRadius>('city')
 
-  // Тимчасові тексти для нового job-request флоу.
-  // Після стабілізації форми винесемо їх у переклади для всіх 24 мов.
-  const copy = {
-    eyebrow: 'Free job request',
-    title: 'Create a construction job request',
-    description:
-      'Describe the work, add a location, and let professionals contact you directly. No subscription and no posting fee.',
-    detailsTitle: 'Job details',
-    detailsText:
-      'Keep the request specific so professionals can understand the work and send a relevant offer.',
-    locationTitle: 'Location and visibility',
-    locationText:
-      'Choose where the request is located and how widely it should be visible to professionals.',
-    contactTitle: 'Contact details',
-    contactText:
-      'At least one contact method is required so professionals can reach you directly.',
-    imagesTitle: 'Photos (optional)',
-    imagesText:
-      'Add reference photos, plans, or examples to help professionals estimate the job more accurately.',
-    freeListTitle: 'What is included',
-    freeItemOne: 'Free posting for clients',
-    freeItemTwo: 'Direct contact with professionals',
-    freeItemThree: 'Optional photos and budget',
-    freeItemFour: 'Advertising-funded platform model',
-    taskPlaceholder: 'What needs to be done?',
-    budgetPlaceholder: 'Optional budget',
-    locationPlaceholder: 'City, district, or country',
-    titleHint: 'Example: Need drywall repair in living room',
-    descriptionHint:
-      'Write what needs to be done, size of the job, preferred timing, and any details that matter.',
-    contactRule: 'Add phone or email so professionals can contact you.',
-    addImage: 'Add another image',
-    imagePlaceholder: 'https://example.com/photo.jpg',
-    imageHelp: 'Use direct image URLs for now. Local upload can be added later without changing the data model.',
-    currentLocation: 'Use my location',
-    durationLabel: 'Request duration',
-    createButton: 'Publish job request',
-    creating: 'Publishing request...',
-    success: 'Job request published successfully. Redirecting...',
-    missingContact: 'Add at least phone or email before publishing the request.',
-    locationHelp: 'Start typing a city or area to get suggestions.',
-  }
-
   useEffect(() => {
     void loadCategories()
   }, [])
@@ -116,20 +73,16 @@ export function CreateAd() {
     setCategories(data ?? [])
   }
 
-  const translateUnsafe = (key: string) => {
-    return t(key as never)
-  }
-
   const getCategoryTranslation = (category: Category) => {
     const newKey = `category.name.${category.slug}`
-    const newValue = translateUnsafe(newKey)
+    const newValue = t(newKey)
 
     if (newValue !== newKey) {
       return newValue
     }
 
     const legacyKey = `category.${category.slug}`
-    const legacyValue = translateUnsafe(legacyKey)
+    const legacyValue = t(legacyKey)
 
     if (legacyValue !== legacyKey) {
       return legacyValue
@@ -148,10 +101,10 @@ export function CreateAd() {
         setLocation(result.city)
         setShowSuggestions(false)
       } else {
-        setError('Unable to detect your current location.')
+        setError(t('createAd.locationDetectError'))
       }
     } catch {
-      setError('Location lookup failed. Please enter the city manually.')
+      setError(t('createAd.locationLookupError'))
     } finally {
       setLoadingLocation(false)
     }
@@ -192,13 +145,12 @@ export function CreateAd() {
 
     try {
       if (!contactPhone.trim() && !contactEmail.trim()) {
-        throw new Error(copy.missingContact)
+        throw new Error(t('createAd.contactRequired'))
       }
 
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + duration)
 
-      // Створюємо лише service_request і навмисно не використовуємо premium/product логіку.
       const listingData = {
         title: title.trim(),
         description: description.trim(),
@@ -229,7 +181,7 @@ export function CreateAd() {
       }
 
       if (!listing) {
-        throw new Error('Unable to publish the job request.')
+        throw new Error(t('createAd.publishError'))
       }
 
       const validImageUrls = imageUrls
@@ -261,12 +213,14 @@ export function CreateAd() {
       setError(
         submissionError instanceof Error
           ? submissionError.message
-          : 'Unable to publish the job request.'
+          : t('createAd.publishError')
       )
     } finally {
       setLoading(false)
     }
   }
+
+  const durationLabel = (days: number) => `${days} ${t('createAd.days')}`
 
   return (
     <div className="page-bg min-h-screen py-8">
@@ -279,28 +233,28 @@ export function CreateAd() {
           <main className="min-w-0 flex-1">
             <section className="glass-panel p-5 md:p-6 xl:p-8">
               <div className="inline-flex items-center rounded-full border border-[rgba(233,202,177,0.7)] bg-[rgba(255,247,239,0.88)] px-4 py-2 text-sm font-semibold text-[#a26233]">
-                {copy.eyebrow}
+                {t('createAd.eyebrow')}
               </div>
 
               <div className="mt-4 grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
                 <div>
                   <h1 className="text-3xl font-extrabold tracking-tight text-[#2f2a24] md:text-4xl">
-                    {copy.title}
+                    {t('createAd.heroTitle')}
                   </h1>
                   <p className="mt-3 max-w-3xl text-sm leading-6 text-[#6f665d] md:text-base">
-                    {copy.description}
+                    {t('createAd.heroDescription')}
                   </p>
                 </div>
 
                 <div className="glass-card p-5">
                   <h2 className="text-lg font-extrabold text-[#2f2a24]">
-                    {copy.freeListTitle}
+                    {t('createAd.freeListTitle')}
                   </h2>
                   <div className="mt-4 space-y-3 text-sm text-[#6f665d]">
-                    <BenefitRow text={copy.freeItemOne} />
-                    <BenefitRow text={copy.freeItemTwo} />
-                    <BenefitRow text={copy.freeItemThree} />
-                    <BenefitRow text={copy.freeItemFour} />
+                    <BenefitRow text={t('createAd.freeItemOne')} />
+                    <BenefitRow text={t('createAd.freeItemTwo')} />
+                    <BenefitRow text={t('createAd.freeItemThree')} />
+                    <BenefitRow text={t('createAd.freeItemFour')} />
                   </div>
                 </div>
               </div>
@@ -317,7 +271,7 @@ export function CreateAd() {
 
               {success && (
                 <div className="mt-6 rounded-[22px] border border-[rgba(120,181,140,0.35)] bg-[rgba(236,250,240,0.92)] px-4 py-3 text-sm text-[#3d7a52]">
-                  {copy.success}
+                  {t('createAd.success')}
                 </div>
               )}
 
@@ -326,23 +280,23 @@ export function CreateAd() {
                   <div className="space-y-5">
                     <div>
                       <h2 className="text-xl font-extrabold text-[#2f2a24]">
-                        {copy.detailsTitle}
+                        {t('createAd.detailsTitle')}
                       </h2>
                       <p className="mt-2 text-sm leading-6 text-[#6f665d]">
-                        {copy.detailsText}
+                        {t('createAd.detailsText')}
                       </p>
                     </div>
 
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
-                        {copy.taskPlaceholder} *
+                        {t('createAd.taskPlaceholder')} *
                       </label>
                       <input
                         required
                         value={title}
                         onChange={(event) => setTitle(event.target.value)}
                         className="input-glass"
-                        placeholder={copy.titleHint}
+                        placeholder={t('createAd.titleHint')}
                       />
                     </div>
 
@@ -356,7 +310,7 @@ export function CreateAd() {
                         onChange={(event) => setDescription(event.target.value)}
                         rows={7}
                         className="input-glass min-h-[180px] resize-y"
-                        placeholder={copy.descriptionHint}
+                        placeholder={t('createAd.descriptionHint')}
                       />
                     </div>
                   </div>
@@ -390,7 +344,7 @@ export function CreateAd() {
                         value={price}
                         onChange={(event) => setPrice(event.target.value)}
                         className="input-glass"
-                        placeholder={copy.budgetPlaceholder}
+                        placeholder={t('createAd.budgetPlaceholder')}
                         min="0"
                         step="0.01"
                       />
@@ -398,17 +352,17 @@ export function CreateAd() {
 
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
-                        {copy.durationLabel}
+                        {t('createAd.durationLabel')}
                       </label>
                       <select
                         value={duration}
                         onChange={(event) => setDuration(Number(event.target.value))}
                         className="select-glass bg-white/80"
                       >
-                        <option value={14}>14 days</option>
-                        <option value={30}>30 days</option>
-                        <option value={60}>60 days</option>
-                        <option value={90}>90 days</option>
+                        <option value={14}>{durationLabel(14)}</option>
+                        <option value={30}>{durationLabel(30)}</option>
+                        <option value={60}>{durationLabel(60)}</option>
+                        <option value={90}>{durationLabel(90)}</option>
                       </select>
                     </div>
                   </div>
@@ -418,10 +372,10 @@ export function CreateAd() {
                   <div className="space-y-5">
                     <div>
                       <h2 className="text-xl font-extrabold text-[#2f2a24]">
-                        {copy.locationTitle}
+                        {t('createAd.locationTitle')}
                       </h2>
                       <p className="mt-2 text-sm leading-6 text-[#6f665d]">
-                        {copy.locationText}
+                        {t('createAd.locationText')}
                       </p>
                     </div>
 
@@ -439,7 +393,7 @@ export function CreateAd() {
                             onFocus={() => setShowSuggestions(locationSuggestions.length > 0)}
                             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                             className="input-glass"
-                            placeholder={copy.locationPlaceholder}
+                            placeholder={t('createAd.locationPlaceholder')}
                           />
 
                           {showSuggestions && locationSuggestions.length > 0 && (
@@ -468,7 +422,7 @@ export function CreateAd() {
                           onClick={handleGetCurrentLocation}
                           disabled={loadingLocation}
                           className="flex h-12 w-12 items-center justify-center rounded-[18px] border border-white/70 bg-white/70 text-[#5f5a54] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-70"
-                          title={copy.currentLocation}
+                          title={t('createAd.currentLocation')}
                         >
                           {loadingLocation ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -479,7 +433,7 @@ export function CreateAd() {
                       </div>
 
                       <p className="mt-2 text-xs text-[#7a7168]">
-                        {copy.locationHelp}
+                        {t('createAd.locationHelp')}
                       </p>
                     </div>
                   </div>
@@ -514,10 +468,10 @@ export function CreateAd() {
                 <section className="space-y-5">
                   <div>
                     <h2 className="text-xl font-extrabold text-[#2f2a24]">
-                      {copy.contactTitle}
+                      {t('createAd.contactTitle')}
                     </h2>
                     <p className="mt-2 text-sm leading-6 text-[#6f665d]">
-                      {copy.contactText}
+                      {t('createAd.contactText')}
                     </p>
                   </div>
 
@@ -559,17 +513,17 @@ export function CreateAd() {
                     </div>
                   </div>
 
-                  <p className="text-sm text-[#7a7168]">{copy.contactRule}</p>
+                  <p className="text-sm text-[#7a7168]">{t('createAd.contactRule')}</p>
                 </section>
 
                 <section className="space-y-5">
                   <div>
                     <h2 className="flex items-center gap-2 text-xl font-extrabold text-[#2f2a24]">
                       <Upload className="h-5 w-5 text-[#c96d2c]" />
-                      {copy.imagesTitle}
+                      {t('createAd.imagesTitle')}
                     </h2>
                     <p className="mt-2 text-sm leading-6 text-[#6f665d]">
-                      {copy.imagesText}
+                      {t('createAd.imagesText')}
                     </p>
                   </div>
 
@@ -581,7 +535,7 @@ export function CreateAd() {
                           value={url}
                           onChange={(event) => updateImageUrl(index, event.target.value)}
                           className="input-glass flex-1"
-                          placeholder={copy.imagePlaceholder}
+                          placeholder={t('createAd.imagePlaceholder')}
                         />
 
                         {imageUrls.length > 1 && (
@@ -601,11 +555,11 @@ export function CreateAd() {
                       onClick={addImageField}
                       className="btn-ghost justify-start rounded-full px-0"
                     >
-                      {copy.addImage}
+                      {t('createAd.addImage')}
                     </button>
                   </div>
 
-                  <p className="text-xs text-[#7a7168]">{copy.imageHelp}</p>
+                  <p className="text-xs text-[#7a7168]">{t('createAd.imageHelp')}</p>
                 </section>
 
                 <div>
@@ -617,7 +571,7 @@ export function CreateAd() {
                   disabled={loading || success}
                   className="btn-primary w-full justify-center rounded-[24px] py-4 text-base disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {loading ? copy.creating : copy.createButton}
+                  {loading ? t('createAd.creating') : t('createAd.createButton')}
                 </button>
               </form>
             </section>
