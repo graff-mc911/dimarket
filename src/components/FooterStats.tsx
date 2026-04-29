@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Eye, FileText, CheckCircle2, Users, Globe2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { useApp } from '../contexts/AppContext'
 
 interface CountryRankingItem {
   country: string
@@ -28,25 +29,53 @@ const EMPTY_STATS: FooterStatsData = {
   updated_at: null,
 }
 
-export function FooterStats() {
-  // Тут зберігається статистика, яку показуємо у футері
-  const [stats, setStats] = useState<FooterStatsData>(EMPTY_STATS)
+const localeMap: Record<string, string> = {
+  en: 'en-US',
+  uk: 'uk-UA',
+  kk: 'kk-KZ',
+  pl: 'pl-PL',
+  es: 'es-ES',
+  de: 'de-DE',
+  fr: 'fr-FR',
+  it: 'it-IT',
+  pt: 'pt-PT',
+  ro: 'ro-RO',
+  cs: 'cs-CZ',
+  sk: 'sk-SK',
+  hu: 'hu-HU',
+  bg: 'bg-BG',
+  sr: 'sr-RS',
+  hr: 'hr-HR',
+  sl: 'sl-SI',
+  lt: 'lt-LT',
+  lv: 'lv-LV',
+  et: 'et-EE',
+  tr: 'tr-TR',
+  ar: 'ar-SA',
+  zh: 'zh-CN',
+  ja: 'ja-JP',
+}
 
-  // Поки дані завантажуються — показуємо прочерки
+export function FooterStats() {
+  const { t, language } = useApp()
+  const [stats, setStats] = useState<FooterStatsData>(EMPTY_STATS)
   const [loading, setLoading] = useState(true)
 
+  const locale = useMemo(
+    () => localeMap[language.code] ?? 'en-US',
+    [language.code],
+  )
+
   useEffect(() => {
-    loadStats()
+    void loadStats()
   }, [])
 
   const loadStats = async () => {
     setLoading(true)
 
     try {
-      // Спочатку просимо Supabase перерахувати статистику
       await supabase.rpc('refresh_app_site_stats')
 
-      // Потім читаємо готовий рядок статистики
       const { data, error } = await supabase
         .from('app_site_stats')
         .select('*')
@@ -54,7 +83,7 @@ export function FooterStats() {
         .maybeSingle()
 
       if (error) {
-        console.error('Помилка завантаження статистики:', error)
+        console.error('Error loading footer stats:', error)
         return
       }
 
@@ -74,33 +103,33 @@ export function FooterStats() {
         updated_at: data.updated_at || null,
       })
     } catch (err) {
-      console.error('Непередбачена помилка статистики:', err)
+      console.error('Unexpected footer stats error:', err)
     } finally {
       setLoading(false)
     }
   }
 
   const formatNumber = (value: number) => {
-    return new Intl.NumberFormat('uk-UA').format(value || 0)
+    return new Intl.NumberFormat(locale).format(value || 0)
   }
 
   return (
     <section className="mt-10 border-t border-gray-800 pt-8">
       <div className="mb-6">
         <h3 className="text-xl font-semibold text-white mb-2">
-          Статистика платформи
+          {t('footerStats.title')}
         </h3>
 
-        <p className="text-sm text-gray-400">
-          Живі показники активності Dimarket.
-        </p>
+        <p className="text-sm text-gray-400">{t('footerStats.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-8">
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
           <div className="flex items-center gap-3 mb-3">
             <Eye className="w-5 h-5 text-sky-400" />
-            <span className="text-sm text-gray-300">Відвідали додаток</span>
+            <span className="text-sm text-gray-300">
+              {t('footerStats.visits')}
+            </span>
           </div>
 
           <div className="text-2xl font-bold text-white">
@@ -111,7 +140,9 @@ export function FooterStats() {
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
           <div className="flex items-center gap-3 mb-3">
             <FileText className="w-5 h-5 text-orange-400" />
-            <span className="text-sm text-gray-300">Створено оголошень</span>
+            <span className="text-sm text-gray-300">
+              {t('footerStats.listings')}
+            </span>
           </div>
 
           <div className="text-2xl font-bold text-white">
@@ -122,7 +153,9 @@ export function FooterStats() {
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
           <div className="flex items-center gap-3 mb-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-            <span className="text-sm text-gray-300">Оголошення спрацювали</span>
+            <span className="text-sm text-gray-300">
+              {t('footerStats.successful')}
+            </span>
           </div>
 
           <div className="text-2xl font-bold text-white">
@@ -133,7 +166,9 @@ export function FooterStats() {
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
           <div className="flex items-center gap-3 mb-3">
             <Users className="w-5 h-5 text-violet-400" />
-            <span className="text-sm text-gray-300">Майстрів</span>
+            <span className="text-sm text-gray-300">
+              {t('footerStats.professionals')}
+            </span>
           </div>
 
           <div className="text-2xl font-bold text-white">
@@ -144,7 +179,9 @@ export function FooterStats() {
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
           <div className="flex items-center gap-3 mb-3">
             <Globe2 className="w-5 h-5 text-cyan-400" />
-            <span className="text-sm text-gray-300">Країн у рейтингу</span>
+            <span className="text-sm text-gray-300">
+              {t('footerStats.countries')}
+            </span>
           </div>
 
           <div className="text-2xl font-bold text-white">
@@ -157,27 +194,26 @@ export function FooterStats() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
           <div>
             <h4 className="text-lg font-semibold text-white">
-              Рейтинг по країнах
+              {t('footerStats.rankingTitle')}
             </h4>
 
             <p className="text-sm text-gray-400">
-              Рейтинг рахується за майстрами, оголошеннями та реакціями.
+              {t('footerStats.rankingSubtitle')}
             </p>
           </div>
 
           {stats.updated_at && !loading && (
             <span className="text-xs text-gray-500">
-              Оновлено: {new Date(stats.updated_at).toLocaleString('uk-UA')}
+              {t('footerStats.updatedPrefix')}{' '}
+              {new Date(stats.updated_at).toLocaleString(locale)}
             </span>
           )}
         </div>
 
         {loading ? (
-          <div className="text-gray-400">Завантаження статистики…</div>
+          <div className="text-gray-400">{t('footerStats.loading')}</div>
         ) : stats.country_ranking.length === 0 ? (
-          <div className="text-gray-400">
-            Поки що недостатньо даних для рейтингу по країнах.
-          </div>
+          <div className="text-gray-400">{t('footerStats.empty')}</div>
         ) : (
           <div className="space-y-3">
             {stats.country_ranking.map((item, index) => (
@@ -196,28 +232,34 @@ export function FooterStats() {
                     </div>
 
                     <div className="text-xs text-gray-400">
-                      Score: {formatNumber(item.score)}
+                      {t('footerStats.score')}: {formatNumber(item.score)}
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <div className="text-gray-400">Майстри</div>
+                    <div className="text-gray-400">
+                      {t('footerStats.prosShort')}
+                    </div>
                     <div className="text-white font-semibold">
                       {formatNumber(item.professionals)}
                     </div>
                   </div>
 
                   <div>
-                    <div className="text-gray-400">Оголошення</div>
+                    <div className="text-gray-400">
+                      {t('footerStats.jobsShort')}
+                    </div>
                     <div className="text-white font-semibold">
                       {formatNumber(item.listings)}
                     </div>
                   </div>
 
                   <div>
-                    <div className="text-gray-400">Реакції</div>
+                    <div className="text-gray-400">
+                      {t('footerStats.repliesShort')}
+                    </div>
                     <div className="text-white font-semibold">
                       {formatNumber(item.responses)}
                     </div>
