@@ -58,8 +58,9 @@ export const translations = {
   ja: withEnglishFallback(jaTranslations),
 } as const
 
-export type { TranslationKey }
-export type LanguageCode = keyof typeof translations
+export { translations, getTranslation } from '../i18n'
+export type { TranslationKey, LanguageCode } from '../i18n'
+
 
 export function getTranslation(
   languageCode: LanguageCode,
