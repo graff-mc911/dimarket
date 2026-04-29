@@ -67,4 +67,3 @@ export function getTranslation(
 ): string {
   return translations[languageCode]?.[key] ?? enTranslations[key] ?? key
 }
-
