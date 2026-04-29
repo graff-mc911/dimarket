@@ -104,7 +104,6 @@ export const ukTranslations: Partial<Record<TranslationKey, string>> = {
   'home.adCardTwo': 'Бренди інструментів',
   'home.adCardThree': 'Локальні шоуруми',
   'home.noJobs': 'Активних запитів на роботу ще немає.',
-  'home.noProfessionals': 'Майстрів поки немає.',
   'home.noCategories': "Категорії з'являться тут незабаром.",
   'home.noLocation': 'Локацію не вказано',
   'home.budgetLabel': 'Бюджет',
