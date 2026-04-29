@@ -31,33 +31,6 @@ export function Professionals() {
   const [minRating, setMinRating] = useState(0)
   const [locationFilter, setLocationFilter] = useState('')
 
-  // Тимчасові тексти нового professionals-екрана.
-  // Після стабілізації UI винесемо їх у загальний словник перекладів.
-  const copy = {
-    eyebrow: 'Professionals / Masters',
-    title: 'Construction professionals ready for direct contact',
-    description:
-      'Search masters by city, skill, or rating and contact them directly after reviewing their public profile.',
-    searchPlaceholder: 'Name, skill, or service',
-    locationPlaceholder: 'City or country',
-    filtersButton: 'Filters',
-    categoryLabel: 'Category',
-    allCategories: 'All categories',
-    sortLabel: 'Sort by',
-    minRatingLabel: 'Minimum rating',
-    anyRating: 'Any rating',
-    sortRating: 'Highest rating',
-    sortReviews: 'Most reviews',
-    sortNewest: 'Newest profiles',
-    clearFilters: 'Clear filters',
-    countSuffix: 'professionals found',
-    loading: 'Loading professionals...',
-    postJob: 'Post job',
-    emptyTitle: 'No professionals match these filters',
-    emptyText:
-      'Try another location, remove the category filter, or lower the minimum rating.',
-  }
-
   useEffect(() => {
     void loadCategories()
     void loadProfessionals()
@@ -72,8 +45,6 @@ export function Professionals() {
     setLoading(true)
 
     try {
-      // Підтягуємо й звʼязки category -> profile,
-      // щоб фільтр категорій працював по-справжньому.
       const { data } = await supabase
         .from('profiles')
         .select(`
@@ -181,16 +152,16 @@ export function Professionals() {
           <main className="min-w-0 flex-1">
             <section className="glass-panel mb-6 p-5 md:p-6">
               <div className="inline-flex items-center rounded-full border border-[rgba(233,202,177,0.7)] bg-[rgba(255,247,239,0.88)] px-4 py-2 text-sm font-semibold text-[#a26233]">
-                {copy.eyebrow}
+                {t('professionals.eyebrow')}
               </div>
 
               <div className="mt-4 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                 <div className="max-w-3xl">
                   <h1 className="text-3xl font-extrabold tracking-tight text-[#2f2a24] md:text-4xl">
-                    {copy.title}
+                    {t('professionals.simpleTitle')}
                   </h1>
                   <p className="mt-3 text-sm leading-6 text-[#6f665d] md:text-base">
-                    {copy.description}
+                    {t('professionals.simpleDescription')}
                   </p>
                 </div>
 
@@ -199,7 +170,7 @@ export function Professionals() {
                   type="button"
                   className="btn-secondary rounded-full"
                 >
-                  {copy.postJob}
+                  {t('professionals.postJob')}
                 </button>
               </div>
 
@@ -210,7 +181,7 @@ export function Professionals() {
                     type="text"
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
-                    placeholder={copy.searchPlaceholder}
+                    placeholder={t('professionals.nameSkillService')}
                     className="input-glass h-14 pl-12"
                   />
                 </div>
@@ -221,7 +192,7 @@ export function Professionals() {
                     type="text"
                     value={locationFilter}
                     onChange={(event) => setLocationFilter(event.target.value)}
-                    placeholder={copy.locationPlaceholder}
+                    placeholder={t('professionals.cityOrCountry')}
                     className="input-glass h-14 pl-12"
                   />
                 </div>
@@ -233,8 +204,8 @@ export function Professionals() {
                 >
                   <SlidersHorizontal className="h-5 w-5" />
                   {activeFiltersCount > 0
-                    ? `${copy.filtersButton} (${activeFiltersCount})`
-                    : copy.filtersButton}
+                    ? `${t('professionals.filtersButton')} (${activeFiltersCount})`
+                    : t('professionals.filtersButton')}
                 </button>
               </div>
 
@@ -243,14 +214,14 @@ export function Professionals() {
                   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
-                        {copy.categoryLabel}
+                        {t('professionals.categoryLabel')}
                       </label>
                       <select
                         value={selectedCategory}
                         onChange={(event) => setSelectedCategory(event.target.value)}
                         className="select-glass bg-white/80"
                       >
-                        <option value="">{copy.allCategories}</option>
+                        <option value="">{t('professionals.allCategoriesSimple')}</option>
 
                         {categories.map((category) => (
                           <option key={category.id} value={category.slug}>
@@ -262,7 +233,7 @@ export function Professionals() {
 
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
-                        {copy.sortLabel}
+                        {t('professionals.sortLabel')}
                       </label>
                       <select
                         value={sortBy}
@@ -271,22 +242,22 @@ export function Professionals() {
                         }
                         className="select-glass bg-white/80"
                       >
-                        <option value="rating">{copy.sortRating}</option>
-                        <option value="reviews">{copy.sortReviews}</option>
-                        <option value="newest">{copy.sortNewest}</option>
+                        <option value="rating">{t('professionals.sortRating')}</option>
+                        <option value="reviews">{t('professionals.sortReviews')}</option>
+                        <option value="newest">{t('professionals.sortNewest')}</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
-                        {copy.minRatingLabel}
+                        {t('professionals.minRatingLabel')}
                       </label>
                       <select
                         value={minRating}
                         onChange={(event) => setMinRating(Number(event.target.value))}
                         className="select-glass bg-white/80"
                       >
-                        <option value="0">{copy.anyRating}</option>
+                        <option value="0">{t('professionals.anyRatingSimple')}</option>
                         <option value="3">3+</option>
                         <option value="4">4+</option>
                         <option value="4.5">4.5+</option>
@@ -299,7 +270,7 @@ export function Professionals() {
                         type="button"
                         className="btn-ghost justify-start rounded-full px-0 md:justify-center"
                       >
-                        {copy.clearFilters}
+                        {t('professionals.clearFiltersSimple')}
                       </button>
                     </div>
                   </div>
@@ -314,13 +285,15 @@ export function Professionals() {
             <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#6f665d]">
               <Star className="h-4 w-4 text-[#c3912c]" />
               <span>
-                {loading ? copy.loading : `${filteredProfessionals.length} ${copy.countSuffix}`}
+                {loading
+                  ? t('professionals.loadingSimple')
+                  : `${filteredProfessionals.length} ${t('professionals.countSuffix')}`}
               </span>
             </div>
 
             {loading ? (
               <div className="glass-card p-8 text-center text-[#7a7168]">
-                {copy.loading}
+                {t('professionals.loadingSimple')}
               </div>
             ) : filteredProfessionals.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-3">
@@ -339,10 +312,10 @@ export function Professionals() {
             ) : (
               <div className="glass-card p-10 text-center">
                 <h2 className="text-xl font-extrabold text-[#2f2a24]">
-                  {copy.emptyTitle}
+                  {t('professionals.emptyTitle')}
                 </h2>
                 <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#6f665d]">
-                  {copy.emptyText}
+                  {t('professionals.emptyText')}
                 </p>
                 <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <button
@@ -350,7 +323,7 @@ export function Professionals() {
                     type="button"
                     className="btn-secondary rounded-full"
                   >
-                    {copy.clearFilters}
+                    {t('professionals.clearFiltersSimple')}
                   </button>
                   <button
                     onClick={() => navigateTo('/register')}
