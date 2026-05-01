@@ -152,7 +152,7 @@ export function Listings() {
   }
 
   return (
-    <div className="page-bg min-h-screen py-8">
+    <div className="page-bg min-h-screen py-8 pb-24 lg:pb-8">
       <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
         <div className="flex gap-6">
           <div className="hidden xl:block w-[260px] 2xl:w-[300px] flex-shrink-0">
@@ -184,8 +184,8 @@ export function Listings() {
                 </button>
               </div>
 
-              <div className="mt-6 grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px_180px_160px]">
-                <div className="relative">
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_220px_180px_160px]">
+                <div className="relative sm:col-span-2 xl:col-span-1">
                   <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#b59a84]" />
                   <input
                     type="text"
@@ -228,7 +228,7 @@ export function Listings() {
                 <button
                   onClick={() => setShowFilters((value) => !value)}
                   type="button"
-                  className="btn-outline h-14 rounded-[20px]"
+                  className="btn-outline h-14 rounded-[20px] sm:col-span-2 xl:col-span-1"
                 >
                   <SlidersHorizontal className="h-5 w-5" />
                   {activeFiltersCount > 0
