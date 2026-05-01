@@ -145,7 +145,8 @@ function AppContent() {
   }, [path, t])
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-[#f6efe5]">
+    <div className="min-h-screen bg-[#e3e6ea] flex flex-col w-full">
+
       <Header key={`header-${currentUrl}`} />
 
       <main className="flex-1 w-full">
