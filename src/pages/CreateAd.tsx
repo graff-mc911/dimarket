@@ -384,7 +384,7 @@ export function CreateAd() {
                         {t('createAd.locationLabel')} *
                       </label>
 
-                      <div className="flex gap-2">
+                      <div className="flex flex-col gap-2 sm:flex-row">
                         <div className="relative flex-1">
                           <input
                             required
@@ -421,7 +421,7 @@ export function CreateAd() {
                           type="button"
                           onClick={handleGetCurrentLocation}
                           disabled={loadingLocation}
-                          className="flex h-12 w-12 items-center justify-center rounded-[18px] border border-white/70 bg-white/70 text-[#5f5a54] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-70"
+                          className="flex h-12 w-full items-center justify-center rounded-[18px] border border-white/70 bg-white/70 px-4 text-[#5f5a54] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-70 sm:w-12 sm:px-0"
                           title={t('createAd.currentLocation')}
                         >
                           {loadingLocation ? (
@@ -529,7 +529,7 @@ export function CreateAd() {
 
                   <div className="space-y-3">
                     {imageUrls.map((url, index) => (
-                      <div key={index} className="flex gap-2">
+                      <div key={index} className="flex flex-col gap-2 sm:flex-row">
                         <input
                           type="url"
                           value={url}
@@ -542,7 +542,7 @@ export function CreateAd() {
                           <button
                             type="button"
                             onClick={() => removeImageField(index)}
-                            className="flex h-12 w-12 items-center justify-center rounded-[18px] border border-[rgba(221,138,120,0.35)] bg-[rgba(255,237,232,0.92)] text-[#a44a3a] transition hover:bg-[rgba(255,230,223,0.96)]"
+                            className="flex h-12 w-full items-center justify-center rounded-[18px] border border-[rgba(221,138,120,0.35)] bg-[rgba(255,237,232,0.92)] text-[#a44a3a] transition hover:bg-[rgba(255,230,223,0.96)] sm:w-12"
                           >
                             <X className="h-4 w-4" />
                           </button>
