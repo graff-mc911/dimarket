@@ -11,6 +11,8 @@ import { useApp } from '../contexts/AppContext'
 export function Advertising() {
   const { t } = useApp()
 
+  // Описуємо основні рекламні зони платформи,
+  // щоб нижче просто пройтись по масиву і відрендерити картки.
   const placements = [
     {
       title: t('advertising.placements.homeTitle'),
@@ -32,8 +34,9 @@ export function Advertising() {
   return (
     <div className="page-bg min-h-screen px-4 py-8 md:px-6 xl:px-8 2xl:px-10">
       <div className="mx-auto max-w-6xl">
+        {/* Верхній hero-блок сторінки реклами */}
         <section className="glass-panel p-6 md:p-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(233,202,177,0.7)] bg-[rgba(255,247,239,0.88)] px-4 py-2 text-sm font-semibold text-[#a26233]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/42 bg-[rgba(248,250,252,0.70)] px-4 py-2 text-sm font-semibold text-[#64748b]">
             <Megaphone className="h-4 w-4" />
             <span>{t('advertising.eyebrow')}</span>
           </div>
@@ -46,6 +49,7 @@ export function Advertising() {
             {t('advertising.description')}
           </p>
 
+          {/* Основні кнопки дії: перейти до запитів або назад на головну */}
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <button
               onClick={() => navigateTo('/listings')}
@@ -65,6 +69,9 @@ export function Advertising() {
           </div>
         </section>
 
+        {/* Основна сітка сторінки:
+            ліворуч — рекламні розміщення,
+            праворуч — аудиторія та принцип монетизації */}
         <section className="mt-6 grid gap-6 lg:grid-cols-[1.3fr_0.9fr]">
           <div className="glass-card p-6">
             <h2 className="text-2xl font-extrabold text-[#2f2a24]">
@@ -75,10 +82,11 @@ export function Advertising() {
               {placements.map((placement) => (
                 <div
                   key={placement.title}
-                  className="rounded-[24px] border border-white/70 bg-white/55 p-5"
+                  className="rounded-[24px] border border-white/38 bg-[rgba(255,255,255,0.30)] p-5"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-[rgba(242,171,116,0.18)] text-[#9a5525]">
+                    {/* Іконка конкретного типу рекламного розміщення */}
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-[rgba(148,163,184,0.16)] text-[#64748b]">
                       <placement.icon className="h-6 w-6" />
                     </div>
 
@@ -97,6 +105,7 @@ export function Advertising() {
           </div>
 
           <div className="space-y-6">
+            {/* Блок про те, кому підходить реклама на платформі */}
             <div className="glass-card p-6">
               <h2 className="text-2xl font-extrabold text-[#2f2a24]">
                 {t('advertising.audienceTitle')}
@@ -106,6 +115,7 @@ export function Advertising() {
               </p>
             </div>
 
+            {/* Блок про модель монетизації платформи */}
             <div className="glass-card p-6">
               <h2 className="text-2xl font-extrabold text-[#2f2a24]">
                 {t('advertising.principleTitle')}
