@@ -24,11 +24,15 @@ import { navigateTo } from './lib/navigation'
 function AppContent() {
   const { t } = useApp()
 
+  // Зберігаємо поточну адресу сторінки в стані,
+  // щоб інтерфейс оновлювався після внутрішньої навігації без router.
   const [currentUrl, setCurrentUrl] = useState(
     `${window.location.pathname}${window.location.search}`
   )
 
   useEffect(() => {
+    // Слухаємо зміну маршруту через pushState/popstate
+    // і примусово оновлюємо локальний стан адреси.
     const handleRouteChange = () => {
       setCurrentUrl(`${window.location.pathname}${window.location.search}`)
     }
@@ -40,10 +44,13 @@ function AppContent() {
     }
   }, [])
 
+  // Відокремлюємо тільки pathname без query-параметрів,
+  // щоб простіше рендерити потрібну сторінку.
   const path = useMemo(() => {
     return currentUrl.split('?')[0] || '/'
   }, [currentUrl])
 
+  // Тут описана вся проста маршрутизація застосунку.
   const page = useMemo(() => {
     if (path === '/') {
       return <Home />
@@ -130,6 +137,7 @@ function AppContent() {
       return <Advertising />
     }
 
+    // Усі невідомі маршрути ведемо на заглушку.
     return (
       <RoutePlaceholder
         icon={AlertCircle}
@@ -145,8 +153,10 @@ function AppContent() {
   }, [path, t])
 
   return (
-    <div className="min-h-screen bg-[#e3e6ea] flex flex-col w-full">
-
+    // Кореневий фон робимо нейтрально-сірим,
+    // щоб на десктопі більше не просвічував теплий рожевий відтінок.
+    <div className="min-h-screen bg-[#dfe3e7] flex flex-col w-full">
+      {/* key потрібен, щоб Header коректно оновлював активні стани після переходів */}
       <Header key={`header-${currentUrl}`} />
 
       <main className="flex-1 w-full">
@@ -183,11 +193,12 @@ function RoutePlaceholder({
     <div className="page-bg min-h-[calc(100vh-12rem)] px-4 py-10 md:px-6 xl:px-8 2xl:px-10">
       <div className="mx-auto flex max-w-3xl items-center justify-center">
         <section className="glass-panel w-full p-6 text-center md:p-10">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-[rgba(245,166,109,0.18)] text-[#c96d2c] shadow-soft">
+          {/* Іконка заглушки для ще неготової або відсутньої сторінки */}
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-[rgba(160,170,180,0.20)] text-[#6b7280]">
             <Icon className="h-8 w-8" />
           </div>
 
-          <p className="mt-5 text-sm font-semibold uppercase tracking-[0.22em] text-[#b17a58]">
+          <p className="mt-5 text-sm font-semibold uppercase tracking-[0.22em] text-[#7b8794]">
             {eyebrow}
           </p>
 
