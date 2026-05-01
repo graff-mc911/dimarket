@@ -162,7 +162,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full px-2 pt-2 md:px-4 md:pt-4">
       {/* Основний контейнер шапки.
           Саме тут прибрано теплий рожево-бежевий фон для десктопа. */}
-      <div className="mx-auto max-w-7xl rounded-[30px] border border-white/45 bg-[rgba(244,246,248,0.68)] shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-xl">
+      <div className="mx-auto max-w-7xl rounded-[30px] border border-gray-200 bg-gray-100 shadow-[0_18px_50px_rgba(15,23,42,0.06)]">
         <div className="flex items-center justify-between gap-2 px-3 py-3 md:gap-3 md:px-5">
           {/* Логотип і назва бренду */}
           <button
