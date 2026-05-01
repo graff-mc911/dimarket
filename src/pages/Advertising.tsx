@@ -1,4 +1,10 @@
-import { ArrowRight, Megaphone, MonitorSmartphone, Newspaper, PanelsTopLeft } from 'lucide-react'
+import {
+  ArrowRight,
+  Megaphone,
+  MonitorSmartphone,
+  Newspaper,
+  PanelsTopLeft,
+} from 'lucide-react'
 import { navigateTo } from '../lib/navigation'
 import { useApp } from '../contexts/AppContext'
 
