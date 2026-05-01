@@ -1,3 +1,4 @@
+import { Megaphone, X } from 'lucide-react'
 import { useState } from 'react'
 import { useApp } from '../contexts/AppContext'
 
@@ -9,63 +10,90 @@ export function MobileAdBanner({ variant }: MobileAdBannerProps) {
   const { t } = useApp()
   const [adVisible, setAdVisible] = useState(true)
 
-  if (!adVisible) return null
-
-  if (variant === 'inline') {
-    return (
-      <div className="lg:hidden bg-gradient-to-br from-cream-50 to-cream rounded-lg p-4 relative mb-4 border border-primary/20">
-        <button
-          onClick={() => setAdVisible(false)}
-          className="absolute top-1 right-1 text-dark-gray/40 hover:text-dark-gray text-xs transition z-10"
-          aria-label={t('ads.close')}
-        >
-          ✕
-        </button>
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="w-full h-32 bg-gradient-to-br from-primary to-primary-hover rounded flex items-center justify-center text-white font-bold text-sm">
-            {t('ads.adSpace')}
-          </div>
-          <p className="text-xs text-dark-gray/60 text-center mt-2">320 x 100px</p>
-        </div>
-      </div>
-    )
+  if (!adVisible) {
+    return null
   }
 
   if (variant === 'sticky') {
     return (
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-secondary/20 p-2 shadow-lg z-40">
-        <button
-          onClick={() => setAdVisible(false)}
-          className="absolute top-1 right-1 text-dark-gray/40 hover:text-dark-gray text-xs transition z-10"
-          aria-label={t('ads.close')}
-        >
-          ✕
-        </button>
-        <div className="w-full h-16 bg-gradient-to-r from-secondary to-secondary-hover rounded flex items-center justify-center text-white font-bold text-sm">
-          {t('ads.stickyAdBlock')}
+      <div className="fixed bottom-3 left-3 right-3 z-40 lg:hidden">
+        <div className="glass-card relative overflow-hidden border border-[rgba(242,171,116,0.28)] px-4 py-3 shadow-[0_18px_45px_rgba(89,63,48,0.14)]">
+          <button
+            onClick={() => setAdVisible(false)}
+            type="button"
+            className="absolute right-3 top-3 rounded-full border border-white/70 bg-white/75 p-1 text-[#7a7168] transition hover:bg-white hover:text-[#2f2a24]"
+            aria-label={t('ads.close')}
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+
+          <div className="pr-8">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[rgba(242,171,116,0.18)] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#9a5525]">
+              <Megaphone className="h-3.5 w-3.5" />
+              <span>{t('ads.adSpace')}</span>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-extrabold text-[#2f2a24]">
+                  {t('ads.stickyAdBlock')}
+                </div>
+                <p className="mt-1 text-xs leading-5 text-[#6f665d]">
+                  {t('ads.premiumPlacement')}
+                </p>
+              </div>
+
+              <div className="rounded-full bg-[rgba(242,171,116,0.18)] px-3 py-2 text-xs font-semibold text-[#9a5525]">
+                320 x 50
+              </div>
+            </div>
+          </div>
         </div>
-        <p className="text-xs text-dark-gray/60 text-center mt-1">320 x 50px</p>
       </div>
     )
   }
 
-  if (variant === 'horizontal') {
-    return (
-      <div className="lg:hidden bg-gradient-to-r from-cream-50 to-cream rounded-lg p-3 relative mb-4 border border-primary/20">
+  const cardHeightClass = variant === 'horizontal' ? 'h-20' : 'h-28'
+  const text = variant === 'horizontal' ? t('ads.bannerAd') : t('ads.advertiseHere')
+  const sizeLabel = variant === 'horizontal' ? '320 x 60' : '320 x 100'
+
+  return (
+    <div className="lg:hidden">
+      <div className="glass-card relative overflow-hidden border border-[rgba(242,171,116,0.24)] p-4 shadow-[0_16px_38px_rgba(89,63,48,0.08)]">
         <button
           onClick={() => setAdVisible(false)}
-          className="absolute top-1 right-1 text-dark-gray/40 hover:text-dark-gray text-xs transition z-10"
+          type="button"
+          className="absolute right-3 top-3 rounded-full border border-white/70 bg-white/75 p-1 text-[#7a7168] transition hover:bg-white hover:text-[#2f2a24]"
           aria-label={t('ads.close')}
         >
-          ✕
+          <X className="h-3.5 w-3.5" />
         </button>
-        <div className="w-full h-20 bg-gradient-to-r from-primary to-secondary rounded flex items-center justify-center text-white font-bold text-sm">
-          {t('ads.bannerAd')}
-        </div>
-        <p className="text-xs text-dark-gray/60 text-center mt-1">320 x 60px</p>
-      </div>
-    )
-  }
 
-  return null
+        <div className="flex items-start gap-3 pr-8">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[16px] bg-[rgba(242,171,116,0.18)] text-[#9a5525]">
+            <Megaphone className="h-5 w-5" />
+          </div>
+
+          <div className="min-w-0">
+            <div className="text-sm font-extrabold text-[#2f2a24]">
+              {t('ads.adSpace')}
+            </div>
+            <p className="mt-1 text-xs leading-5 text-[#6f665d]">
+              {text}
+            </p>
+          </div>
+        </div>
+
+        <div
+          className={`mt-4 flex w-full items-center justify-center rounded-[20px] bg-[linear-gradient(135deg,rgba(242,171,116,0.92),rgba(201,109,44,0.9))] text-sm font-bold text-white ${cardHeightClass}`}
+        >
+          {variant === 'horizontal' ? t('ads.bannerAd') : t('ads.adSpace')}
+        </div>
+
+        <div className="mt-3 text-center text-xs font-medium text-[#7a7168]">
+          {sizeLabel}
+        </div>
+      </div>
+    </div>
+  )
 }
