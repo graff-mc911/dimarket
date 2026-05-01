@@ -58,14 +58,21 @@ const localeMap: Record<string, string> = {
 
 export function FooterStats() {
   const { t, language } = useApp()
+
+  // Основний стан статистики, який показується у футері.
   const [stats, setStats] = useState<FooterStatsData>(EMPTY_STATS)
+
+  // Поки дані не завантажились, показуємо loading-стан.
   const [loading, setLoading] = useState(true)
 
+  // Підбираємо локаль для форматування чисел і дати
+  // відповідно до поточної мови інтерфейсу.
   const locale = useMemo(() => {
     return localeMap[language.code] ?? 'en-US'
   }, [language.code])
 
   useEffect(() => {
+    // Завантажуємо статистику один раз при монтуванні компонента.
     void loadStats()
   }, [])
 
@@ -73,6 +80,7 @@ export function FooterStats() {
     setLoading(true)
 
     try {
+      // Перед читанням статистики просимо бекенд оновити агреговані дані.
       await supabase.rpc('refresh_app_site_stats')
 
       const { data, error } = await supabase
@@ -90,6 +98,7 @@ export function FooterStats() {
         return
       }
 
+      // Нормалізуємо відповідь, щоб компонент не падав на порожніх значеннях.
       setStats({
         total_visits: data.total_visits || 0,
         total_listings_created: data.total_listings_created || 0,
@@ -105,10 +114,12 @@ export function FooterStats() {
     }
   }
 
+  // Єдина функція для красивого форматування чисел у всьому блоці статистики.
   const formatNumber = (value: number) => {
     return new Intl.NumberFormat(locale).format(value || 0)
   }
 
+  // Опис карток верхнього ряду зі статистикою.
   const statCards = [
     {
       icon: Eye,
@@ -120,7 +131,7 @@ export function FooterStats() {
       icon: FileText,
       label: t('footerStats.listings'),
       value: stats.total_listings_created,
-      color: 'text-[#c96d2c]',
+      color: 'text-slate-600',
     },
     {
       icon: CheckCircle2,
@@ -132,18 +143,19 @@ export function FooterStats() {
       icon: Users,
       label: t('footerStats.professionals'),
       value: stats.total_professionals,
-      color: 'text-teal-700',
+      color: 'text-cyan-700',
     },
     {
       icon: Globe2,
       label: t('footerStats.countries'),
       value: stats.country_ranking.length,
-      color: 'text-[#8b6f3d]',
+      color: 'text-indigo-600',
     },
   ]
 
   return (
-    <section className="mt-10 border-t border-[rgba(190,168,150,0.28)] pt-8">
+    <section className="mt-10 border-t border-[rgba(148,163,184,0.18)] pt-8">
+      {/* Заголовок секції статистики */}
       <div className="mb-6">
         <h3 className="text-xl font-extrabold text-[#2f2a24]">
           {t('footerStats.title')}
@@ -153,11 +165,12 @@ export function FooterStats() {
         </p>
       </div>
 
+      {/* Верхній ряд карток з головними показниками */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {statCards.map((card) => (
           <div
             key={card.label}
-            className="rounded-[24px] border border-white/70 bg-white/55 p-4 shadow-[0_10px_28px_rgba(89,63,48,0.06)]"
+            className="rounded-[24px] border border-white/38 bg-[rgba(255,255,255,0.30)] p-4 shadow-[0_10px_28px_rgba(15,23,42,0.04)] backdrop-blur-xl"
           >
             <div className="mb-3 flex items-center gap-3">
               <card.icon className={`h-5 w-5 ${card.color}`} />
@@ -171,7 +184,8 @@ export function FooterStats() {
         ))}
       </div>
 
-      <div className="rounded-[28px] border border-white/70 bg-white/55 p-5 shadow-[0_10px_28px_rgba(89,63,48,0.06)]">
+      {/* Блок рейтингу країн */}
+      <div className="rounded-[28px] border border-white/38 bg-[rgba(255,255,255,0.30)] p-5 shadow-[0_10px_28px_rgba(15,23,42,0.04)] backdrop-blur-xl">
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h4 className="text-lg font-extrabold text-[#2f2a24]">
@@ -182,6 +196,7 @@ export function FooterStats() {
             </p>
           </div>
 
+          {/* Показуємо дату оновлення тільки якщо вона є і статистика вже завантажилась */}
           {stats.updated_at && !loading && (
             <span className="text-xs text-[#7a7168]">
               {t('footerStats.updatedPrefix')}{' '}
@@ -190,19 +205,22 @@ export function FooterStats() {
           )}
         </div>
 
+        {/* Loading-стан блоку рейтингу */}
         {loading ? (
           <div className="text-sm text-[#7a7168]">{t('footerStats.loading')}</div>
         ) : stats.country_ranking.length === 0 ? (
+          // Якщо даних немає — показуємо зрозуміле повідомлення замість порожнього контейнера.
           <div className="text-sm text-[#7a7168]">{t('footerStats.empty')}</div>
         ) : (
           <div className="space-y-3">
             {stats.country_ranking.map((item, index) => (
               <div
                 key={`${item.country}-${index}`}
-                className="flex flex-col gap-3 rounded-[22px] border border-[rgba(190,168,150,0.22)] bg-[rgba(255,250,246,0.82)] p-4 lg:flex-row lg:items-center lg:justify-between"
+                className="flex flex-col gap-3 rounded-[22px] border border-[rgba(148,163,184,0.14)] bg-[rgba(248,250,252,0.54)] p-4 lg:flex-row lg:items-center lg:justify-between"
               >
+                {/* Ліва частина рядка: позиція, країна, score */}
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[rgba(242,171,116,0.16)] text-sm font-bold text-[#9a5525]">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[rgba(148,163,184,0.14)] text-sm font-bold text-[#475569]">
                     {index + 1}
                   </div>
 
@@ -216,6 +234,7 @@ export function FooterStats() {
                   </div>
                 </div>
 
+                {/* Права частина рядка: короткі числові метрики по країні */}
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <RankingMetric
                     label={t('footerStats.prosShort')}
@@ -252,6 +271,7 @@ function RankingMetric({
   locale: string
 }) {
   return (
+    // Маленький переиспользовуваний блок однієї метрики в рейтингу.
     <div>
       <div className="text-[#7a7168]">{label}</div>
       <div className="font-semibold text-[#2f2a24]">
