@@ -91,7 +91,9 @@ export function Home() {
     navigateTo(query ? `/listings?${query}` : '/listings')
   }
 
-  const translateUnsafe = (key: string) => t(key)
+  const translateUnsafe = (key: string) => {
+    return t(key)
+  }
 
   const getCategoryName = (category: Category) => {
     const newKey = `category.name.${category.slug}`
@@ -150,9 +152,9 @@ export function Home() {
 
             <form
               onSubmit={handleSearch}
-              className="mt-7 grid gap-3 md:grid-cols-[minmax(0,1fr)_240px] xl:grid-cols-[minmax(0,1fr)_240px_180px]"
+              className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_240px_180px]"
             >
-              <div className="relative">
+              <div className="relative sm:col-span-2 xl:col-span-1">
                 <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#b59a84]" />
                 <input
                   value={searchQuery}
@@ -173,7 +175,7 @@ export function Home() {
               </div>
 
               <button type="submit" className="btn-primary h-14 rounded-[20px]">
-                {t('home.findProfessionals')}
+                {t('listings.findRequests')}
               </button>
             </form>
 
@@ -480,7 +482,7 @@ function HomeJobCard({
         <span>{createdLabel}</span>
       </div>
 
-      <div className="mt-5 flex items-center justify-between border-t border-[rgba(190,168,150,0.28)] pt-4">
+      <div className="mt-5 flex flex-col gap-3 border-t border-[rgba(190,168,150,0.28)] pt-4 sm:flex-row sm:items-center sm:justify-between">
         <span className="text-sm text-[#7a7168]">{budgetLabel}</span>
         <span className="text-lg font-extrabold text-[#2f2a24]">{budgetValue}</span>
       </div>
@@ -537,7 +539,7 @@ function ProfessionalPreviewCard({
         {professional.bio || noBioLabel}
       </p>
 
-      <div className="mt-5 flex items-center justify-between border-t border-[rgba(190,168,150,0.28)] pt-4">
+      <div className="mt-5 flex flex-col gap-3 border-t border-[rgba(190,168,150,0.28)] pt-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-sm text-[#7a7168]">
           <UserRound className="h-4 w-4" />
           <span>
@@ -548,7 +550,7 @@ function ProfessionalPreviewCard({
         <button
           onClick={() => navigateTo(`/professional/${professional.id}`)}
           type="button"
-          className="inline-flex items-center gap-2 rounded-full bg-[rgba(242,171,116,0.18)] px-4 py-2 text-sm font-bold text-[#9a5525] transition hover:bg-[rgba(242,171,116,0.26)]"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[rgba(242,171,116,0.18)] px-4 py-2 text-sm font-bold text-[#9a5525] transition hover:bg-[rgba(242,171,116,0.26)] sm:w-auto"
         >
           <ArrowRight className="h-4 w-4" />
           <span>{actionLabel}</span>
