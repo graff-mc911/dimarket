@@ -155,7 +155,8 @@ function AppContent() {
   return (
     // Кореневий фон робимо нейтрально-сірим,
     // щоб на десктопі більше не просвічував теплий рожевий відтінок.
-    <div className="min-h-screen bg-[#dfe3e7] flex flex-col w-full">
+    <div className="min-h-screen bg-[#f1f3f5] flex flex-col w-full">
+
       {/* key потрібен, щоб Header коректно оновлював активні стани після переходів */}
       <Header key={`header-${currentUrl}`} />
 
