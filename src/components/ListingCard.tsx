@@ -36,7 +36,7 @@ export function ListingCard({ listing }: ListingCardProps) {
 
   const getCategoryLabel = () => {
     if (!listing.category) {
-      return 'Construction service'
+      return t('listing.constructionService')
     }
 
     const newKey = `category.name.${listing.category.slug}`
@@ -70,6 +70,14 @@ export function ListingCard({ listing }: ListingCardProps) {
     return labels[radius] || radius
   }
 
+  const getStatusLabel = () => {
+    if (listing.status === 'active') {
+      return t('home.activeLabel')
+    }
+
+    return listing.status
+  }
+
   const formatBudget = () => {
     if (!listing.price) {
       return t('listing.contactForPrice')
@@ -89,7 +97,7 @@ export function ListingCard({ listing }: ListingCardProps) {
       className="glass-card group flex h-full flex-col overflow-hidden text-left transition duration-200 hover:-translate-y-0.5"
     >
       <div className="flex flex-1 flex-col gap-4 p-5">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <span className="rounded-full bg-[rgba(242,171,116,0.18)] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#9a5525]">
               {typeLabel}
@@ -101,19 +109,19 @@ export function ListingCard({ listing }: ListingCardProps) {
           </div>
 
           <span className="rounded-full bg-[rgba(126,180,141,0.16)] px-3 py-1 text-xs font-bold text-[#3d7a52]">
-            {listing.status}
+            {getStatusLabel()}
           </span>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row">
           {primaryImage ? (
             <img
               src={primaryImage}
               alt={listing.title}
-              className="h-24 w-24 shrink-0 rounded-[22px] object-cover"
+              className="h-44 w-full shrink-0 rounded-[22px] object-cover sm:h-24 sm:w-24"
             />
           ) : (
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-[22px] bg-[linear-gradient(135deg,rgba(255,244,234,0.95),rgba(244,186,134,0.72))] text-[#9a5525]">
+            <div className="flex h-28 w-full shrink-0 items-center justify-center rounded-[22px] bg-[linear-gradient(135deg,rgba(255,244,234,0.95),rgba(244,186,134,0.72))] text-[#9a5525] sm:h-24 sm:w-24">
               <ClipboardList className="h-8 w-8" />
             </div>
           )}
@@ -132,7 +140,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         <div className="grid gap-2 text-sm text-[#7a7168]">
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 shrink-0" />
-            <span>{listing.location || 'Location not specified'}</span>
+            <span>{listing.location || t('listing.locationNotSpecified')}</span>
           </div>
 
           {visibilityRadius && (
@@ -145,18 +153,18 @@ export function ListingCard({ listing }: ListingCardProps) {
       </div>
 
       <div className="mt-auto border-t border-[rgba(190,168,150,0.28)] px-5 py-4">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9d8b7a]">
-              Budget
+              {t('listing.budget')}
             </div>
             <div className="mt-1 text-lg font-extrabold text-[#2f2a24]">
               {formatBudget()}
             </div>
           </div>
 
-          <div className="text-right text-xs text-[#7a7168]">
-            <div className="flex items-center justify-end gap-1">
+          <div className="text-xs text-[#7a7168] sm:text-right">
+            <div className="flex items-center gap-1 sm:justify-end">
               <Calendar className="h-3.5 w-3.5" />
               <span>
                 {daysRemaining} {t('listing.daysLeft')}
