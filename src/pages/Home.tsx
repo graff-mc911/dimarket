@@ -19,14 +19,20 @@ import { navigateTo } from '../lib/navigation'
 export function Home() {
   const { currency, language, t } = useApp()
 
+  // Дані для головної сторінки: категорії, майстри, світі job requests.
   const [categories, setCategories] = useState<Category[]>([])
   const [professionals, setProfessionals] = useState<Profile[]>([])
   const [jobs, setJobs] = useState<ListingWithImages[]>([])
+
+  // Поля пошуку у hero-блоці.
   const [searchQuery, setSearchQuery] = useState('')
   const [locationQuery, setLocationQuery] = useState('')
+
+  // Стан початкового завантаження сторінки.
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // При першому відкритті сторінки підтягуємо весь потрібний контент.
     void loadHomeData()
   }, [])
 
@@ -36,6 +42,10 @@ export function Home() {
     try {
       const now = new Date().toISOString()
 
+      // Для головної сторінки беремо:
+      // - верхні категорії
+      // - популярних майстрів
+      // - тільки активні service_request, щоб блок був релевантним клієнтам і майстрам.
       const [categoriesResult, professionalsResult, jobsResult] = await Promise.all([
         supabase
           .from('categories')
@@ -87,10 +97,13 @@ export function Home() {
       params.set('location', locationQuery.trim())
     }
 
+    // Передаємо фільтри через query params,
+    // щоб сторінка listings відкрилась уже з готовим пошуком.
     const query = params.toString()
     navigateTo(query ? `/listings?${query}` : '/listings')
   }
 
+  // Допоміжний виклик перекладу для динамічних ключів категорій.
   const translateUnsafe = (key: string) => {
     return t(key)
   }
@@ -134,10 +147,12 @@ export function Home() {
 
   return (
     <div className="page-bg min-h-screen">
+      {/* Верхній hero-блок із швидким пошуком */}
       <section className="px-4 pb-6 pt-4 md:px-6 md:pb-8 xl:px-8 2xl:px-10">
         <div className="mx-auto grid max-w-7xl gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="glass-panel overflow-hidden p-5 md:p-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(233,202,177,0.7)] bg-[rgba(255,247,239,0.88)] px-4 py-2 text-sm font-semibold text-[#a26233]">
+            {/* Невеликий бейдж над заголовком */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/42 bg-[rgba(248,250,252,0.70)] px-4 py-2 text-sm font-semibold text-[#64748b]">
               <ShieldCheck className="h-4 w-4" />
               <span>{t('home.globalEyebrow')}</span>
             </div>
@@ -150,12 +165,13 @@ export function Home() {
               {t('home.heroSimpleDescription')}
             </p>
 
+            {/* Пошук по типу роботи і локації */}
             <form
               onSubmit={handleSearch}
               className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_240px_180px]"
             >
               <div className="relative sm:col-span-2 xl:col-span-1">
-                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#b59a84]" />
+                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#94a3b8]" />
                 <input
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
@@ -165,7 +181,7 @@ export function Home() {
               </div>
 
               <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#b59a84]" />
+                <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#94a3b8]" />
                 <input
                   value={locationQuery}
                   onChange={(event) => setLocationQuery(event.target.value)}
@@ -179,6 +195,7 @@ export function Home() {
               </button>
             </form>
 
+            {/* Швидкі кнопки переходу */}
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
               <button
                 onClick={() => navigateTo('/create-ad')}
@@ -199,13 +216,14 @@ export function Home() {
               </button>
             </div>
 
+            {/* Швидкі категорії під hero-блоком */}
             <div className="mt-7 flex flex-wrap gap-2">
               {categories.slice(0, 4).map((category) => (
                 <button
                   key={category.id}
                   onClick={() => navigateTo(`/listings?category=${category.slug}`)}
                   type="button"
-                  className="rounded-full border border-white/70 bg-white/60 px-4 py-2 text-sm font-semibold text-[#5f5a54] transition hover:bg-white/85 hover:text-[#2f2a24]"
+                  className="rounded-full border border-white/38 bg-[rgba(255,255,255,0.34)] px-4 py-2 text-sm font-semibold text-[#5f5a54] transition hover:bg-[rgba(255,255,255,0.52)] hover:text-[#2f2a24]"
                 >
                   {getCategoryName(category)}
                 </button>
@@ -213,9 +231,10 @@ export function Home() {
             </div>
           </div>
 
+          {/* Бокова рекламна картка у hero-частині */}
           <aside className="glass-card flex min-h-[320px] flex-col justify-between p-5">
             <div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[rgba(245,166,109,0.18)] text-[#c96d2c]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[rgba(148,163,184,0.16)] text-[#64748b]">
                 <Megaphone className="h-6 w-6" />
               </div>
 
@@ -245,6 +264,7 @@ export function Home() {
         </div>
       </section>
 
+      {/* Блок популярних категорій */}
       <section className="px-4 py-6 md:px-6 xl:px-8 2xl:px-10">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
@@ -267,15 +287,15 @@ export function Home() {
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <div className="text-3xl text-[#c96d2c]">
+                      <div className="text-3xl text-[#64748b]">
                         {category.icon || '...'}
                       </div>
-                      <h3 className="mt-4 text-xl font-extrabold text-[#2f2a24] transition group-hover:text-[#9a5525]">
+                      <h3 className="mt-4 text-xl font-extrabold text-[#2f2a24] transition group-hover:text-[#475569]">
                         {getCategoryName(category)}
                       </h3>
                     </div>
 
-                    <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-[#c3a58d] transition group-hover:text-[#9a5525]" />
+                    <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-[#94a3b8] transition group-hover:text-[#475569]" />
                   </div>
 
                   <p className="mt-3 text-sm leading-6 text-[#6f665d]">
@@ -290,6 +310,7 @@ export function Home() {
         </div>
       </section>
 
+      {/* Блок свіжих job requests */}
       <section className="px-4 py-6 md:px-6 xl:px-8 2xl:px-10">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div>
@@ -318,6 +339,7 @@ export function Home() {
                       unknownCategoryLabel={t('home.unknownCategory')}
                     />
 
+                    {/* Вставляємо проміжну рекламну картку між job cards */}
                     {index === 1 && (
                       <InlineAdCard
                         title={t('home.adTitle')}
@@ -334,6 +356,7 @@ export function Home() {
             )}
           </div>
 
+          {/* Бокові рекламні підказки */}
           <div className="space-y-4">
             <SidebarAdCard
               title={t('home.adCardOne')}
@@ -347,6 +370,7 @@ export function Home() {
         </div>
       </section>
 
+      {/* Блок популярних майстрів */}
       <section className="px-4 pb-14 pt-6 md:px-6 xl:px-8 2xl:px-10">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
@@ -394,6 +418,8 @@ function SectionHeader({
   onClick: () => void
 }) {
   return (
+    // Універсальна шапка секції:
+    // заголовок, пояснення та кнопка переходу праворуч.
     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <h2 className="text-2xl font-extrabold tracking-tight text-[#2f2a24] md:text-3xl">
@@ -437,11 +463,13 @@ function HomeJobCard({
   noLocationLabel: string
   unknownCategoryLabel: string
 }) {
+  // Форматуємо дату створення в локалі поточної мови.
   const createdLabel = new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'short',
   }).format(new Date(job.created_at))
 
+  // Якщо бюджету немає, показуємо запасний текст.
   const budgetValue = job.price
     ? `${currencySymbol}${job.price.toLocaleString()}`
     : noBudgetLabel
@@ -454,11 +482,11 @@ function HomeJobCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <span className="inline-flex rounded-full bg-[rgba(245,166,109,0.16)] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#9a5525]">
+          <span className="inline-flex rounded-full bg-[rgba(148,163,184,0.14)] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#475569]">
             {categoryLabel || unknownCategoryLabel}
           </span>
 
-          <h3 className="mt-3 line-clamp-2 text-xl font-extrabold text-[#2f2a24] transition group-hover:text-[#9a5525]">
+          <h3 className="mt-3 line-clamp-2 text-xl font-extrabold text-[#2f2a24] transition group-hover:text-[#475569]">
             {job.title}
           </h3>
         </div>
@@ -482,7 +510,7 @@ function HomeJobCard({
         <span>{createdLabel}</span>
       </div>
 
-      <div className="mt-5 flex flex-col gap-3 border-t border-[rgba(190,168,150,0.28)] pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-5 flex flex-col gap-3 border-t border-[rgba(148,163,184,0.16)] pt-4 sm:flex-row sm:items-center sm:justify-between">
         <span className="text-sm text-[#7a7168]">{budgetLabel}</span>
         <span className="text-lg font-extrabold text-[#2f2a24]">{budgetValue}</span>
       </div>
@@ -507,7 +535,10 @@ function ProfessionalPreviewCard({
   reviewLabel: string
   actionLabel: string
 }) {
+  // Формуємо ініціали, якщо в майстра немає фото.
   const initials = getInitials(professional.full_name)
+
+  // Якщо рейтингу ще немає, показуємо бейдж "new".
   const ratingLabel =
     professional.rating > 0 ? professional.rating.toFixed(1) : newLabel
 
@@ -515,7 +546,7 @@ function ProfessionalPreviewCard({
     <div className="glass-card overflow-hidden p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] bg-[linear-gradient(135deg,rgba(255,244,234,0.95),rgba(244,186,134,0.72))] text-lg font-extrabold text-[#9a5525]">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] bg-[linear-gradient(135deg,rgba(248,250,252,0.92),rgba(203,213,225,0.72))] text-lg font-extrabold text-[#475569]">
             {initials}
           </div>
 
@@ -529,7 +560,7 @@ function ProfessionalPreviewCard({
           </div>
         </div>
 
-        <div className="inline-flex items-center gap-1 rounded-full bg-[rgba(255,249,236,0.96)] px-3 py-1 text-sm font-bold text-[#8c6728]">
+        <div className="inline-flex items-center gap-1 rounded-full bg-[rgba(241,245,249,0.92)] px-3 py-1 text-sm font-bold text-[#475569]">
           <Star className="h-4 w-4 fill-current" />
           <span>{ratingLabel}</span>
         </div>
@@ -539,7 +570,7 @@ function ProfessionalPreviewCard({
         {professional.bio || noBioLabel}
       </p>
 
-      <div className="mt-5 flex flex-col gap-3 border-t border-[rgba(190,168,150,0.28)] pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-5 flex flex-col gap-3 border-t border-[rgba(148,163,184,0.16)] pt-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-sm text-[#7a7168]">
           <UserRound className="h-4 w-4" />
           <span>
@@ -550,7 +581,7 @@ function ProfessionalPreviewCard({
         <button
           onClick={() => navigateTo(`/professional/${professional.id}`)}
           type="button"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[rgba(242,171,116,0.18)] px-4 py-2 text-sm font-bold text-[#9a5525] transition hover:bg-[rgba(242,171,116,0.26)] sm:w-auto"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[rgba(148,163,184,0.16)] px-4 py-2 text-sm font-bold text-[#475569] transition hover:bg-[rgba(148,163,184,0.24)] sm:w-auto"
         >
           <ArrowRight className="h-4 w-4" />
           <span>{actionLabel}</span>
@@ -562,7 +593,8 @@ function ProfessionalPreviewCard({
 
 function AdPill({ label }: { label: string }) {
   return (
-    <div className="rounded-[20px] border border-white/70 bg-white/55 px-4 py-3 text-sm font-semibold text-[#5f5a54]">
+    // Невеликий декоративний елемент для рекламних напрямків.
+    <div className="rounded-[20px] border border-white/38 bg-[rgba(255,255,255,0.30)] px-4 py-3 text-sm font-semibold text-[#5f5a54]">
       {label}
     </div>
   )
@@ -580,9 +612,10 @@ function InlineAdCard({
   onClick: () => void
 }) {
   return (
+    // Рекламна картка всередині сітки job requests.
     <div className="glass-card flex flex-col justify-between p-5 text-left">
       <div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[rgba(245,166,109,0.18)] text-[#c96d2c]">
+        <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[rgba(148,163,184,0.16)] text-[#64748b]">
           <Megaphone className="h-6 w-6" />
         </div>
         <h3 className="mt-4 text-xl font-extrabold text-[#2f2a24]">{title}</h3>
@@ -608,8 +641,9 @@ function SidebarAdCard({
   text: string
 }) {
   return (
+    // Бокова рекламна картка для правої колонки.
     <div className="glass-card p-5">
-      <div className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-[rgba(245,166,109,0.18)] text-[#c96d2c]">
+      <div className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-[rgba(148,163,184,0.16)] text-[#64748b]">
         <Megaphone className="h-5 w-5" />
       </div>
       <h3 className="mt-4 text-lg font-extrabold text-[#2f2a24]">{title}</h3>
@@ -620,6 +654,7 @@ function SidebarAdCard({
 
 function LoadingBlock({ text }: { text: string }) {
   return (
+    // Універсальний стан завантаження для секцій home.
     <div className="glass-card p-8 text-center text-[#7a7168]">
       {text}
     </div>
@@ -628,6 +663,7 @@ function LoadingBlock({ text }: { text: string }) {
 
 function EmptyBlock({ text }: { text: string }) {
   return (
+    // Універсальний пустий стан, якщо даних ще немає.
     <div className="glass-card p-8 text-center text-[#7a7168]">
       {text}
     </div>
