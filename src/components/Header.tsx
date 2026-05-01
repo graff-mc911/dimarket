@@ -35,17 +35,20 @@ export function Header() {
     t,
   } = useApp()
 
+  // Стани мобільного меню та випадаючих списків.
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [currencyOpen, setCurrencyOpen] = useState(false)
   const [languageOpen, setLanguageOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
 
+  // Рефи потрібні, щоб закривати меню при кліку поза ним.
   const languageRef = useRef<HTMLDivElement | null>(null)
   const currencyRef = useRef<HTMLDivElement | null>(null)
   const accountRef = useRef<HTMLDivElement | null>(null)
 
   const currentPath = window.location.pathname
 
+  // Основні пункти навігації шапки.
   const navItems: NavItem[] = [
     { label: t('header.jobRequests'), path: '/listings', icon: ClipboardList },
     { label: t('header.findProfessionals'), path: '/professionals', icon: Hammer },
@@ -67,6 +70,7 @@ export function Header() {
   }
 
   useEffect(() => {
+    // Закриваємо dropdown, якщо користувач клікнув поза його областю.
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node
 
@@ -83,6 +87,7 @@ export function Header() {
       }
     }
 
+    // Даємо можливість закрити меню клавішею Escape.
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         closeAllMenus()
@@ -99,6 +104,8 @@ export function Header() {
   }, [])
 
   useEffect(() => {
+    // Коли мобільне меню відкрите, блокуємо прокрутку body,
+    // щоб фон не рухався під меню.
     const previousOverflow = document.body.style.overflow
 
     if (mobileMenuOpen) {
@@ -120,6 +127,7 @@ export function Header() {
     goTo('/')
   }
 
+  // Підсвічуємо активний пункт меню, якщо маршрут співпадає.
   const isActiveRoute = (path: string) => {
     if (path === '/') {
       return currentPath === '/'
@@ -132,31 +140,37 @@ export function Header() {
     [
       'inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-200',
       active
-        ? 'bg-[rgba(242,171,116,0.18)] text-[#9a5525] shadow-[inset_0_0_0_1px_rgba(212,138,82,0.24)]'
-        : 'text-[#5f5a54] hover:bg-white/70 hover:text-[#2f2a24]',
+        ? 'bg-[rgba(148,163,184,0.18)] text-[#475569] shadow-[inset_0_0_0_1px_rgba(148,163,184,0.24)]'
+        : 'text-[#5f5a54] hover:bg-white/55 hover:text-[#2f2a24]',
     ].join(' ')
 
+  // Базовий стиль для кнопок керування праворуч у шапці.
   const controlButtonClass =
-    'inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/50 px-3 py-2 text-sm font-semibold text-[#4e4943] shadow-[0_8px_24px_rgba(95,76,59,0.06)] transition hover:bg-white/80 hover:text-[#2f2a24]'
+    'inline-flex items-center gap-2 rounded-full border border-white/40 bg-[rgba(255,255,255,0.34)] px-3 py-2 text-sm font-semibold text-[#4e4943] shadow-[0_8px_24px_rgba(15,23,42,0.04)] transition hover:bg-[rgba(255,255,255,0.52)] hover:text-[#2f2a24]'
 
+  // Випадаюче меню робимо холоднішим і прозорішим.
   const dropdownPanelClass =
-    'absolute right-0 top-full mt-2 w-64 rounded-[24px] border border-white/70 bg-[rgba(255,249,244,0.96)] p-2 shadow-[0_20px_50px_rgba(89,63,48,0.14)] backdrop-blur-xl'
+    'absolute right-0 top-full mt-2 w-64 rounded-[24px] border border-white/45 bg-[rgba(244,246,248,0.78)] p-2 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl'
 
+  // Панель мобільного меню теж переводимо в сіріший glass-стиль.
   const mobilePanelClass =
-    'max-h-[calc(100vh-7.5rem)] overflow-y-auto rounded-[26px] border border-white/70 bg-[rgba(255,250,246,0.76)] p-3 shadow-[0_18px_45px_rgba(89,63,48,0.08)] backdrop-blur-xl'
+    'max-h-[calc(100vh-7.5rem)] overflow-y-auto rounded-[26px] border border-white/45 bg-[rgba(244,246,248,0.70)] p-3 shadow-[0_18px_45px_rgba(15,23,42,0.06)] backdrop-blur-xl'
 
   const accountLabel = profile?.full_name || t('header.account')
 
   return (
     <header className="sticky top-0 z-50 w-full px-2 pt-2 md:px-4 md:pt-4">
-      <div className="mx-auto max-w-7xl rounded-[30px] border border-white/70 bg-[rgba(252,246,240,0.82)] shadow-[0_18px_50px_rgba(89,63,48,0.08)] backdrop-blur-xl">
+      {/* Основний контейнер шапки.
+          Саме тут прибрано теплий рожево-бежевий фон для десктопа. */}
+      <div className="mx-auto max-w-7xl rounded-[30px] border border-white/45 bg-[rgba(244,246,248,0.68)] shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-xl">
         <div className="flex items-center justify-between gap-2 px-3 py-3 md:gap-3 md:px-5">
+          {/* Логотип і назва бренду */}
           <button
             onClick={() => goTo('/')}
             type="button"
             className="flex min-w-0 items-center gap-3 text-left"
           >
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[18px] border border-white/70 bg-[linear-gradient(135deg,rgba(255,243,231,0.95),rgba(247,201,156,0.72))] text-[#9c5c2b] shadow-[0_10px_24px_rgba(176,126,85,0.18)]">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[18px] border border-white/45 bg-[linear-gradient(135deg,rgba(248,250,252,0.90),rgba(226,232,240,0.72))] text-[#64748b] shadow-[0_10px_24px_rgba(15,23,42,0.06)]">
               <Hammer className="h-5 w-5" />
             </div>
 
@@ -164,12 +178,13 @@ export function Header() {
               <div className="truncate text-lg font-extrabold leading-none text-[#2f2a24] sm:text-xl md:text-2xl">
                 Dimarket
               </div>
-              <div className="mt-1 hidden truncate text-[11px] font-medium uppercase tracking-[0.18em] text-[#9d8b7a] sm:block">
+              <div className="mt-1 hidden truncate text-[11px] font-medium uppercase tracking-[0.18em] text-[#8793a1] sm:block">
                 {t('header.brandTagline')}
               </div>
             </div>
           </button>
 
+          {/* Десктопна навігація */}
           <nav className="hidden items-center gap-1.5 lg:flex">
             {navItems.map((item) => (
               <button
@@ -184,6 +199,7 @@ export function Header() {
             ))}
           </nav>
 
+          {/* Правий блок керування на десктопі */}
           <div className="hidden items-center gap-2 lg:flex">
             <div ref={languageRef} className="relative">
               <button
@@ -197,7 +213,7 @@ export function Header() {
               >
                 <Globe className="h-4 w-4" />
                 <span>{language.code.toUpperCase()}</span>
-                <ChevronDown className="h-4 w-4 text-[#9d8b7a]" />
+                <ChevronDown className="h-4 w-4 text-[#94a3b8]" />
               </button>
 
               {languageOpen && (
@@ -212,8 +228,8 @@ export function Header() {
                       type="button"
                       className={`block w-full rounded-[18px] px-4 py-3 text-left text-sm font-semibold transition ${
                         language.code === lang.code
-                          ? 'bg-[rgba(242,171,116,0.16)] text-[#9a5525]'
-                          : 'text-[#5f5a54] hover:bg-white/80'
+                          ? 'bg-[rgba(148,163,184,0.16)] text-[#475569]'
+                          : 'text-[#5f5a54] hover:bg-white/55'
                       }`}
                     >
                       {lang.name}
@@ -235,7 +251,7 @@ export function Header() {
               >
                 <span className="text-base">{currency.symbol}</span>
                 <span>{currency.code}</span>
-                <ChevronDown className="h-4 w-4 text-[#9d8b7a]" />
+                <ChevronDown className="h-4 w-4 text-[#94a3b8]" />
               </button>
 
               {currencyOpen && (
@@ -250,8 +266,8 @@ export function Header() {
                       type="button"
                       className={`block w-full rounded-[18px] px-4 py-3 text-left text-sm font-semibold transition ${
                         currency.code === curr.code
-                          ? 'bg-[rgba(242,171,116,0.16)] text-[#9a5525]'
-                          : 'text-[#5f5a54] hover:bg-white/80'
+                          ? 'bg-[rgba(148,163,184,0.16)] text-[#475569]'
+                          : 'text-[#5f5a54] hover:bg-white/55'
                       }`}
                     >
                       <span className="font-bold">{curr.symbol}</span>{' '}
@@ -275,7 +291,7 @@ export function Header() {
                 >
                   <User className="h-4 w-4" />
                   <span className="truncate">{accountLabel}</span>
-                  <ChevronDown className="h-4 w-4 shrink-0 text-[#9d8b7a]" />
+                  <ChevronDown className="h-4 w-4 shrink-0 text-[#94a3b8]" />
                 </button>
 
                 {accountOpen && (
@@ -283,7 +299,7 @@ export function Header() {
                     <button
                       onClick={() => goTo('/settings')}
                       type="button"
-                      className="block w-full rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-[#5f5a54] transition hover:bg-white/80"
+                      className="block w-full rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-[#5f5a54] transition hover:bg-white/55"
                     >
                       {t('header.myProfile')}
                     </button>
@@ -291,17 +307,17 @@ export function Header() {
                     <button
                       onClick={() => goTo('/dashboard')}
                       type="button"
-                      className="block w-full rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-[#5f5a54] transition hover:bg-white/80"
+                      className="block w-full rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-[#5f5a54] transition hover:bg-white/55"
                     >
                       {t('header.dashboard')}
                     </button>
 
-                    <div className="my-2 border-t border-[rgba(190,168,150,0.35)]" />
+                    <div className="my-2 border-t border-[rgba(148,163,184,0.20)]" />
 
                     <button
                       onClick={handleSignOut}
                       type="button"
-                      className="flex w-full items-center gap-2 rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-[#b14e37] transition hover:bg-[rgba(255,238,232,0.92)]"
+                      className="flex w-full items-center gap-2 rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-[#b14e37] transition hover:bg-[rgba(255,238,232,0.72)]"
                     >
                       <LogOut className="h-4 w-4" />
                       <span>{t('header.signOut')}</span>
@@ -329,12 +345,13 @@ export function Header() {
             </button>
           </div>
 
+          {/* Мобільний правий блок */}
           <div className="flex items-center gap-2 lg:hidden">
             <button
               onClick={() => goTo('/create-ad')}
               type="button"
               aria-label={t('header.postJob')}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/70 bg-[rgba(242,171,116,0.18)] px-3 text-[#9a5525] shadow-[0_8px_24px_rgba(176,126,85,0.12)]"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/45 bg-[rgba(148,163,184,0.16)] px-3 text-[#475569] shadow-[0_8px_24px_rgba(15,23,42,0.05)]"
             >
               <PlusCircle className="h-5 w-5" />
               <span className="hidden text-sm font-semibold min-[380px]:inline">
@@ -349,7 +366,7 @@ export function Header() {
               }}
               type="button"
               aria-expanded={mobileMenuOpen}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/55 text-[#4e4943] shadow-[0_8px_24px_rgba(95,76,59,0.06)]"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/45 bg-[rgba(255,255,255,0.34)] text-[#4e4943] shadow-[0_8px_24px_rgba(15,23,42,0.04)]"
             >
               {mobileMenuOpen ? (
                 <X className="h-5 w-5" />
@@ -360,8 +377,9 @@ export function Header() {
           </div>
         </div>
 
+        {/* Розкривне мобільне меню */}
         {mobileMenuOpen && (
-          <div className="border-t border-white/70 px-3 pb-4 pt-3 lg:hidden">
+          <div className="border-t border-white/45 px-3 pb-4 pt-3 lg:hidden">
             <div className={mobilePanelClass}>
               <div className="grid gap-2">
                 {navItems.map((item) => (
@@ -377,9 +395,9 @@ export function Header() {
                 ))}
               </div>
 
-              <div className="my-3 border-t border-[rgba(190,168,150,0.35)]" />
+              <div className="my-3 border-t border-[rgba(148,163,184,0.20)]" />
 
-              <div className="grid gap-3 rounded-[24px] bg-white/45 p-3">
+              <div className="grid gap-3 rounded-[24px] bg-[rgba(255,255,255,0.28)] p-3">
                 <div>
                   <label className="mb-2 flex items-center gap-2 text-sm font-bold text-[#5f5a54]">
                     <Globe className="h-4 w-4" />
@@ -393,7 +411,7 @@ export function Header() {
                         setLanguage(lang)
                       }
                     }}
-                    className="select-glass bg-white/80"
+                    className="select-glass bg-white/50"
                   >
                     {LANGUAGES.map((lang) => (
                       <option key={lang.code} value={lang.code}>
@@ -416,7 +434,7 @@ export function Header() {
                         setCurrency(curr)
                       }
                     }}
-                    className="select-glass bg-white/80"
+                    className="select-glass bg-white/50"
                   >
                     {CURRENCIES.map((curr) => (
                       <option key={curr.code} value={curr.code}>
@@ -451,7 +469,7 @@ export function Header() {
                     <button
                       onClick={handleSignOut}
                       type="button"
-                      className="flex w-full items-center gap-2 rounded-full px-4 py-3 text-left text-base font-semibold text-[#b14e37] transition hover:bg-[rgba(255,238,232,0.92)]"
+                      className="flex w-full items-center gap-2 rounded-full px-4 py-3 text-left text-base font-semibold text-[#b14e37] transition hover:bg-[rgba(255,238,232,0.72)]"
                     >
                       <LogOut className="h-5 w-5" />
                       <span>{t('header.signOut')}</span>
