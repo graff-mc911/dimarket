@@ -1,15 +1,44 @@
 import { useEffect, useState } from 'react'
-import { User, Phone, MapPin, Briefcase, Image, Bell, Globe, DollarSign, Lock, Trash2, Save } from 'lucide-react'
-import { supabase } from '../lib/supabase'
-import { useApp } from '../contexts/AppContext'
+import {
+  Bell,
+  Briefcase,
+  DollarSign,
+  Globe,
+  Image,
+  Lock,
+  MapPin,
+  Phone,
+  Save,
+  Trash2,
+  User,
+} from 'lucide-react'
 import { AdBanner } from '../components/AdBanner'
+import { useApp } from '../contexts/AppContext'
+import { navigateTo } from '../lib/navigation'
+import { supabase } from '../lib/supabase'
+import { CURRENCIES, LANGUAGES } from '../lib/types'
+
+type FeedbackState = {
+  type: 'success' | 'error'
+  text: string
+}
 
 export function Settings() {
-  const { user } = useApp()
-  const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState('')
+  const { user, language, currency, setLanguage, setCurrency, t } = useApp()
 
+  // Окремо зберігаємо id активного користувача,
+  // щоб сторінка працювала стабільно навіть якщо контекст ще не встиг оновитися.
+  const [currentUserId, setCurrentUserId] = useState<string | null>(user?.id ?? null)
+
+  // Загальні стани сторінки: початкове завантаження, збереження профілю і зміна пароля.
+  const [loading, setLoading] = useState(true)
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [savingPassword, setSavingPassword] = useState(false)
+
+  // Єдиний стан для повідомлень про успіх або помилку.
+  const [feedback, setFeedback] = useState<FeedbackState | null>(null)
+
+  // Основні поля профілю майстра.
   const [fullName, setFullName] = useState('')
   const [bio, setBio] = useState('')
   const [phone, setPhone] = useState('')
@@ -17,57 +46,99 @@ export function Settings() {
   const [website, setWebsite] = useState('')
   const [profilePhoto, setProfilePhoto] = useState('')
   const [portfolioImages, setPortfolioImages] = useState<string[]>([])
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
-  const [preferredLanguage, setPreferredLanguage] = useState('en')
-  const [preferredCurrency, setPreferredCurrency] = useState('USD')
 
+  // Налаштування користувацьких уподобань.
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
+  const [preferredLanguage, setPreferredLanguage] = useState(language.code)
+  const [preferredCurrency, setPreferredCurrency] = useState(currency.code)
+
+  // Поля для блоку зміни пароля.
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
   useEffect(() => {
-    if (user) {
-      loadProfile()
-    } else {
-      window.location.href = '/login'
-    }
+    // При відкритті сторінки перевіряємо користувача та завантажуємо його профіль.
+    void bootstrapSettings()
   }, [user])
 
-  const loadProfile = async () => {
+  const bootstrapSettings = async () => {
     setLoading(true)
+
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user!.id)
-        .maybeSingle()
+      // Якщо користувач уже є в контексті — беремо його,
+      // інакше додатково перевіряємо сесію напряму через Supabase.
+      const activeUser =
+        user ?? (await supabase.auth.getUser()).data.user ?? null
 
-      if (error) throw error
-
-      if (data) {
-        setFullName(data.full_name || '')
-        setBio(data.bio || '')
-        setPhone(data.phone || '')
-        setLocation(data.location || '')
-        setWebsite(data.website || '')
-        setProfilePhoto(data.profile_photo || '')
-        setPortfolioImages(data.portfolio_images || [])
-        setNotificationsEnabled(data.notifications_enabled !== false)
-        setPreferredLanguage(data.preferred_language || 'en')
-        setPreferredCurrency(data.preferred_currency || 'USD')
+      // Якщо авторизації немає — переводимо на сторінку входу.
+      if (!activeUser) {
+        navigateTo('/login')
+        return
       }
-    } catch (error) {
-      console.error('Error loading profile:', error)
+
+      setCurrentUserId(activeUser.id)
+      await loadProfile(activeUser.id)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-    setMessage('')
+  const loadProfile = async (userId: string) => {
+    try {
+      // Завантажуємо один профіль поточного користувача.
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle()
+
+      if (error) {
+        throw error
+      }
+
+      if (!data) {
+        return
+      }
+
+      // Наповнюємо форму даними з бази.
+      setFullName(data.full_name || '')
+      setBio(data.bio || '')
+      setPhone(data.phone || '')
+      setLocation(data.location || '')
+      setWebsite(data.website || '')
+      setProfilePhoto(data.profile_photo || '')
+      setPortfolioImages(Array.isArray(data.portfolio_images) ? data.portfolio_images : [])
+      setNotificationsEnabled(data.notifications_enabled !== false)
+
+      // Якщо в профілі вже є збережені мова і валюта — підставляємо їх у форму.
+      setPreferredLanguage(data.preferred_language || language.code)
+      setPreferredCurrency(data.preferred_currency || currency.code)
+    } catch (error) {
+      console.error('Помилка завантаження профілю:', error)
+      setFeedback({
+        type: 'error',
+        text: 'Unable to load profile settings.',
+      })
+    }
+  }
+
+  const handleSaveProfile = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    // Без id користувача немає куди зберігати дані.
+    if (!currentUserId) {
+      setFeedback({
+        type: 'error',
+        text: 'User session is not available.',
+      })
+      return
+    }
+
+    setSavingProfile(true)
+    setFeedback(null)
 
     try {
+      // Оновлюємо основні дані профілю та персональні налаштування.
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -80,80 +151,148 @@ export function Settings() {
           portfolio_images: portfolioImages,
           notifications_enabled: notificationsEnabled,
           preferred_language: preferredLanguage,
-          preferred_currency: preferredCurrency
+          preferred_currency: preferredCurrency,
         })
-        .eq('id', user!.id)
+        .eq('id', currentUserId)
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
 
-      setMessage('Profile updated successfully!')
-      setTimeout(() => setMessage(''), 3000)
+      // Після збереження одразу синхронізуємо мову і валюту з глобальним контекстом,
+      // щоб хедер та інші блоки оновилися без перезавантаження.
+      const selectedLanguage = LANGUAGES.find(
+        (item) => item.code === preferredLanguage
+      )
+      const selectedCurrency = CURRENCIES.find(
+        (item) => item.code === preferredCurrency
+      )
+
+      if (selectedLanguage) {
+        setLanguage(selectedLanguage)
+      }
+
+      if (selectedCurrency) {
+        setCurrency(selectedCurrency)
+      }
+
+      setFeedback({
+        type: 'success',
+        text: 'Profile updated successfully!',
+      })
     } catch (error) {
-      setMessage('Error updating profile')
+      console.error('Помилка оновлення профілю:', error)
+      setFeedback({
+        type: 'error',
+        text: 'Error updating profile.',
+      })
     } finally {
-      setSaving(false)
+      setSavingProfile(false)
     }
   }
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleChangePassword = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setFeedback(null)
+
+    // Не даємо відправити форму, якщо паролі не збігаються.
     if (newPassword !== confirmPassword) {
-      setMessage('Passwords do not match')
+      setFeedback({
+        type: 'error',
+        text: 'Passwords do not match.',
+      })
       return
     }
 
+    setSavingPassword(true)
+
     try {
+      // Оновлюємо пароль авторизованого користувача.
       const { error } = await supabase.auth.updateUser({
-        password: newPassword
+        password: newPassword,
       })
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
 
-      setMessage('Password changed successfully!')
+      setFeedback({
+        type: 'success',
+        text: 'Password changed successfully!',
+      })
+
+      // Очищаємо поля після успішної зміни.
       setNewPassword('')
       setConfirmPassword('')
-      setTimeout(() => setMessage(''), 3000)
     } catch (error) {
-      setMessage('Error changing password')
+      console.error('Помилка зміни пароля:', error)
+      setFeedback({
+        type: 'error',
+        text: 'Error changing password.',
+      })
+    } finally {
+      setSavingPassword(false)
     }
   }
 
   const handleDeleteAccount = async () => {
-    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+    // Додаткове підтвердження перед небезпечною дією.
+    const confirmed = window.confirm(
+      'Are you sure you want to delete your account? This action cannot be undone.'
+    )
+
+    if (!confirmed || !currentUserId) {
       return
     }
 
-    try {
-      const { error } = await supabase.auth.admin.deleteUser(user!.id)
-      if (error) throw error
+    setFeedback(null)
 
-      window.location.href = '/'
+    try {
+      // Цей виклик потребує відповідних прав на бекенді.
+      // Якщо серверна частина не дозволяє admin-операцію з клієнта, буде помилка.
+      const { error } = await supabase.auth.admin.deleteUser(currentUserId)
+
+      if (error) {
+        throw error
+      }
+
+      navigateTo('/')
     } catch (error) {
-      setMessage('Error deleting account')
+      console.error('Помилка видалення акаунта:', error)
+      setFeedback({
+        type: 'error',
+        text: 'Error deleting account.',
+      })
     }
   }
 
   const addPortfolioImage = () => {
-    setPortfolioImages([...portfolioImages, ''])
+    // Додаємо новий порожній рядок для ще одного URL зображення.
+    setPortfolioImages((current) => [...current, ''])
   }
 
   const updatePortfolioImage = (index: number, value: string) => {
-    const newImages = [...portfolioImages]
-    newImages[index] = value
-    setPortfolioImages(newImages)
+    // Оновлюємо лише один конкретний елемент масиву за індексом.
+    setPortfolioImages((current) => {
+      const next = [...current]
+      next[index] = value
+      return next
+    })
   }
 
   const removePortfolioImage = (index: number) => {
-    setPortfolioImages(portfolioImages.filter((_, i) => i !== index))
+    // Видаляємо одне зображення з портфоліо за його позицією.
+    setPortfolioImages((current) => current.filter((_, itemIndex) => itemIndex !== index))
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading settings...</p>
+      // Окремий стан завантаження, поки сторінка ще тягне профіль із бази.
+      <div className="page-bg min-h-screen py-10">
+        <div className="mx-auto max-w-4xl px-4 md:px-6 xl:px-8 2xl:px-10">
+          <div className="glass-panel p-10 text-center">
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[rgba(201,109,44,0.18)] border-t-[#c96d2c]" />
+            <p className="mt-4 text-sm text-[#6f665d]">{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -161,312 +300,371 @@ export function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    // Загальна сторінка налаштувань з мобільними відступами і фірмовим фоном.
+    <div className="page-bg min-h-screen py-8">
+      <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
         <div className="flex gap-6">
-          <div className="hidden lg:block w-1/5">
+          {/* Ліва реклама показується лише на великих екранах */}
+          <aside className="hidden xl:block w-[220px] 2xl:w-[260px] flex-shrink-0">
             <AdBanner position="left" sticky={true} />
-          </div>
+          </aside>
 
-          <div className="flex-1 lg:w-3/5">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-              <p className="text-gray-600 mt-2">Manage your profile and preferences</p>
-            </div>
-
-        {message && (
-          <div className={`mb-6 p-4 rounded-lg ${
-            message.includes('Error') || message.includes('not match')
-              ? 'bg-red-50 border border-red-200 text-red-700'
-              : 'bg-green-50 border border-green-200 text-green-700'
-          }`}>
-            {message}
-          </div>
-        )}
-
-        <div className="space-y-6">
-          <form onSubmit={handleSaveProfile} className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center mb-6">
-              <User className="w-6 h-6 text-blue-600 mr-2" />
-              <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Bio / Description
-                </label>
-                <textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Tell clients about your experience and services..."
-                  maxLength={500}
-                />
-                <p className="text-sm text-gray-500 mt-1">{bio.length}/500 characters</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Phone className="w-4 h-4 inline mr-1" />
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+          {/* Основна колонка сторінки */}
+          <main className="min-w-0 flex-1">
+            <section className="glass-panel p-5 md:p-6 xl:p-8">
+              {/* Шапка сторінки з коротким описом */}
+              <div className="mb-6">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(233,202,177,0.7)] bg-[rgba(255,247,239,0.88)] px-4 py-2 text-sm font-semibold text-[#a26233]">
+                  <User className="h-4 w-4" />
+                  <span>{t('header.myProfile')}</span>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <MapPin className="w-4 h-4 inline mr-1" />
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-[#2f2a24] md:text-4xl">
+                  {t('header.myProfile')}
+                </h1>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-[#6f665d] md:text-base">
+                  Manage your public profile, account preferences, and security settings.
+                </p>
+              </div>
+
+              {/* Єдиний блок повідомлень для успішних дій або помилок */}
+              {feedback && (
+                <div
+                  className={`mb-6 rounded-[22px] px-4 py-3 text-sm ${
+                    feedback.type === 'error'
+                      ? 'border border-[rgba(221,138,120,0.35)] bg-[rgba(255,237,232,0.92)] text-[#a44a3a]'
+                      : 'border border-[rgba(120,181,140,0.35)] bg-[rgba(236,250,240,0.92)] text-[#3d7a52]'
+                  }`}
+                >
+                  {feedback.text}
                 </div>
-              </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Briefcase className="w-4 h-4 inline mr-1" />
-                  Website
-                </label>
-                <input
-                  type="url"
-                  value={website}
-                  onChange={(e) => setWebsite(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="https://yourwebsite.com"
-                />
-              </div>
+              <div className="space-y-6">
+                {/* Основна форма редагування профілю */}
+                <form onSubmit={handleSaveProfile} className="glass-card p-5 md:p-6">
+                  <div className="flex items-center gap-3">
+                    <User className="h-6 w-6 text-[#c96d2c]" />
+                    <h2 className="text-xl font-extrabold text-[#2f2a24]">
+                      Profile Information
+                    </h2>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Profile Photo URL
-                </label>
-                <input
-                  type="url"
-                  value={profilePhoto}
-                  onChange={(e) => setProfilePhoto(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="https://example.com/photo.jpg"
-                />
-                {profilePhoto && (
-                  <img
-                    src={profilePhoto}
-                    alt="Profile"
-                    className="mt-2 w-24 h-24 object-cover rounded-full"
-                  />
-                )}
-              </div>
-            </div>
+                  <div className="mt-6 space-y-5">
+                    {/* Ім'я користувача */}
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                        {t('register.fullName')} *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={fullName}
+                        onChange={(event) => setFullName(event.target.value)}
+                        className="input-glass"
+                        placeholder={t('register.fullNamePlaceholder')}
+                      />
+                    </div>
 
-            <div className="mt-6 pt-6 border-t">
-              <div className="flex items-center mb-4">
-                <Image className="w-6 h-6 text-blue-600 mr-2" />
-                <h3 className="text-lg font-semibold text-gray-900">Portfolio Images</h3>
-              </div>
+                    {/* Короткий опис майстра або компанії */}
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                        Bio / Description
+                      </label>
+                      <textarea
+                        value={bio}
+                        onChange={(event) => setBio(event.target.value)}
+                        rows={5}
+                        maxLength={500}
+                        className="input-glass min-h-[150px] resize-y"
+                        placeholder="Tell clients about your experience and services..."
+                      />
+                      <p className="mt-2 text-xs text-[#7a7168]">
+                        {bio.length}/500 characters
+                      </p>
+                    </div>
 
-              <div className="space-y-3">
-                {portfolioImages.map((url, index) => (
-                  <div key={index} className="flex gap-2">
-                    <input
-                      type="url"
-                      value={url}
-                      onChange={(e) => updatePortfolioImage(index, e.target.value)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="https://example.com/work-image.jpg"
-                    />
+                    {/* Телефон і місто ставимо в одну сітку на більших екранах */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                          <Phone className="mr-1 inline h-4 w-4" />
+                          {t('createAd.phone')}
+                        </label>
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(event) => setPhone(event.target.value)}
+                          className="input-glass"
+                          placeholder={t('register.phonePlaceholder')}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                          <MapPin className="mr-1 inline h-4 w-4" />
+                          {t('createAd.locationLabel')}
+                        </label>
+                        <input
+                          type="text"
+                          value={location}
+                          onChange={(event) => setLocation(event.target.value)}
+                          className="input-glass"
+                          placeholder={t('register.locationPlaceholder')}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Поле сайту або зовнішньої сторінки */}
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                        <Briefcase className="mr-1 inline h-4 w-4" />
+                        Website
+                      </label>
+                      <input
+                        type="url"
+                        value={website}
+                        onChange={(event) => setWebsite(event.target.value)}
+                        className="input-glass"
+                        placeholder="https://yourwebsite.com"
+                      />
+                    </div>
+
+                    {/* Фото профілю через URL і попередній перегляд */}
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                        Profile Photo URL
+                      </label>
+                      <input
+                        type="url"
+                        value={profilePhoto}
+                        onChange={(event) => setProfilePhoto(event.target.value)}
+                        className="input-glass"
+                        placeholder="https://example.com/photo.jpg"
+                      />
+
+                      {profilePhoto && (
+                        <div className="mt-3">
+                          <img
+                            src={profilePhoto}
+                            alt="Profile preview"
+                            className="h-24 w-24 rounded-full object-cover ring-4 ring-white/70"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Блок портфоліо робіт */}
+                  <div className="mt-8 border-t border-[rgba(190,168,150,0.28)] pt-6">
+                    <div className="flex items-center gap-3">
+                      <Image className="h-6 w-6 text-[#c96d2c]" />
+                      <h3 className="text-lg font-extrabold text-[#2f2a24]">
+                        Portfolio Images
+                      </h3>
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      {portfolioImages.map((url, index) => (
+                        <div key={index} className="flex flex-col gap-2 sm:flex-row">
+                          <input
+                            type="url"
+                            value={url}
+                            onChange={(event) =>
+                              updatePortfolioImage(index, event.target.value)
+                            }
+                            className="input-glass flex-1"
+                            placeholder="https://example.com/work-image.jpg"
+                          />
+
+                          <button
+                            type="button"
+                            onClick={() => removePortfolioImage(index)}
+                            className="flex h-12 w-full items-center justify-center rounded-[18px] border border-[rgba(221,138,120,0.35)] bg-[rgba(255,237,232,0.92)] text-[#a44a3a] transition hover:bg-[rgba(255,230,223,0.96)] sm:w-12"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+
+                      <button
+                        type="button"
+                        onClick={addPortfolioImage}
+                        className="btn-ghost justify-start rounded-full px-0"
+                      >
+                        + Add Portfolio Image
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Блок персональних налаштувань мови й валюти */}
+                  <div className="mt-8 border-t border-[rgba(190,168,150,0.28)] pt-6">
+                    <div className="flex items-center gap-3">
+                      <Globe className="h-6 w-6 text-[#c96d2c]" />
+                      <h3 className="text-lg font-extrabold text-[#2f2a24]">
+                        Language & Currency
+                      </h3>
+                    </div>
+
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                          {t('header.language')}
+                        </label>
+                        <select
+                          value={preferredLanguage}
+                          onChange={(event) => setPreferredLanguage(event.target.value)}
+                          className="select-glass bg-white/80"
+                        >
+                          {LANGUAGES.map((item) => (
+                            <option key={item.code} value={item.code}>
+                              {item.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                          <DollarSign className="mr-1 inline h-4 w-4" />
+                          {t('header.currency')}
+                        </label>
+                        <select
+                          value={preferredCurrency}
+                          onChange={(event) => setPreferredCurrency(event.target.value)}
+                          className="select-glass bg-white/80"
+                        >
+                          {CURRENCIES.map((item) => (
+                            <option key={item.code} value={item.code}>
+                              {item.symbol} {item.code} - {item.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Перемикач сповіщень */}
+                  <div className="mt-8 border-t border-[rgba(190,168,150,0.28)] pt-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Bell className="h-5 w-5 text-[#6f665d]" />
+                          <span className="font-semibold text-[#2f2a24]">
+                            Enable Notifications
+                          </span>
+                        </div>
+                        <p className="mt-2 text-sm text-[#6f665d]">
+                          Receive updates about messages and leads.
+                        </p>
+                      </div>
+
+                      <label className="relative inline-flex cursor-pointer items-center">
+                        <input
+                          type="checkbox"
+                          checked={notificationsEnabled}
+                          onChange={(event) =>
+                            setNotificationsEnabled(event.target.checked)
+                          }
+                          className="peer sr-only"
+                        />
+                        <div className="h-6 w-11 rounded-full bg-gray-200 transition peer-checked:bg-[#c96d2c] peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[rgba(201,109,44,0.18)] after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white" />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Кнопка збереження профілю */}
+                  <div className="mt-8 flex justify-end">
                     <button
-                      type="button"
-                      onClick={() => removePortfolioImage(index)}
-                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                      type="submit"
+                      disabled={savingProfile}
+                      className="btn-primary w-full justify-center rounded-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Save className="h-4 w-4" />
+                      {savingProfile ? 'Saving...' : 'Save Changes'}
                     </button>
                   </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={addPortfolioImage}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                >
-                  + Add Portfolio Image
-                </button>
-              </div>
-            </div>
+                </form>
 
-            <div className="mt-6 pt-6 border-t">
-              <div className="flex items-center mb-4">
-                <Globe className="w-6 h-6 text-blue-600 mr-2" />
-                <h3 className="text-lg font-semibold text-gray-900">Language & Currency</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Preferred Language
-                  </label>
-                  <select
-                    value={preferredLanguage}
-                    onChange={(e) => setPreferredLanguage(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="en">English</option>
-                    <option value="uk">Українська</option>
-                    <option value="pl">Polski</option>
-                    <option value="es">Español</option>
-                    <option value="de">Deutsch</option>
-                    <option value="fr">Français</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <DollarSign className="w-4 h-4 inline mr-1" />
-                    Preferred Currency
-                  </label>
-                  <select
-                    value={preferredCurrency}
-                    onChange={(e) => setPreferredCurrency(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="GBP">GBP (£)</option>
-                    <option value="PLN">PLN (zł)</option>
-                    <option value="UAH">UAH (₴)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 pt-6 border-t">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center">
-                    <Bell className="w-5 h-5 text-gray-600 mr-2" />
-                    <span className="font-medium text-gray-900">Enable Notifications</span>
+                {/* Окрема форма для зміни пароля */}
+                <form onSubmit={handleChangePassword} className="glass-card p-5 md:p-6">
+                  <div className="flex items-center gap-3">
+                    <Lock className="h-6 w-6 text-[#c96d2c]" />
+                    <h2 className="text-xl font-extrabold text-[#2f2a24]">
+                      Change Password
+                    </h2>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">Receive updates about messages and leads</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notificationsEnabled}
-                    onChange={(e) => setNotificationsEnabled(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
+
+                  <div className="mt-6 grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                        New Password
+                      </label>
+                      <input
+                        type="password"
+                        minLength={6}
+                        value={newPassword}
+                        onChange={(event) => setNewPassword(event.target.value)}
+                        className="input-glass"
+                        placeholder="••••••••"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                        Confirm New Password
+                      </label>
+                      <input
+                        type="password"
+                        minLength={6}
+                        value={confirmPassword}
+                        onChange={(event) => setConfirmPassword(event.target.value)}
+                        className="input-glass"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={!newPassword || !confirmPassword || savingPassword}
+                      className="btn-secondary w-full justify-center rounded-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {savingPassword ? 'Saving...' : 'Change Password'}
+                    </button>
+                  </div>
+                </form>
+
+                {/* Небезпечна зона для незворотних дій */}
+                <section className="glass-card border border-[rgba(221,138,120,0.28)] p-5 md:p-6">
+                  <div className="flex items-center gap-3">
+                    <Trash2 className="h-6 w-6 text-[#b14e37]" />
+                    <h2 className="text-xl font-extrabold text-[#2f2a24]">
+                      Danger Zone
+                    </h2>
+                  </div>
+
+                  <p className="mt-4 max-w-2xl text-sm leading-6 text-[#6f665d]">
+                    Once you delete your account, there is no going back. Please be certain.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={handleDeleteAccount}
+                    className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[linear-gradient(135deg,rgba(185,63,63,0.95),rgba(153,27,27,0.95))] px-6 py-3 font-semibold text-white shadow-[0_18px_35px_rgba(153,27,27,0.22)] transition hover:scale-[1.01] active:scale-[0.99] sm:w-auto"
+                  >
+                    Delete Account
+                  </button>
+                </section>
               </div>
-            </div>
+            </section>
+          </main>
 
-            <div className="mt-6 flex justify-end">
-              <button
-                type="submit"
-                disabled={saving}
-                className="btn-secondary flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Save className="w-5 h-5 mr-2" />
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </form>
-
-          <form onSubmit={handleChangePassword} className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center mb-6">
-              <Lock className="w-6 h-6 text-blue-600 mr-2" />
-              <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  minLength={6}
-                  placeholder="••••••••"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  minLength={6}
-                  placeholder="••••••••"
-                />
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <button
-                type="submit"
-                disabled={!newPassword || !confirmPassword}
-                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Change Password
-              </button>
-            </div>
-          </form>
-
-          <div className="bg-white rounded-lg shadow-sm p-6 border-2 border-red-200">
-            <div className="flex items-center mb-4">
-              <Trash2 className="w-6 h-6 text-red-600 mr-2" />
-              <h2 className="text-xl font-semibold text-gray-900">Danger Zone</h2>
-            </div>
-
-            <p className="text-gray-600 mb-4">
-              Once you delete your account, there is no going back. Please be certain.
-            </p>
-
-            <button
-              type="button"
-              onClick={handleDeleteAccount}
-              className="relative overflow-hidden px-8 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-red-600 to-red-700 shadow-lg shadow-red-600/30 hover:shadow-xl hover:shadow-red-600/40 transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98] border border-red-500/20"
-            >
-              Delete Account
-            </button>
-          </div>
-        </div>
-          </div>
-
-          <div className="hidden lg:block w-1/5">
+          {/* Права реклама також лише для широких екранів */}
+          <aside className="hidden xl:block w-[220px] 2xl:w-[260px] flex-shrink-0">
             <AdBanner position="right" sticky={true} />
-          </div>
+          </aside>
         </div>
       </div>
     </div>
