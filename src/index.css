@@ -14,8 +14,9 @@
     min-height: 100vh;
     color: #1f2937;
     font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #eaeaea;
-    antialiased: true;
+    background: #dfe3e7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
   }
 
@@ -34,8 +35,9 @@
     cursor: pointer;
   }
 
+  /* Колір виділення тексту робимо теж спокійнішим і менш щільним */
   ::selection {
-    background: rgba(249, 115, 22, 0.25);
+    background: rgba(249, 115, 22, 0.16);
     color: #111827;
   }
 
@@ -50,134 +52,155 @@
 
 /* Глобальні стилі Dimarket */
 @layer components {
-  /* Головний фон сторінки */
+  /* Основний фон сторінки:
+     замість теплого рожево-бежевого робимо холодніший сірий,
+     а кольорові плями залишаємо, але значно прозоріші */
   .page-bg {
     background:
-      radial-gradient(circle at 8% 8%, rgba(249, 115, 22, 0.16), transparent 32%),
-      radial-gradient(circle at 92% 14%, rgba(20, 184, 166, 0.12), transparent 30%),
-      radial-gradient(circle at 50% 100%, rgba(15, 23, 42, 0.10), transparent 35%),
-      linear-gradient(180deg, #f5f5f5 0%, #e8e8e8 55%, #dedede 100%);
+      radial-gradient(circle at 8% 8%, rgba(249, 115, 22, 0.08), transparent 34%),
+      radial-gradient(circle at 92% 14%, rgba(20, 184, 166, 0.06), transparent 32%),
+      radial-gradient(circle at 50% 100%, rgba(15, 23, 42, 0.06), transparent 36%),
+      linear-gradient(180deg, #eff1f3 0%, #e3e6ea 54%, #d8dce1 100%);
   }
 
+  /* Базова скляна картка:
+     робимо фон і рамку прозорішими, щоб інтерфейс виглядав легше */
   .glass-card {
-    background: rgba(255, 255, 255, 0.58);
+    background: rgba(255, 255, 255, 0.44);
     backdrop-filter: blur(22px);
     -webkit-backdrop-filter: blur(22px);
-    border: 1px solid rgba(255, 255, 255, 0.48);
+    border: 1px solid rgba(255, 255, 255, 0.34);
     border-radius: 24px;
-    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.05);
   }
 
+  /* Головна панель:
+     теж робимо трохи прозорішою і менш контрастною */
   .glass-panel {
-    background: rgba(255, 255, 255, 0.64);
+    background: rgba(255, 255, 255, 0.50);
     backdrop-filter: blur(28px);
     -webkit-backdrop-filter: blur(28px);
-    border: 1px solid rgba(255, 255, 255, 0.58);
+    border: 1px solid rgba(255, 255, 255, 0.40);
     border-radius: 30px;
-    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.10);
+    box-shadow: 0 20px 56px rgba(15, 23, 42, 0.06);
   }
 
+  /* Темна hero-панель:
+     зменшуємо щільність кольору, щоб не тиснула візуально */
   .hero-glass {
     background:
-      linear-gradient(135deg, rgba(31, 41, 55, 0.72), rgba(17, 24, 39, 0.60)),
-      radial-gradient(circle at top left, rgba(249, 115, 22, 0.20), transparent 34%);
+      linear-gradient(135deg, rgba(31, 41, 55, 0.62), rgba(17, 24, 39, 0.50)),
+      radial-gradient(circle at top left, rgba(249, 115, 22, 0.12), transparent 36%);
     backdrop-filter: blur(28px);
     -webkit-backdrop-filter: blur(28px);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 32px;
-    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.22);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
   }
 
+  /* Світла допоміжна картка */
   .soft-card {
-    background: rgba(255, 255, 255, 0.82);
-    border: 1px solid rgba(229, 231, 235, 0.9);
+    background: rgba(255, 255, 255, 0.60);
+    border: 1px solid rgba(255, 255, 255, 0.42);
     border-radius: 24px;
-    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
   }
 
+  /* Основна кнопка:
+     акцент лишаємо теплим, але трохи зменшуємо насиченість */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold text-white transition-all duration-200 active:scale-[0.98];
-    background: rgba(249, 115, 22, 0.86);
-    border: 1px solid rgba(255, 255, 255, 0.24);
-    box-shadow: 0 14px 30px rgba(249, 115, 22, 0.25);
+    background: rgba(249, 115, 22, 0.74);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 12px 24px rgba(249, 115, 22, 0.16);
   }
 
   .btn-primary:hover {
-    background: rgba(234, 88, 12, 0.94);
-    box-shadow: 0 18px 40px rgba(249, 115, 22, 0.32);
+    background: rgba(234, 88, 12, 0.82);
+    box-shadow: 0 14px 28px rgba(249, 115, 22, 0.22);
     transform: translateY(-1px);
   }
 
+  /* Друга кнопка:
+     робимо її легшою і більш скляною */
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold text-gray-900 transition-all duration-200 active:scale-[0.98];
-    background: rgba(255, 255, 255, 0.68);
+    background: rgba(255, 255, 255, 0.50);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.58);
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.38);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
   }
 
   .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.88);
+    background: rgba(255, 255, 255, 0.66);
     transform: translateY(-1px);
   }
 
+  /* Контурна кнопка:
+     зменшуємо щільність білого і hover-ефекту */
   .btn-outline {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold text-gray-800 transition-all duration-200 active:scale-[0.98];
-    background: rgba(255, 255, 255, 0.42);
+    background: rgba(255, 255, 255, 0.26);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.48);
+    border: 1px solid rgba(255, 255, 255, 0.34);
   }
 
   .btn-outline:hover {
-    background: rgba(249, 115, 22, 0.10);
+    background: rgba(249, 115, 22, 0.06);
     color: #c2410c;
   }
 
+  /* Текстова кнопка */
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold text-gray-700 transition-all duration-200;
   }
 
   .btn-ghost:hover {
-    background: rgba(249, 115, 22, 0.10);
+    background: rgba(249, 115, 22, 0.06);
     color: #c2410c;
   }
 
+  /* Поле вводу:
+     робимо його менш "молочним", щоб фон дихав */
   .input-glass {
     @apply w-full px-4 py-3 rounded-2xl outline-none transition-all duration-200 text-gray-900 placeholder-gray-500;
-    background: rgba(255, 255, 255, 0.68);
+    background: rgba(255, 255, 255, 0.50);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.58);
+    border: 1px solid rgba(255, 255, 255, 0.38);
   }
 
   .input-glass:focus {
-    border-color: rgba(249, 115, 22, 0.42);
-    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.14);
+    border-color: rgba(249, 115, 22, 0.28);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.10);
   }
 
+  /* Темне поле hero-блоку */
   .input-hero {
     @apply w-full px-4 py-3 rounded-2xl outline-none transition-all duration-200 text-white placeholder-gray-300;
-    background: rgba(255, 255, 255, 0.10);
+    background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.14);
   }
 
   .input-hero:focus {
-    border-color: rgba(249, 115, 22, 0.55);
-    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.16);
+    border-color: rgba(249, 115, 22, 0.40);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.12);
   }
 
+  /* Select робимо в тій самій прозорій логіці, що і input */
   .select-glass {
     @apply w-full px-4 py-3 rounded-2xl outline-none transition-all duration-200 text-gray-900;
-    background: rgba(255, 255, 255, 0.68);
+    background: rgba(255, 255, 255, 0.50);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.58);
+    border: 1px solid rgba(255, 255, 255, 0.38);
   }
 
+  /* Заголовки */
   .page-title {
     @apply text-3xl md:text-5xl font-extrabold tracking-tight text-gray-950;
   }
