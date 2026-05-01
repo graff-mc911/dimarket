@@ -56,11 +56,11 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
 
   return (
     <div className="glass-card flex h-full flex-col overflow-hidden p-5">
-      <div className="flex items-start gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         {avatarUrl ? (
           <img
             src={avatarUrl}
-            alt={professional.full_name || 'Professional'}
+            alt={professional.full_name || t('professional.defaultName')}
             className="h-16 w-16 shrink-0 rounded-[22px] object-cover"
           />
         ) : (
@@ -70,15 +70,17 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
         )}
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <h3 className="truncate text-xl font-extrabold text-[#2f2a24]">
-                {professional.full_name || 'Professional'}
+                {professional.full_name || t('professional.defaultName')}
               </h3>
 
               <div className="mt-2 flex items-center gap-2 text-sm text-[#7a7168]">
                 <MapPin className="h-4 w-4 shrink-0" />
-                <span className="truncate">{professional.location || 'Global'}</span>
+                <span className="truncate">
+                  {professional.location || t('professional.global')}
+                </span>
               </div>
             </div>
 
@@ -104,10 +106,10 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
       )}
 
       <p className="mt-4 line-clamp-4 text-sm leading-6 text-[#6f665d]">
-        {professional.bio || 'Construction professional profile is being completed.'}
+        {professional.bio || t('professional.profileInProgress')}
       </p>
 
-      <div className="mt-5 flex items-center justify-between border-t border-[rgba(190,168,150,0.28)] pt-4">
+      <div className="mt-5 flex flex-col gap-3 border-t border-[rgba(190,168,150,0.28)] pt-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-[#7a7168]">
           {professional.total_reviews} {t('professional.reviews')}
         </div>
@@ -115,7 +117,7 @@ export function ProfessionalCard({ professional }: ProfessionalCardProps) {
         <button
           onClick={() => navigateTo(`/professional/${professional.id}`)}
           type="button"
-          className="inline-flex items-center gap-2 rounded-full bg-[rgba(242,171,116,0.18)] px-4 py-2 text-sm font-bold text-[#9a5525] transition hover:bg-[rgba(242,171,116,0.26)]"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[rgba(242,171,116,0.18)] px-4 py-2 text-sm font-bold text-[#9a5525] transition hover:bg-[rgba(242,171,116,0.26)] sm:w-auto"
         >
           <span>{t('professional.contact')}</span>
           <ArrowRight className="h-4 w-4" />
