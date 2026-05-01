@@ -8,35 +8,12 @@ import { ProfessionalCard } from '../components/ProfessionalCard'
 import { navigateTo } from '../lib/navigation'
 
 export function Favorites() {
-  const { user } = useApp()
+  const { user, t } = useApp()
 
   const [activeTab, setActiveTab] = useState<'listings' | 'professionals'>('listings')
   const [favoriteListings, setFavoriteListings] = useState<ListingWithImages[]>([])
   const [favoriteProfessionals, setFavoriteProfessionals] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
-
-  // Тимчасові тексти для нового favorites-екрана.
-  // Після стабілізації UI винесемо їх у систему перекладів.
-  const copy = {
-    title: 'Favorites',
-    description:
-      'Save job requests and professionals you want to revisit later.',
-    loginTitle: 'Sign in to keep your favorites',
-    loginText:
-      'Saved job requests and saved professionals are available only inside your account.',
-    loginButton: 'Go to sign in',
-    listingsTab: 'Job requests',
-    professionalsTab: 'Professionals',
-    loading: 'Loading favorites...',
-    emptyListingsTitle: 'No saved job requests yet',
-    emptyListingsText:
-      'Use the favorite action on listings so they stay here for quick access later.',
-    emptyListingsButton: 'Browse job requests',
-    emptyProfessionalsTitle: 'No saved professionals yet',
-    emptyProfessionalsText:
-      'Save professionals you want to compare, contact, or revisit later.',
-    emptyProfessionalsButton: 'Browse professionals',
-  }
 
   useEffect(() => {
     if (!user) {
@@ -97,11 +74,11 @@ export function Favorites() {
               </div>
 
               <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-[#2f2a24]">
-                {copy.loginTitle}
+                {t('favorites.loginTitle')}
               </h1>
 
               <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#6f665d] md:text-base">
-                {copy.loginText}
+                {t('favorites.loginText')}
               </p>
 
               <button
@@ -109,7 +86,7 @@ export function Favorites() {
                 type="button"
                 className="btn-primary mt-7 rounded-full"
               >
-                {copy.loginButton}
+                {t('favorites.loginButton')}
               </button>
             </div>
           </div>
@@ -127,44 +104,44 @@ export function Favorites() {
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(233,202,177,0.7)] bg-[rgba(255,247,239,0.88)] px-4 py-2 text-sm font-semibold text-[#a26233]">
                   <Heart className="h-4 w-4" />
-                  <span>{copy.title}</span>
+                  <span>{t('favorites.title')}</span>
                 </div>
 
                 <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-[#2f2a24]">
-                  {copy.title}
+                  {t('favorites.title')}
                 </h1>
                 <p className="mt-2 text-sm leading-6 text-[#6f665d] md:text-base">
-                  {copy.description}
+                  {t('favorites.description')}
                 </p>
               </div>
             </div>
 
-            <div className="mt-6 inline-flex flex-wrap gap-2 rounded-full border border-white/70 bg-white/45 p-2">
+            <div className="mt-6 grid gap-2 rounded-[24px] border border-white/70 bg-white/45 p-2 sm:inline-flex sm:flex-wrap">
               <button
                 onClick={() => setActiveTab('listings')}
                 type="button"
-                className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition ${
+                className={`inline-flex w-full items-center justify-between gap-2 rounded-full px-5 py-3 text-sm font-semibold transition sm:w-auto sm:justify-start ${
                   activeTab === 'listings'
                     ? 'bg-[rgba(242,171,116,0.18)] text-[#9a5525]'
                     : 'text-[#5f5a54] hover:bg-white/75'
                 }`}
               >
                 <ClipboardList className="h-4 w-4" />
-                <span>{copy.listingsTab}</span>
+                <span>{t('favorites.listingsTab')}</span>
                 <span>({favoriteListings.length})</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('professionals')}
                 type="button"
-                className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition ${
+                className={`inline-flex w-full items-center justify-between gap-2 rounded-full px-5 py-3 text-sm font-semibold transition sm:w-auto sm:justify-start ${
                   activeTab === 'professionals'
                     ? 'bg-[rgba(242,171,116,0.18)] text-[#9a5525]'
                     : 'text-[#5f5a54] hover:bg-white/75'
                 }`}
               >
                 <UserRound className="h-4 w-4" />
-                <span>{copy.professionalsTab}</span>
+                <span>{t('favorites.professionalsTab')}</span>
                 <span>({favoriteProfessionals.length})</span>
               </button>
             </div>
@@ -173,7 +150,7 @@ export function Favorites() {
           <div className="mt-8">
             {loading ? (
               <div className="glass-card p-8 text-center text-[#7a7168]">
-                {copy.loading}
+                {t('favorites.loading')}
               </div>
             ) : activeTab === 'listings' ? (
               favoriteListings.length > 0 ? (
@@ -185,9 +162,9 @@ export function Favorites() {
               ) : (
                 <EmptyState
                   icon={<ClipboardList className="h-8 w-8" />}
-                  title={copy.emptyListingsTitle}
-                  text={copy.emptyListingsText}
-                  buttonLabel={copy.emptyListingsButton}
+                  title={t('favorites.emptyListingsTitle')}
+                  text={t('favorites.emptyListingsText')}
+                  buttonLabel={t('favorites.emptyListingsButton')}
                   onClick={() => navigateTo('/listings')}
                 />
               )
@@ -200,9 +177,9 @@ export function Favorites() {
             ) : (
               <EmptyState
                 icon={<UserRound className="h-8 w-8" />}
-                title={copy.emptyProfessionalsTitle}
-                text={copy.emptyProfessionalsText}
-                buttonLabel={copy.emptyProfessionalsButton}
+                title={t('favorites.emptyProfessionalsTitle')}
+                text={t('favorites.emptyProfessionalsText')}
+                buttonLabel={t('favorites.emptyProfessionalsButton')}
                 onClick={() => navigateTo('/professionals')}
               />
             )}
