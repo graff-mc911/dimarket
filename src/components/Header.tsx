@@ -98,6 +98,18 @@ export function Header() {
     }
   }, [])
 
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow
+
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [mobileMenuOpen])
+
   const goTo = (path: string) => {
     closeAllMenus()
     navigateTo(path)
@@ -131,14 +143,14 @@ export function Header() {
     'absolute right-0 top-full mt-2 w-64 rounded-[24px] border border-white/70 bg-[rgba(255,249,244,0.96)] p-2 shadow-[0_20px_50px_rgba(89,63,48,0.14)] backdrop-blur-xl'
 
   const mobilePanelClass =
-    'rounded-[26px] border border-white/70 bg-[rgba(255,250,246,0.76)] p-3 shadow-[0_18px_45px_rgba(89,63,48,0.08)] backdrop-blur-xl'
+    'max-h-[calc(100vh-7.5rem)] overflow-y-auto rounded-[26px] border border-white/70 bg-[rgba(255,250,246,0.76)] p-3 shadow-[0_18px_45px_rgba(89,63,48,0.08)] backdrop-blur-xl'
 
   const accountLabel = profile?.full_name || t('header.account')
 
   return (
-    <header className="sticky top-0 z-50 w-full px-3 pt-3 md:px-4 md:pt-4">
+    <header className="sticky top-0 z-50 w-full px-2 pt-2 md:px-4 md:pt-4">
       <div className="mx-auto max-w-7xl rounded-[30px] border border-white/70 bg-[rgba(252,246,240,0.82)] shadow-[0_18px_50px_rgba(89,63,48,0.08)] backdrop-blur-xl">
-        <div className="flex items-center justify-between gap-3 px-3 py-3 md:px-5">
+        <div className="flex items-center justify-between gap-2 px-3 py-3 md:gap-3 md:px-5">
           <button
             onClick={() => goTo('/')}
             type="button"
@@ -149,10 +161,10 @@ export function Header() {
             </div>
 
             <div className="min-w-0">
-              <div className="truncate text-xl font-extrabold leading-none text-[#2f2a24] md:text-2xl">
+              <div className="truncate text-lg font-extrabold leading-none text-[#2f2a24] sm:text-xl md:text-2xl">
                 Dimarket
               </div>
-              <div className="mt-1 truncate text-[11px] font-medium uppercase tracking-[0.18em] text-[#9d8b7a]">
+              <div className="mt-1 hidden truncate text-[11px] font-medium uppercase tracking-[0.18em] text-[#9d8b7a] sm:block">
                 {t('header.brandTagline')}
               </div>
             </div>
@@ -321,9 +333,13 @@ export function Header() {
             <button
               onClick={() => goTo('/create-ad')}
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-[rgba(242,171,116,0.18)] text-[#9a5525] shadow-[0_8px_24px_rgba(176,126,85,0.12)]"
+              aria-label={t('header.postJob')}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/70 bg-[rgba(242,171,116,0.18)] px-3 text-[#9a5525] shadow-[0_8px_24px_rgba(176,126,85,0.12)]"
             >
               <PlusCircle className="h-5 w-5" />
+              <span className="hidden text-sm font-semibold min-[380px]:inline">
+                {t('header.postJob')}
+              </span>
             </button>
 
             <button
@@ -332,6 +348,7 @@ export function Header() {
                 closeDropdowns()
               }}
               type="button"
+              aria-expanded={mobileMenuOpen}
               className="flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/55 text-[#4e4943] shadow-[0_8px_24px_rgba(95,76,59,0.06)]"
             >
               {mobileMenuOpen ? (
