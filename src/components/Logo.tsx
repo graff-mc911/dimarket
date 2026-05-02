@@ -1,101 +1,128 @@
 interface LogoProps {
-  compact?: boolean
+  variant?: 'full' | 'icon' | 'text'
   size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
 }
 
 const sizes = {
   sm: {
-    wrapper: 'gap-2',
-    svg: 'h-10 w-10',
+    gap: 'gap-2.5',
+    mark: 'h-10 w-10',
     title: 'text-[1.4rem]',
-    subtitle: 'text-[10px]',
+    subtitle: 'text-[9px]',
   },
   md: {
-    wrapper: 'gap-3',
-    svg: 'h-[52px] w-[52px]',
-    title: 'text-2xl',
-    subtitle: 'text-[12px]',
+    gap: 'gap-3',
+    mark: 'h-[52px] w-[52px]',
+    title: 'text-[2rem]',
+    subtitle: 'text-[10px]',
   },
   lg: {
-    wrapper: 'gap-3.5',
-    svg: 'h-[60px] w-[60px]',
-    title: 'text-[2rem]',
-    subtitle: 'text-[13px]',
+    gap: 'gap-3.5',
+    mark: 'h-[60px] w-[60px]',
+    title: 'text-[2.25rem]',
+    subtitle: 'text-[11px]',
   },
   xl: {
-    wrapper: 'gap-4',
-    svg: 'h-[72px] w-[72px]',
-    title: 'text-[2.35rem]',
-    subtitle: 'text-[14px]',
+    gap: 'gap-4',
+    mark: 'h-[72px] w-[72px]',
+    title: 'text-[2.75rem]',
+    subtitle: 'text-[12px]',
   },
 } as const
 
-export function Logo({ compact = false, size = 'md', className = '' }: LogoProps) {
+export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProps) {
   const current = sizes[size]
 
-  return (
-    <div className={`flex items-center ${current.wrapper} ${className}`}>
-      {/* Лого фарбуємо в теплу палітру застосунку,
-          щоб знак виглядав органічно в шапці, футері та на світлому glass-фоні. */}
-      <svg
-        viewBox="0 0 120 120"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className={`${current.svg} shrink-0`}
-        aria-label="DImarket logo"
-        role="img"
+  const wordmark = (
+    <div className="min-w-0 leading-none">
+      <div
+        className={`font-[var(--font-display)] ${current.title} whitespace-nowrap font-black tracking-[-0.055em]`}
       >
-        <rect width="120" height="120" rx="26" fill="#F8F5EF" />
+        <span className="text-[#a96942]">DI</span>
+        <span className="text-[#241b14]">market</span>
+      </div>
 
-        <path
-          d="M26 50 L60 26 L94 50"
-          stroke="#A96942"
-          strokeWidth="8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        <rect x="82" y="28" width="12" height="18" fill="#5C4D41" rx="2" />
-
-        <path
-          d="M28 54 H56 C74 54 86 68 86 86 C86 104 74 112 56 112 H28 Z"
-          fill="#241B14"
-        />
-
-        <path
-          d="M44 70 H55 C64 70 70 76 70 86 C70 96 64 102 55 102 H44 Z"
-          fill="#FDFBF7"
-        />
-
-        <rect x="90" y="54" width="12" height="58" fill="#8D5636" rx="2" />
-
-        <path
-          d="M86 112 H106"
-          stroke="#5C4D41"
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
-
-       {/* Синьо-жовте вікно навмисно лишаємо оригінальним. */}
-        <rect x="48" y="76" width="8" height="8" rx="1.5" fill="#0057B7" />
-        <rect x="58" y="76" width="8" height="8" rx="1.5" fill="#0057B7" />
-        <rect x="48" y="86" width="8" height="8" rx="1.5" fill="#FFD700" />
-        <rect x="58" y="86" width="8" height="8" rx="1.5" fill="#FFD700" />
-      </svg>
-
-      {!compact && (
-        <div className="leading-none">
-          <div className={`${current.title} font-extrabold tracking-tight`}>
-            <span className="text-[#A96942]">DI</span>
-            <span className="text-[#241B14]">market</span>
-          </div>
-
-          <div className={`mt-1 text-[#5C4D41] uppercase tracking-[0.04em] ${current.subtitle}`}>
-            Everything for Construction & Renovation
-          </div>
-        </div>
-      )}
+      <div
+        className={`mt-1.5 font-semibold uppercase tracking-[0.12em] text-[#5c4d41] ${current.subtitle}`}
+      >
+        Everything for construction and renovation
+      </div>
     </div>
+  )
+
+  if (variant === 'text') {
+    return <div className={className}>{wordmark}</div>
+  }
+
+  if (variant === 'icon') {
+    return <BrandMark className={`${current.mark} ${className}`} />
+  }
+
+  return (
+    <div className={`flex items-center ${current.gap} ${className}`}>
+      <BrandMark className={current.mark} />
+      {wordmark}
+    </div>
+  )
+}
+
+function BrandMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 120 120"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`${className || ''} shrink-0 drop-shadow-[0_10px_24px_rgba(82,54,32,0.08)]`}
+      aria-label="DImarket logo"
+      role="img"
+    >
+      <rect
+        x="6"
+        y="6"
+        width="108"
+        height="108"
+        rx="26"
+        fill="#F8F5EF"
+        stroke="#E7D6C4"
+        strokeWidth="1.5"
+      />
+
+      <path
+        d="M22 45L60 17L98 45"
+        stroke="#A96942"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      <rect x="78" y="18" width="12" height="18" rx="2" fill="#5C4D41" />
+
+      <path
+        d="M29 52H54C72.5 52 85 64 85 82C85 100 72.5 111 54 111H29V52Z"
+        fill="#241B14"
+      />
+
+      <path
+        d="M41 65H52C62 65 69 72 69 82C69 92 62 98 52 98H41V65Z"
+        fill="#FDFBF7"
+      />
+
+      <path d="M29 111L42 98V111H29Z" fill="#F8F5EF" />
+
+      <path d="M82 51C91 53 97 60 97 69V111H82V51Z" fill="#8D5636" />
+
+      <path
+        d="M79 111H101"
+        stroke="#5C4D41"
+        strokeWidth="4.5"
+        strokeLinecap="round"
+      />
+
+      <rect x="48" y="74" width="7.5" height="7.5" rx="1.3" fill="#0057B7" />
+      <rect x="57.5" y="74" width="7.5" height="7.5" rx="1.3" fill="#0057B7" />
+      <rect x="48" y="83.5" width="7.5" height="7.5" rx="1.3" fill="#FFD700" />
+      <rect x="57.5" y="83.5" width="7.5" height="7.5" rx="1.3" fill="#FFD700" />
+    </svg>
   )
 }
