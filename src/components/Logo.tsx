@@ -67,7 +67,7 @@ export function Logo({ compact = false, className = '' }: LogoProps) {
       {/* Текст */}
       {!compact && (
         <div className="leading-none">
-          <div className="text-2xl font-semibold tracking-normal">
+          <div className="text-2xl font-extrabold tracking-tight">
             <span className="text-[#E85D04]">DI</span>
             <span className="text-[#1A1A1A]">market</span>
           </div>
