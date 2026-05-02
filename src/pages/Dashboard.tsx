@@ -3,7 +3,9 @@ import {
   AlertTriangle,
   BarChart3,
   CheckCircle2,
+  Eye,
   FileText,
+  Mail,
   MessageSquare,
   ShieldCheck,
   Sparkles,
@@ -14,7 +16,7 @@ import { supabase } from '../lib/supabase'
 import { useApp } from '../contexts/AppContext'
 import { AdBanner } from '../components/AdBanner'
 import { navigateTo } from '../lib/navigation'
-import { AdCampaign, Profile } from '../lib/types'
+import { AdCampaign, FeedbackMessage, Profile } from '../lib/types'
 
 interface OwnerStats {
   totalVisits: number
@@ -59,11 +61,15 @@ export function Dashboard() {
   // Тут зберігаємо рекламні кампанії для модерації прямо в кабінеті owner.
   const [adCampaigns, setAdCampaigns] = useState<AdCampaign[]>([])
 
+  // Тут зберігаємо повідомлення із форми зворотного зв'язку.
+  const [feedbackInbox, setFeedbackInbox] = useState<FeedbackMessage[]>([])
+
   // Через ці стани показуємо глобальні й локальні дії користувачу.
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [feedback, setFeedback] = useState('')
+  const [notice, setNotice] = useState('')
   const [campaignActionId, setCampaignActionId] = useState<string | null>(null)
+  const [feedbackActionId, setFeedbackActionId] = useState<string | null>(null)
 
   useEffect(() => {
     // Перевіряємо користувача через контекст і, за потреби, напряму через Supabase,
@@ -107,7 +113,8 @@ export function Dashboard() {
         return
       }
 
-      // Завантажуємо основні цифри, останні оголошення і кампанії на модерацію.
+      // Завантажуємо основні цифри, останні оголошення, рекламні кампанії
+      // і повідомлення зі зворотного зв'язку в один прохід.
       const [
         siteStatsResult,
         listingsCountResult,
@@ -118,6 +125,7 @@ export function Dashboard() {
         messagesCountResult,
         recentListingsResult,
         adCampaignsResult,
+        feedbackInboxResult,
       ] = await Promise.all([
         supabase
           .from('app_site_stats')
@@ -162,6 +170,12 @@ export function Dashboard() {
           .select('*')
           .order('created_at', { ascending: false })
           .limit(10),
+
+        supabase
+          .from('feedback_messages')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(12),
       ])
 
       // Формуємо зручний об'єкт статистики для карток на сторінці.
@@ -177,6 +191,7 @@ export function Dashboard() {
 
       setRecentListings((recentListingsResult.data as RecentListing[] | null) || [])
       setAdCampaigns((adCampaignsResult.data as AdCampaign[] | null) || [])
+      setFeedbackInbox((feedbackInboxResult.data as FeedbackMessage[] | null) || [])
     } catch (loadError) {
       console.error('Помилка завантаження owner-кабінету:', loadError)
       setError('Не вдалося завантажити особистий кабінет власника сайту.')
@@ -191,12 +206,13 @@ export function Dashboard() {
     }
 
     setCampaignActionId(campaignId)
-    setFeedback('')
+    setNotice('')
+    setError('')
 
     try {
       // Під час підтвердження переводимо рекламу в active
       // і фіксуємо, хто саме її схвалив.
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('ad_campaigns')
         .update({
           status: 'active',
@@ -206,11 +222,11 @@ export function Dashboard() {
         })
         .eq('id', campaignId)
 
-      if (error) {
-        throw error
+      if (updateError) {
+        throw updateError
       }
 
-      setFeedback('Рекламну кампанію підтверджено.')
+      setNotice('Рекламну кампанію підтверджено.')
       await loadOwnerDashboard()
     } catch (actionError) {
       console.error('Помилка підтвердження кампанії:', actionError)
@@ -222,12 +238,13 @@ export function Dashboard() {
 
   const handleRejectCampaign = async (campaignId: string) => {
     setCampaignActionId(campaignId)
-    setFeedback('')
+    setNotice('')
+    setError('')
 
     try {
       // Відхилену рекламу залишаємо в базі зі статусом rejected,
       // щоб рекламодавець бачив результат модерації.
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from('ad_campaigns')
         .update({
           status: 'rejected',
@@ -235,11 +252,11 @@ export function Dashboard() {
         })
         .eq('id', campaignId)
 
-      if (error) {
-        throw error
+      if (updateError) {
+        throw updateError
       }
 
-      setFeedback('Рекламну кампанію відхилено.')
+      setNotice('Рекламну кампанію відхилено.')
       await loadOwnerDashboard()
     } catch (actionError) {
       console.error('Помилка відхилення кампанії:', actionError)
@@ -259,26 +276,118 @@ export function Dashboard() {
     }
 
     setCampaignActionId(campaignId)
-    setFeedback('')
+    setNotice('')
+    setError('')
 
     try {
       // Видаляємо кампанію повністю, якщо вона більше не потрібна.
-      const { error } = await supabase
+      const { error: deleteError } = await supabase
         .from('ad_campaigns')
         .delete()
         .eq('id', campaignId)
 
-      if (error) {
-        throw error
+      if (deleteError) {
+        throw deleteError
       }
 
-      setFeedback('Рекламну кампанію видалено.')
+      setNotice('Рекламну кампанію видалено.')
       await loadOwnerDashboard()
     } catch (actionError) {
       console.error('Помилка видалення кампанії:', actionError)
       setError('Не вдалося видалити рекламну кампанію.')
     } finally {
       setCampaignActionId(null)
+    }
+  }
+
+  const handleMarkFeedbackRead = async (messageId: string) => {
+    setFeedbackActionId(messageId)
+    setNotice('')
+    setError('')
+
+    try {
+      // Позначаємо повідомлення як прочитане, не змінюючи його основний статус.
+      const { error: updateError } = await supabase
+        .from('feedback_messages')
+        .update({
+          is_read: true,
+        })
+        .eq('id', messageId)
+
+      if (updateError) {
+        throw updateError
+      }
+
+      setNotice('Повідомлення позначено як прочитане.')
+      await loadOwnerDashboard()
+    } catch (actionError) {
+      console.error('Помилка оновлення повідомлення:', actionError)
+      setError('Не вдалося позначити повідомлення як прочитане.')
+    } finally {
+      setFeedbackActionId(null)
+    }
+  }
+
+  const handleResolveFeedback = async (messageId: string) => {
+    setFeedbackActionId(messageId)
+    setNotice('')
+    setError('')
+
+    try {
+      // Коли питання вже закрите, переводимо повідомлення в resolved.
+      const { error: updateError } = await supabase
+        .from('feedback_messages')
+        .update({
+          is_read: true,
+          status: 'resolved',
+        })
+        .eq('id', messageId)
+
+      if (updateError) {
+        throw updateError
+      }
+
+      setNotice('Повідомлення позначено як вирішене.')
+      await loadOwnerDashboard()
+    } catch (actionError) {
+      console.error('Помилка завершення повідомлення:', actionError)
+      setError('Не вдалося позначити повідомлення як вирішене.')
+    } finally {
+      setFeedbackActionId(null)
+    }
+  }
+
+  const handleDeleteFeedback = async (messageId: string) => {
+    const confirmed = window.confirm(
+      'Ви впевнені, що хочете видалити це повідомлення?'
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setFeedbackActionId(messageId)
+    setNotice('')
+    setError('')
+
+    try {
+      // Видаляємо повідомлення, якщо воно вже не потрібне в inbox.
+      const { error: deleteError } = await supabase
+        .from('feedback_messages')
+        .delete()
+        .eq('id', messageId)
+
+      if (deleteError) {
+        throw deleteError
+      }
+
+      setNotice('Повідомлення видалено.')
+      await loadOwnerDashboard()
+    } catch (actionError) {
+      console.error('Помилка видалення повідомлення:', actionError)
+      setError('Не вдалося видалити повідомлення.')
+    } finally {
+      setFeedbackActionId(null)
     }
   }
 
@@ -399,9 +508,9 @@ export function Dashboard() {
                 </div>
               )}
 
-              {feedback && (
+              {notice && (
                 <div className="mb-6 rounded-[22px] border border-[rgba(120,181,140,0.35)] bg-[rgba(236,250,240,0.92)] px-4 py-3 text-sm text-[#3d7a52]">
-                  {feedback}
+                  {notice}
                 </div>
               )}
 
@@ -615,6 +724,115 @@ export function Dashboard() {
                   )}
                 </div>
               </section>
+
+              {/* Тут показуємо всі повідомлення із форми зворотного зв'язку,
+                  щоб owner міг читати і обробляти їх прямо в кабінеті. */}
+              <section className="glass-card mt-6 p-5 md:p-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-xl font-extrabold text-[#2f2a24]">
+                      Зворотний зв'язок
+                    </h2>
+                    <p className="mt-2 text-sm leading-6 text-[#6f665d]">
+                      Тут відображаються всі повідомлення, які користувачі надсилають через форму зворотного зв'язку.
+                    </p>
+                  </div>
+
+                  <div className="rounded-full bg-[rgba(148,163,184,0.14)] px-4 py-2 text-sm font-semibold text-[#475569]">
+                    Усього: {stats.feedbackMessages}
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-4">
+                  {feedbackInbox.length > 0 ? (
+                    feedbackInbox.map((message) => {
+                      const isBusy = feedbackActionId === message.id
+
+                      return (
+                        <div
+                          key={message.id}
+                          className="rounded-[24px] border border-[rgba(148,163,184,0.16)] bg-[rgba(255,255,255,0.30)] p-4"
+                        >
+                          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="min-w-0">
+                                  <h3 className="truncate text-lg font-extrabold text-[#2f2a24]">
+                                    {message.subject}
+                                  </h3>
+                                  <p className="mt-1 text-sm text-[#6f665d]">
+                                    {message.name} • {message.email}
+                                  </p>
+                                </div>
+
+                                <div className="flex flex-wrap gap-2">
+                                  {!message.is_read && (
+                                    <span className="inline-flex rounded-full bg-[rgba(245,158,11,0.14)] px-3 py-1 text-xs font-semibold text-[#b45309]">
+                                      Непрочитане
+                                    </span>
+                                  )}
+                                  <FeedbackStatusBadge status={message.status} />
+                                </div>
+                              </div>
+
+                              {message.phone && (
+                                <p className="mt-3 text-sm text-[#6f665d]">
+                                  Телефон: {message.phone}
+                                </p>
+                              )}
+
+                              <div className="mt-4 rounded-[18px] bg-[rgba(255,255,255,0.34)] p-4 text-sm leading-6 text-[#2f2a24]">
+                                {message.message}
+                              </div>
+
+                              <div className="mt-3 text-xs text-[#7a7168]">
+                                Отримано: {message.created_at ? new Date(message.created_at).toLocaleString() : '—'}
+                              </div>
+                            </div>
+
+                            {/* Кнопки дозволяють owner швидко керувати вхідними зверненнями. */}
+                            <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+                              <button
+                                onClick={() => handleMarkFeedbackRead(message.id)}
+                                type="button"
+                                disabled={isBusy || message.is_read}
+                                className="inline-flex items-center justify-center gap-2 rounded-full bg-[rgba(59,130,246,0.12)] px-4 py-2 text-sm font-semibold text-[#2563eb] transition hover:bg-[rgba(59,130,246,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <Eye className="h-4 w-4" />
+                                Прочитано
+                              </button>
+
+                              <button
+                                onClick={() => handleResolveFeedback(message.id)}
+                                type="button"
+                                disabled={isBusy || message.status === 'resolved'}
+                                className="inline-flex items-center justify-center gap-2 rounded-full bg-[rgba(34,197,94,0.14)] px-4 py-2 text-sm font-semibold text-[#15803d] transition hover:bg-[rgba(34,197,94,0.22)] disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                                Вирішено
+                              </button>
+
+                              <button
+                                onClick={() => handleDeleteFeedback(message.id)}
+                                type="button"
+                                disabled={isBusy}
+                                className="inline-flex items-center justify-center gap-2 rounded-full bg-[rgba(239,68,68,0.12)] px-4 py-2 text-sm font-semibold text-[#b91c1c] transition hover:bg-[rgba(239,68,68,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Видалити
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="rounded-[22px] border border-[rgba(148,163,184,0.16)] bg-[rgba(255,255,255,0.24)] p-5 text-sm text-[#7a7168]">
+                      Поки що немає повідомлень із форми зворотного зв'язку.
+                    </div>
+                  )}
+                </div>
+              </section>
             </section>
           </main>
 
@@ -661,6 +879,29 @@ function StatusBadge({ status }: { status: AdCampaign['status'] }) {
   return (
     // Бейдж статусу допомагає owner швидко читати стан реклами.
     <span className={`inline-flex self-start rounded-full px-3 py-1 text-xs font-semibold ${styles[status]}`}>
+      {labels[status]}
+    </span>
+  )
+}
+
+function FeedbackStatusBadge({ status }: { status: FeedbackMessage['status'] }) {
+  const styles: Record<FeedbackMessage['status'], string> = {
+    new: 'bg-[rgba(245,158,11,0.14)] text-[#b45309]',
+    in_progress: 'bg-[rgba(59,130,246,0.12)] text-[#2563eb]',
+    resolved: 'bg-[rgba(34,197,94,0.14)] text-[#15803d]',
+    archived: 'bg-[rgba(148,163,184,0.14)] text-[#475569]',
+  }
+
+  const labels: Record<FeedbackMessage['status'], string> = {
+    new: 'Нове',
+    in_progress: 'В роботі',
+    resolved: 'Вирішено',
+    archived: 'Архів',
+  }
+
+  return (
+    // Бейдж статусу зворотного зв'язку допомагає швидко сортувати звернення візуально.
+    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${styles[status]}`}>
       {labels[status]}
     </span>
   )
