@@ -1,69 +1,70 @@
-interface LogoIconProps {
-  size?: number
+interface LogoProps {
+  compact?: boolean
   className?: string
 }
 
-export function LogoIcon({ size = 52, className = '' }: LogoIconProps) {
+export function Logo({ compact = false, className = '' }: LogoProps) {
   return (
-    <div
-      className={`flex items-center justify-center ${className}`}
-      style={{ width: size, height: size }}
-    >
-      {/* 
-        🔥 Іконка збільшена:
-        - viewBox залишився той самий
-        - але весь контент "розтягнутий" під краї
-        - мінімальні відступи → виглядає як app icon
-      */}
-      <svg
-        viewBox="0 0 200 200"
-        width="100%"
-        height="100%"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* фон */}
-        <rect width="200" height="200" rx="36" fill="#F5E9D8" />
-
-        {/* дах (піднятий і ширший) */}
-        <path
-          d="M30 78 L100 30 L170 78"
-          stroke="#c47b42"
-          strokeWidth="10"
-          fill="none"
-          strokeLinecap="round"
-        />
-
-        {/* димар */}
-        <rect x="132" y="36" width="14" height="22" fill="#a96a3c" rx="2" />
-
-        {/* D — більша */}
-        <text
-          x="50"
-          y="150"
-          fontSize="110"
-          fontFamily="serif"
-          fill="#241b14"
+    <div className={`flex items-center gap-3 ${className}`}>
+      
+      {/* 🔥 ІКОНКА НА ВЕСЬ КВАДРАТ */}
+      <div className="w-[52px] h-[52px]">
+        <svg
+          viewBox="0 0 200 200"
+          width="100%"
+          height="100%"
+          preserveAspectRatio="xMidYMid slice"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          D
-        </text>
+          {/* фон */}
+          <rect width="200" height="200" fill="#F5E9D8" />
 
-        {/* I — більша */}
-        <text
-          x="115"
-          y="150"
-          fontSize="110"
-          fontFamily="serif"
-          fill="#c47b42"
-        >
-          I
-        </text>
+          {/* дах */}
+          <path
+            d="M0 80 L100 0 L200 80"
+            stroke="#c47b42"
+            strokeWidth="16"
+            fill="none"
+            strokeLinecap="round"
+          />
 
-        {/* вікно */}
-        <rect x="90" y="85" width="10" height="10" fill="#c47b42" />
-        <rect x="102" y="85" width="10" height="10" fill="#c47b42" />
-        <rect x="90" y="98" width="10" height="10" fill="#c47b42" />
-        <rect x="102" y="98" width="10" height="10" fill="#c47b42" />
-      </svg>
+          {/* D */}
+          <text
+            x="20"
+            y="175"
+            fontSize="160"
+            fontFamily="serif"
+            fill="#241b14"
+          >
+            D
+          </text>
+
+          {/* I */}
+          <text
+            x="110"
+            y="175"
+            fontSize="160"
+            fontFamily="serif"
+            fill="#c47b42"
+          >
+            I
+          </text>
+        </svg>
+      </div>
+
+      {/* ТЕКСТ */}
+      {!compact && (
+        <div className="leading-none">
+          <div className="text-2xl font-semibold tracking-normal">
+            <span className="text-[#c47b42]">DI</span>
+            <span className="text-[#241b14]">market</span>
+          </div>
+
+          <div className="text-[12px] uppercase tracking-[0.004em] text-[#4A2E1E] mt-1">
+            Build & Renovate
+          </div>
+        </div>
+      )}
     </div>
   )
 }
