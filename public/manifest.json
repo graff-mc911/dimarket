@@ -1,11 +1,11 @@
 {
   "name": "DImarket - Маркетплейс для будівництва, ремонту та матеріалів",
   "short_name": "DImarket",
-  "description": "Знайдіть перевірених фахівців з будівництва та якісні матеріали. Ваш маркетплейс для будівництва, ремонту та послуг.",
+  "description": "Знайдіть перевірених майстрів, послуги та матеріали для будівництва й ремонту на DImarket.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFFFFF",
-  "theme_color": "#1E3A8A",
+  "background_color": "#F8F5EF",
+  "theme_color": "#8D5636",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -21,17 +21,13 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/logo-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/logo-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any"
     }
   ],
-  "categories": [
-    "business",
-    "productivity",
-    "lifestyle"
-  ],
+  "categories": ["business", "productivity", "lifestyle"],
   "screenshots": [
     {
       "src": "/screenshot-mobile.png",
@@ -54,8 +50,9 @@
       "url": "/create-ad",
       "icons": [
         {
-          "src": "/logo-icon.png",
-          "sizes": "96x96"
+          "src": "/logo-icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
         }
       ]
     },
@@ -66,8 +63,9 @@
       "url": "/professionals",
       "icons": [
         {
-          "src": "/logo-icon.png",
-          "sizes": "96x96"
+          "src": "/logo-icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
         }
       ]
     },
@@ -78,8 +76,9 @@
       "url": "/listings",
       "icons": [
         {
-          "src": "/logo-icon.png",
-          "sizes": "96x96"
+          "src": "/logo-icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
         }
       ]
     }
