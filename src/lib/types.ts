@@ -1,3 +1,4 @@
+// Базовий JSON-тип для полів Supabase, у яких можуть зберігатися вкладені дані.
 export type Json =
   | string
   | number
@@ -6,6 +7,8 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+// Описуємо структуру таблиць із public schema,
+// щоб TypeScript правильно типізував відповіді Supabase.
 export interface Database {
   public: {
     Tables: {
@@ -38,6 +41,7 @@ export interface Database {
           created_at?: string
         }
       }
+
       profiles: {
         Row: {
           id: string
@@ -49,11 +53,16 @@ export interface Database {
           profile_photo: string | null
           website: string | null
           is_professional: boolean
+          is_site_owner: boolean
           rating: number
           total_reviews: number
           created_at: string
           updated_at: string
-          profile_views?: number | null
+          profile_views: number | null
+          portfolio_images: string[] | null
+          notifications_enabled: boolean | null
+          preferred_language: string | null
+          preferred_currency: string | null
         }
         Insert: {
           id: string
@@ -65,11 +74,16 @@ export interface Database {
           profile_photo?: string | null
           website?: string | null
           is_professional?: boolean
+          is_site_owner?: boolean
           rating?: number
           total_reviews?: number
           created_at?: string
           updated_at?: string
           profile_views?: number | null
+          portfolio_images?: string[] | null
+          notifications_enabled?: boolean | null
+          preferred_language?: string | null
+          preferred_currency?: string | null
         }
         Update: {
           id?: string
@@ -81,13 +95,19 @@ export interface Database {
           profile_photo?: string | null
           website?: string | null
           is_professional?: boolean
+          is_site_owner?: boolean
           rating?: number
           total_reviews?: number
           created_at?: string
           updated_at?: string
           profile_views?: number | null
+          portfolio_images?: string[] | null
+          notifications_enabled?: boolean | null
+          preferred_language?: string | null
+          preferred_currency?: string | null
         }
       }
+
       listings: {
         Row: {
           id: string
@@ -109,7 +129,15 @@ export interface Database {
           status: 'active' | 'expired' | 'sold' | 'deleted'
           created_at: string
           updated_at: string
-          visibility_radius?: 'city' | 'district' | 'region' | 'country' | 'state' | 'land' | 'global' | null
+          visibility_radius:
+            | 'city'
+            | 'district'
+            | 'region'
+            | 'country'
+            | 'state'
+            | 'land'
+            | 'global'
+            | null
         }
         Insert: {
           id?: string
@@ -131,7 +159,15 @@ export interface Database {
           status?: 'active' | 'expired' | 'sold' | 'deleted'
           created_at?: string
           updated_at?: string
-          visibility_radius?: 'city' | 'district' | 'region' | 'country' | 'state' | 'land' | 'global' | null
+          visibility_radius?:
+            | 'city'
+            | 'district'
+            | 'region'
+            | 'country'
+            | 'state'
+            | 'land'
+            | 'global'
+            | null
         }
         Update: {
           id?: string
@@ -153,9 +189,18 @@ export interface Database {
           status?: 'active' | 'expired' | 'sold' | 'deleted'
           created_at?: string
           updated_at?: string
-          visibility_radius?: 'city' | 'district' | 'region' | 'country' | 'state' | 'land' | 'global' | null
+          visibility_radius?:
+            | 'city'
+            | 'district'
+            | 'region'
+            | 'country'
+            | 'state'
+            | 'land'
+            | 'global'
+            | null
         }
       }
+
       listing_images: {
         Row: {
           id: string
@@ -179,6 +224,7 @@ export interface Database {
           created_at?: string
         }
       }
+
       portfolio_items: {
         Row: {
           id: string
@@ -208,6 +254,7 @@ export interface Database {
           created_at?: string
         }
       }
+
       reviews: {
         Row: {
           id: string
@@ -237,6 +284,7 @@ export interface Database {
           created_at?: string
         }
       }
+
       messages: {
         Row: {
           id: string
@@ -275,6 +323,115 @@ export interface Database {
           created_at?: string
         }
       }
+
+      ad_campaigns: {
+        Row: {
+          id: string
+          advertiser_id: string
+          title: string
+          description: string | null
+          image_url: string
+          link_url: string
+          placement: 'home' | 'listings' | 'sidebar' | 'footer' | 'mobile_sticky'
+          geo_scope: 'city' | 'region' | 'country' | 'global'
+          country_code: string | null
+          country_name: string | null
+          region_name: string | null
+          city_name: string | null
+          starts_at: string | null
+          ends_at: string | null
+          status: 'draft' | 'pending_review' | 'active' | 'paused' | 'rejected' | 'expired' | 'deleted'
+          review_note: string | null
+          approved_by: string | null
+          approved_at: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          advertiser_id: string
+          title: string
+          description?: string | null
+          image_url: string
+          link_url: string
+          placement: 'home' | 'listings' | 'sidebar' | 'footer' | 'mobile_sticky'
+          geo_scope: 'city' | 'region' | 'country' | 'global'
+          country_code?: string | null
+          country_name?: string | null
+          region_name?: string | null
+          city_name?: string | null
+          starts_at?: string | null
+          ends_at?: string | null
+          status?: 'draft' | 'pending_review' | 'active' | 'paused' | 'rejected' | 'expired' | 'deleted'
+          review_note?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          advertiser_id?: string
+          title?: string
+          description?: string | null
+          image_url?: string
+          link_url?: string
+          placement?: 'home' | 'listings' | 'sidebar' | 'footer' | 'mobile_sticky'
+          geo_scope?: 'city' | 'region' | 'country' | 'global'
+          country_code?: string | null
+          country_name?: string | null
+          region_name?: string | null
+          city_name?: string | null
+          starts_at?: string | null
+          ends_at?: string | null
+          status?: 'draft' | 'pending_review' | 'active' | 'paused' | 'rejected' | 'expired' | 'deleted'
+          review_note?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+
+      feedback_messages: {
+        Row: {
+          id: string
+          sender_id: string | null
+          name: string
+          email: string
+          phone: string | null
+          subject: string
+          message: string
+          status: 'new' | 'in_progress' | 'resolved' | 'archived'
+          is_read: boolean
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          sender_id?: string | null
+          name: string
+          email: string
+          phone?: string | null
+          subject: string
+          message: string
+          status?: 'new' | 'in_progress' | 'resolved' | 'archived'
+          is_read?: boolean
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          sender_id?: string | null
+          name?: string
+          email?: string
+          phone?: string | null
+          subject?: string
+          message?: string
+          status?: 'new' | 'in_progress' | 'resolved' | 'archived'
+          is_read?: boolean
+          created_at?: string | null
+        }
+      }
+
       professional_categories: {
         Row: {
           id: string
@@ -295,6 +452,7 @@ export interface Database {
           created_at?: string
         }
       }
+
       app_site_stats: {
         Row: {
           id: number
@@ -328,6 +486,7 @@ export interface Database {
   }
 }
 
+// Короткі зручні alias-типи для використання по всьому застосунку.
 export type Category = Database['public']['Tables']['categories']['Row']
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Listing = Database['public']['Tables']['listings']['Row']
@@ -335,17 +494,22 @@ export type ListingImage = Database['public']['Tables']['listing_images']['Row']
 export type PortfolioItem = Database['public']['Tables']['portfolio_items']['Row']
 export type Review = Database['public']['Tables']['reviews']['Row']
 export type Message = Database['public']['Tables']['messages']['Row']
+export type AdCampaign = Database['public']['Tables']['ad_campaigns']['Row']
+export type FeedbackMessage = Database['public']['Tables']['feedback_messages']['Row']
 export type AppSiteStats = Database['public']['Tables']['app_site_stats']['Row']
 
+// Розширений тип оголошення з картинками та категорією для UI-карток.
 export interface ListingWithImages extends Listing {
   images: ListingImage[]
   category?: Category
 }
 
+// Розширений тип профілю з елементами портфоліо.
 export interface ProfileWithPortfolio extends Profile {
   portfolio_items: PortfolioItem[]
 }
 
+// Тип елемента рейтингу країн для статистики сайту.
 export interface CountryRankingItem {
   country: string
   score: number
@@ -354,6 +518,7 @@ export interface CountryRankingItem {
   responses: number
 }
 
+// Доступні валюти для всього інтерфейсу.
 export const CURRENCIES = [
   { code: 'USD', symbol: '$', name: 'US Dollar' },
   { code: 'EUR', symbol: '€', name: 'Euro' },
@@ -366,6 +531,7 @@ export const CURRENCIES = [
   { code: 'HUF', symbol: 'Ft', name: 'Hungarian Forint' },
 ] as const
 
+// Доступні мови інтерфейсу.
 export const LANGUAGES = [
   { code: 'en', name: 'English' },
   { code: 'uk', name: 'Українська' },
