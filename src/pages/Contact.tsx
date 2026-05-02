@@ -24,7 +24,8 @@ export function Contact() {
   const [feedback, setFeedback] = useState<FeedbackState | null>(null)
 
   useEffect(() => {
-    // Якщо користувач уже увійшов, одразу підставляємо його дані у форму.
+    // Якщо користувач уже увійшов, одразу підставляємо його дані у форму,
+    // але не перетираємо те, що він уже встиг надрукувати вручну.
     if (profile?.full_name) {
       setName((current) => current || profile.full_name || '')
     }
@@ -39,7 +40,7 @@ export function Contact() {
   }, [profile?.full_name, profile?.phone, user?.email])
 
   const resetForm = () => {
-    // Після успішної відправки очищаємо лише зміст звернення.
+    // Після успішної відправки очищаємо тільки зміст звернення.
     // Контактні дані лишаємо, щоб користувачу не довелося вводити їх ще раз.
     setSubject('')
     setMessage('')
@@ -97,7 +98,7 @@ export function Contact() {
   return (
     <div className="page-bg min-h-screen px-4 py-8 md:px-6 xl:px-8 2xl:px-10">
       <div className="mx-auto max-w-6xl">
-        {/* Верхній інформаційний блок сторінки */}
+        {/* Верхній інформаційний блок сторінки. */}
         <section className="glass-panel p-6 md:p-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/42 bg-[rgba(248,250,252,0.70)] px-4 py-2 text-sm font-semibold text-[#64748b]">
             <LifeBuoy className="h-4 w-4" />
@@ -135,11 +136,12 @@ export function Contact() {
         </section>
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-          {/* Основна форма надсилання повідомлення */}
+          {/* Основна форма надсилання повідомлення. */}
           <div className="glass-card p-6">
             <h2 className="text-2xl font-extrabold text-[#2f2a24]">
               Форма звернення
             </h2>
+
             <p className="mt-2 text-sm leading-6 text-[#6f665d]">
               Після відправки це повідомлення автоматично потрапить у ваш owner-кабінет.
             </p>
@@ -245,7 +247,7 @@ export function Contact() {
             </form>
           </div>
 
-          {/* Правий блок пояснює, як працює зворотний звʼязок */}
+          {/* Правий блок пояснює, як працює форма. */}
           <div className="space-y-6">
             <div className="glass-card p-6">
               <h2 className="text-2xl font-extrabold text-[#2f2a24]">
@@ -254,7 +256,7 @@ export function Contact() {
 
               <div className="mt-5 space-y-3 text-sm text-[#6f665d]">
                 <InfoRow text="Повідомлення одразу записується в таблицю feedback_messages." />
-                <InfoRow text="Усі звернення видно лише у вашому owner-кабінеті." />
+                <InfoRow text="Усі звернення видно в owner-кабінеті." />
                 <InfoRow text="Там ви можете позначити лист як прочитаний, вирішений або видалити його." />
               </div>
             </div>
