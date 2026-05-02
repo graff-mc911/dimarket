@@ -1,3 +1,6 @@
+import logoFull from '../assets/logo-full.png'
+import logoIcon from '../assets/logo-icon.png'
+
 interface LogoProps {
   variant?: 'full' | 'icon' | 'text'
   size?: 'sm' | 'md' | 'lg' | 'xl'
@@ -30,23 +33,23 @@ const sizes = {
 export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProps) {
   const current = sizes[size]
 
-  // Повний логотип беремо прямо з затвердженого PNG без перемальовування,
-  // щоб у застосунку він виглядав рівно так, як на твоєму зображенні.
+  // Повний логотип імпортуємо як asset із src,
+  // щоб збірник гарантовано підхопив файл і він точно відображався в застосунку.
   if (variant === 'full') {
     return (
       <img
-        src="/logo-full.png?v=20260502-6"
+        src={logoFull}
         alt="DImarket Build & Renovate"
         className={`${current.full} w-auto shrink-0 object-contain ${className}`}
       />
     )
   }
 
-  // Іконковий режим залишає тільки окрему іконку бренду.
+  // Іконковий режим залишає тільки компактний знак бренду.
   if (variant === 'icon') {
     return (
       <img
-        src="/logo-icon.png?v=20260502-6"
+        src={logoIcon}
         alt="DImarket icon"
         className={`${current.icon} shrink-0 object-contain ${className}`}
       />
@@ -54,7 +57,7 @@ export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProp
   }
 
   // Текстовий режим потрібен для місць,
-  // де треба показати лише назву бренду без графіки.
+  // де треба показати лише назву бренду без графічної частини.
   return (
     <span
       className={`font-[var(--font-display)] font-semibold tracking-[-0.045em] text-[#241b14] ${current.title} ${className}`}
