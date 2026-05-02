@@ -36,8 +36,8 @@ export function Logo({
 }: LogoProps) {
   const current = sizes[size]
 
-  // Якщо десь у коді явно просять тільки текст,
-  // лишаємо текстовий режим, щоб нічого не ламалося.
+  // Якщо десь у застосунку просять тільки текст,
+  // лишаємо простий текстовий режим без картинки.
   if (variant === 'text') {
     return (
       <span
@@ -49,24 +49,19 @@ export function Logo({
     )
   }
 
-  // У compact або icon режимі показуємо тільки іконку бренду.
-  if (compact || variant === 'icon') {
-    return (
-      <img
-        src="/logo-icon.png"
-        alt="DImarket icon"
-        className={`${current.icon} shrink-0 object-contain ${className}`}
-      />
-    )
-  }
+  // У компактному режимі показуємо окрему іконку,
+  // а в звичайному режимі — новий затверджений логотип як готове зображення.
+  const src = compact || variant === 'icon' ? '/logo-icon.png' : '/logo-full-clean.png'
+  const alt = compact || variant === 'icon' ? 'DImarket icon' : 'DImarket Build & Renovate'
+  const imageClass = compact || variant === 'icon' ? current.icon : current.full
 
-  // У звичайному режимі показуємо саме новий затверджений логотип як зображення.
   return (
-    <img
-      src="/logo-full.png"
-      alt="DImarket Build & Renovate"
-      className={`${current.full} w-auto shrink-0 object-contain ${className}`}
-    />
+    <div className={`flex items-center ${className}`}>
+      <img
+        src={src}
+        alt={alt}
+        className={`${imageClass} w-auto shrink-0 object-contain`}
+      />
+    </div>
   )
 }
-
