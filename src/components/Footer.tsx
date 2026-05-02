@@ -24,12 +24,19 @@ export function Footer() {
     { label: t('header.myProfile'), path: '/settings' },
   ]
 
+  // Окремий блок службових посилань.
+  // Саме тут додаємо перехід на форму зворотного зв'язку.
+  const supportLinks = [
+    { label: 'Зворотний звʼязок', path: '/contact' },
+    { label: 'Реклама на сайті', path: '/advertise' },
+  ]
+
   return (
     <footer className="mt-auto w-full px-4 pb-24 md:px-6 md:pb-6 xl:px-8 2xl:px-10">
       {/* Футер переводимо в холодніший скляний стиль,
           щоб він не давав рожевого фону на десктопі. */}
       <div className="mx-auto max-w-7xl rounded-[32px] border border-white/45 bg-[rgba(244,246,248,0.68)] p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-xl md:p-8">
-        <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-[1.35fr_0.8fr_0.8fr_1fr]">
+        <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-[1.25fr_0.8fr_0.8fr_0.9fr_1fr]">
           {/* Брендовий блок з коротким описом */}
           <div>
             <button
@@ -59,6 +66,11 @@ export function Footer() {
             links={accountLinks}
           />
 
+          <FooterLinkGroup
+            title="Підтримка"
+            links={supportLinks}
+          />
+
           {/* Блок реклами у футері */}
           <div>
             <h3 className="text-sm font-extrabold uppercase tracking-[0.18em] text-[#8793a1]">
@@ -68,13 +80,23 @@ export function Footer() {
               {t('footer.adsText')}
             </p>
 
-            <button
-              onClick={() => navigateTo('/advertise')}
-              type="button"
-              className="btn-secondary mt-5 rounded-full"
-            >
-              {t('footer.adsButton')}
-            </button>
+            <div className="mt-5 flex flex-col gap-3">
+              <button
+                onClick={() => navigateTo('/advertise')}
+                type="button"
+                className="btn-secondary rounded-full"
+              >
+                {t('footer.adsButton')}
+              </button>
+
+              <button
+                onClick={() => navigateTo('/contact')}
+                type="button"
+                className="btn-outline rounded-full"
+              >
+                Написати нам
+              </button>
+            </div>
           </div>
         </div>
 
