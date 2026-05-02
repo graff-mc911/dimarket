@@ -25,7 +25,7 @@ interface NavItem {
   icon: LucideIcon
 }
 
-const OWNER_EMAIL = 'YOUR_EMAIL@gmail.com'
+const OWNER_EMAIL = 'ivan.sovban@gmail.com'
 
 function isOwnerEmail(email: string | null | undefined) {
   // Тимчасово страхуємо owner-доступ по email,
