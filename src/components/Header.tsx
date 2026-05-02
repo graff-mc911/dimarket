@@ -23,6 +23,14 @@ interface NavItem {
   icon: LucideIcon
 }
 
+const OWNER_EMAIL = 'ivan.sovban@gmail.com'
+
+function isOwnerEmail(email: string | null | undefined) {
+  // Тимчасово визначаємо власника сайту по email,
+  // щоб не залежати тільки від прапорця is_site_owner у базі.
+  return (email || '').trim().toLowerCase() === OWNER_EMAIL.trim().toLowerCase()
+}
+
 export function Header() {
   const {
     user,
@@ -53,8 +61,9 @@ export function Header() {
     { label: t('header.messages'), path: '/messages', icon: MessageSquare },
   ]
 
-  // Визначаємо, чи поточний користувач є власником сайту.
-  const isSiteOwner = profile?.is_site_owner === true
+  // Даємо доступ до owner-меню або через прапорець профілю,
+  // або через точний email власника сайту.
+  const isSiteOwner = profile?.is_site_owner === true || isOwnerEmail(user?.email)
 
   const closeAllMenus = () => {
     setLanguageOpen(false)
@@ -155,7 +164,9 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full px-2 pt-2 md:px-4 md:pt-4">
-      <div className="mx-auto max-w-7xl rounded-[30px] border border-white/70 bg-[rgba(252,246,240,0.82)] shadow-[0_18px_50px_rgba(89,63,48,0.08)] backdrop-blur-xl">
+      {/* Робимо шапку на всю ширину сторінки без max-width,
+          щоб вона розтягувалась від краю до краю в межах зовнішніх відступів. */}
+      <div className="w-full rounded-[30px] border border-white/70 bg-[rgba(252,246,240,0.82)] shadow-[0_18px_50px_rgba(89,63,48,0.08)] backdrop-blur-xl">
         <div className="flex items-center justify-between gap-2 px-3 py-3 md:gap-3 md:px-5">
           {/* Логотип і перехід на головну сторінку */}
           <button
