@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { MapPin, Search, SlidersHorizontal } from 'lucide-react'
+import { MapPin, PlusCircle, Search, SlidersHorizontal } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { ListingWithImages, Category } from '../lib/types'
+import { Category, ListingWithImages } from '../lib/types'
 import { ListingCard } from '../components/ListingCard'
 import { AdBanner } from '../components/AdBanner'
 import { MobileAdBanner } from '../components/MobileAdBanner'
@@ -155,22 +155,19 @@ export function Listings() {
     <div className="page-bg min-h-screen py-8 pb-24 lg:pb-8">
       <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
         <div className="flex gap-6">
-          <div className="hidden xl:block w-[260px] 2xl:w-[300px] flex-shrink-0">
+          <aside className="hidden xl:block w-[260px] 2xl:w-[300px] flex-shrink-0">
             <AdBanner position="left" sticky={true} />
-          </div>
+          </aside>
 
-          <div className="min-w-0 flex-1">
-            <section className="glass-panel mb-6 p-5 md:p-6">
-              <div className="inline-flex items-center rounded-full border border-[rgba(233,202,177,0.7)] bg-[rgba(255,247,239,0.88)] px-4 py-2 text-sm font-semibold text-[#a26233]">
-                {t('listings.eyebrow')}
-              </div>
-
-              <div className="mt-4 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <main className="min-w-0 flex-1">
+            <section className="glass-panel mb-6 p-6 md:p-7 xl:p-8">
+              <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
                 <div className="max-w-3xl">
-                  <h1 className="text-3xl font-extrabold tracking-tight text-[#2f2a24] md:text-4xl">
+                  <div className="eyebrow">{t('listings.eyebrow')}</div>
+                  <h1 className="mt-5 font-[var(--font-display)] text-[1.72rem] font-bold leading-[1.08] tracking-[-0.035em] text-[var(--ink-900)] md:text-[2rem] xl:text-[2.2rem]">
                     {t('listings.simpleTitle')}
                   </h1>
-                  <p className="mt-3 text-sm leading-6 text-[#6f665d] md:text-base">
+                  <p className="muted-text mt-4 max-w-2xl text-[14px] md:text-[15px]">
                     {t('listings.simpleDescription')}
                   </p>
                 </div>
@@ -178,79 +175,71 @@ export function Listings() {
                 <button
                   onClick={() => navigateTo('/create-ad')}
                   type="button"
-                  className="btn-secondary rounded-full"
+                  className="btn-primary rounded-full px-5 text-sm"
                 >
-                  {t('listings.postJob')}
+                  <PlusCircle className="h-4 w-4" />
+                  Додати оголошення
                 </button>
               </div>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_220px_180px_160px]">
-                <div className="relative sm:col-span-2 xl:col-span-1">
-                  <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#b59a84]" />
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  applyFiltersToUrl()
+                }}
+                className="mt-7 grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px_156px_156px]"
+              >
+                <div className="relative xl:col-span-1">
+                  <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[var(--ink-500)]" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        applyFiltersToUrl()
-                      }
-                    }}
                     placeholder={t('listings.whatNeedsToBeDone')}
-                    className="input-glass h-14 pl-12"
+                    className="input-glass h-[50px] pl-11"
                   />
                 </div>
 
                 <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#b59a84]" />
+                  <MapPin className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[var(--ink-500)]" />
                   <input
                     type="text"
                     value={locationQuery}
                     onChange={(event) => setLocationQuery(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        applyFiltersToUrl()
-                      }
-                    }}
                     placeholder={t('listings.cityOrCountry')}
-                    className="input-glass h-14 pl-12"
+                    className="input-glass h-[50px] pl-11"
                   />
                 </div>
 
-                <button
-                  onClick={applyFiltersToUrl}
-                  type="button"
-                  className="btn-primary h-14 rounded-[20px]"
-                >
+                <button type="submit" className="btn-primary h-[50px] rounded-full px-5 text-sm">
                   {t('listings.findRequests')}
                 </button>
 
                 <button
                   onClick={() => setShowFilters((value) => !value)}
                   type="button"
-                  className="btn-outline h-14 rounded-[20px] sm:col-span-2 xl:col-span-1"
+                  className="btn-secondary h-[50px] rounded-full px-5 text-sm"
                 >
-                  <SlidersHorizontal className="h-5 w-5" />
+                  <SlidersHorizontal className="h-4 w-4" />
                   {activeFiltersCount > 0
                     ? `${t('listings.filtersButton')} (${activeFiltersCount})`
                     : t('listings.filtersButton')}
                 </button>
-              </div>
+              </form>
 
               {showFilters && (
-                <div className="mt-4 rounded-[26px] border border-white/70 bg-white/45 p-4">
+                <div className="mt-4 rounded-[24px] border border-[var(--glass-border)] bg-[rgba(255,255,255,0.34)] p-4 backdrop-blur-md">
                   <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
                     <div>
-                      <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
+                      <label className="mb-2 block text-sm font-semibold text-[var(--ink-700)]">
                         {t('listings.categoryLabel')}
                       </label>
                       <select
                         value={selectedCategory}
                         onChange={(event) => setSelectedCategory(event.target.value)}
-                        className="select-glass bg-white/80"
+                        className="select-glass"
                       >
                         <option value="">{t('listings.allCategoriesSimple')}</option>
-
                         {categories.map((category) => (
                           <option key={category.id} value={category.slug}>
                             {translateCategory(category)}
@@ -262,7 +251,7 @@ export function Listings() {
                     <button
                       onClick={resetFilters}
                       type="button"
-                      className="btn-ghost justify-start rounded-full px-0 md:justify-center"
+                      className="btn-ghost justify-start rounded-full px-0 text-sm md:justify-center"
                     >
                       {t('listings.clearFiltersSimple')}
                     </button>
@@ -273,14 +262,26 @@ export function Listings() {
 
             <MobileAdBanner variant="horizontal" />
 
-            <div className="mb-4 mt-6 text-sm font-semibold text-[#6f665d]">
-              {loading
-                ? t('listings.loadingRequests')
-                : `${filteredListings.length} ${t('listings.countSuffix')}`}
+            <div className="mb-4 mt-6 flex flex-wrap items-center justify-between gap-3">
+              <div className="text-[13px] font-semibold text-[var(--ink-700)] md:text-sm">
+                {loading
+                  ? t('listings.loadingRequests')
+                  : `${filteredListings.length} ${t('listings.countSuffix')}`}
+              </div>
+
+              {activeFiltersCount > 0 && !loading && (
+                <button
+                  onClick={resetFilters}
+                  type="button"
+                  className="btn-ghost rounded-full px-0 text-[13px] md:text-sm"
+                >
+                  {t('listings.clearFiltersSimple')}
+                </button>
+              )}
             </div>
 
             {loading ? (
-              <div className="glass-card p-8 text-center text-[#7a7168]">
+              <div className="glass-card p-8 text-center text-[var(--ink-500)]">
                 {t('listings.loadingRequests')}
               </div>
             ) : filteredListings.length > 0 ? (
@@ -299,26 +300,26 @@ export function Listings() {
               </div>
             ) : (
               <div className="glass-card p-10 text-center">
-                <h2 className="text-xl font-extrabold text-[#2f2a24]">
+                <h2 className="font-[var(--font-display)] text-[1.25rem] font-bold tracking-[-0.02em] text-[var(--ink-900)] md:text-[1.45rem]">
                   {t('listings.emptyTitle')}
                 </h2>
-                <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#6f665d]">
+                <p className="mx-auto mt-3 max-w-2xl text-[13px] leading-6 text-[var(--ink-700)] md:text-[14px]">
                   {t('listings.emptyText')}
                 </p>
                 <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
                   <button
                     onClick={resetFilters}
                     type="button"
-                    className="btn-secondary rounded-full"
+                    className="btn-secondary rounded-full text-sm"
                   >
                     {t('listings.clearFiltersSimple')}
                   </button>
                   <button
                     onClick={() => navigateTo('/create-ad')}
                     type="button"
-                    className="btn-primary rounded-full"
+                    className="btn-primary rounded-full text-sm"
                   >
-                    {t('listings.postJob')}
+                    Додати оголошення
                   </button>
                 </div>
               </div>
@@ -327,11 +328,11 @@ export function Listings() {
             <div className="mt-6">
               <MobileAdBanner variant="inline" />
             </div>
-          </div>
+          </main>
 
-          <div className="hidden xl:block w-[260px] 2xl:w-[300px] flex-shrink-0">
+          <aside className="hidden xl:block w-[260px] 2xl:w-[300px] flex-shrink-0">
             <AdBanner position="right" sticky={true} />
-          </div>
+          </aside>
         </div>
       </div>
 
