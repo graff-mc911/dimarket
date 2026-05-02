@@ -6,138 +6,61 @@ interface LogoProps {
 
 const sizes = {
   sm: {
-    gap: 'gap-2.5',
-    mark: 'h-10 w-10',
-    title: 'text-[1.2rem]',
-    subtitle: 'text-[8px]',
+    full: 'h-10',
+    icon: 'h-10 w-10',
+    title: 'text-[1.15rem]',
   },
   md: {
-    gap: 'gap-3',
-    mark: 'h-[50px] w-[50px]',
-    title: 'text-[1.7rem]',
-    subtitle: 'text-[9px]',
+    full: 'h-12',
+    icon: 'h-12 w-12',
+    title: 'text-[1.55rem]',
   },
   lg: {
-    gap: 'gap-3.5',
-    mark: 'h-[60px] w-[60px]',
-    title: 'text-[2.05rem]',
-    subtitle: 'text-[10px]',
+    full: 'h-14',
+    icon: 'h-14 w-14',
+    title: 'text-[1.95rem]',
   },
   xl: {
-    gap: 'gap-4',
-    mark: 'h-[72px] w-[72px]',
-    title: 'text-[2.5rem]',
-    subtitle: 'text-[11px]',
+    full: 'h-[72px]',
+    icon: 'h-[72px] w-[72px]',
+    title: 'text-[2.35rem]',
   },
 } as const
 
-const serifStyle = {
-  fontFamily: '"Georgia", "Times New Roman", serif',
-}
-
 export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProps) {
   const current = sizes[size]
-  const showSubtitle = variant === 'full' && (size === 'lg' || size === 'xl')
 
-  // Текстову частину логотипа тримаємо окремо,
-  // щоб легко використовувати її разом зі знаком або без нього.
-  const wordmark = (
-    <div className="min-w-0 leading-none">
-      <div
-        className={`${current.title} whitespace-nowrap leading-[0.9] tracking-[-0.04em]`}
-        style={serifStyle}
-      >
-        <span className="font-semibold text-[#c8844f]">DI</span>
-        <span className="font-semibold text-[#241b14]">market</span>
-      </div>
-
-      {/* Підпис показуємо тільки у більших розмірах,
-          щоб логотип у шапці не був перевантажений. */}
-      {showSubtitle && (
-        <div className={`mt-2 flex items-center gap-2 text-[#6a5648] ${current.subtitle}`}>
-          <span className="h-px w-6 shrink-0 bg-[rgba(200,132,79,0.45)]" />
-          <span className="whitespace-nowrap font-medium uppercase tracking-[0.22em]">
-            Build & Renovate
-          </span>
-          <span className="h-px w-6 shrink-0 bg-[rgba(200,132,79,0.45)]" />
-        </div>
-      )}
-    </div>
-  )
-
-  // Режим text залишає тільки назву бренду.
-  if (variant === 'text') {
-    return <div className={className}>{wordmark}</div>
-  }
-
-  // Режим icon потрібен для компактних місць інтерфейсу.
-  if (variant === 'icon') {
-    return <BrandMark className={`${current.mark} ${className}`} />
-  }
-
-  // Основний режим показує знак і текст разом.
-  return (
-    <div className={`flex items-center ${current.gap} ${className}`}>
-      <BrandMark className={current.mark} />
-      {wordmark}
-    </div>
-  )
-}
-
-function BrandMark({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 128 128"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={`${className || ''} shrink-0`}
-      aria-label="DImarket logo"
-      role="img"
-    >
-      {/* Світлий фон потрібен, щоб знак виглядав чисто на glass-інтерфейсі. */}
-      <rect x="6" y="6" width="116" height="116" rx="28" fill="#FFFDF9" />
-
-      {/* Дах і димар робимо в теплому мідному кольорі як у референсі. */}
-      <path
-        d="M20 40L64 10L108 40"
-        stroke="#C8844F"
-        strokeWidth="6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+  // Повний логотип беремо напряму з PNG,
+  // щоб у застосунку він виглядав точно так само, як на затвердженому зображенні.
+  if (variant === 'full') {
+    return (
+      <img
+        src="/logo-full.png"
+        alt="DImarket Build & Renovate"
+        className={`${current.full} w-auto shrink-0 object-contain ${className}`}
       />
-      <rect x="88" y="16" width="10" height="17" fill="#C8844F" />
+    )
+  }
 
-      {/* Маленьке вікно лишаємо в центрі під дахом. */}
-      <rect x="56" y="28" width="6.5" height="6.5" fill="#C8844F" />
-      <rect x="65.5" y="28" width="6.5" height="6.5" fill="#C8844F" />
-      <rect x="56" y="37.5" width="6.5" height="6.5" fill="#C8844F" />
-      <rect x="65.5" y="37.5" width="6.5" height="6.5" fill="#C8844F" />
+  // Іконковий режим залишає тільки знак без нижнього тексту.
+  if (variant === 'icon') {
+    return (
+      <img
+        src="/logo-icon.png"
+        alt="DImarket icon"
+        className={`${current.icon} shrink-0 object-contain ${className}`}
+      />
+    )
+  }
 
-      {/* Літери D та I наближені до прикладу:
-          темна D і мідна I з виразною serif-формою. */}
-      <text
-        x="28"
-        y="105"
-        fill="#241B14"
-        fontSize="82"
-        fontWeight="600"
-        letterSpacing="-5"
-        style={serifStyle}
-      >
-        D
-      </text>
-
-      <text
-        x="74"
-        y="105"
-        fill="#C8844F"
-        fontSize="82"
-        fontWeight="600"
-        letterSpacing="-5"
-        style={serifStyle}
-      >
-        I
-      </text>
-    </svg>
+  // Текстовий режим потрібен для місць,
+  // де треба показати лише назву бренду без графічної частини.
+  return (
+    <span
+      className={`font-[var(--font-display)] font-semibold tracking-[-0.045em] text-[#241b14] ${current.title} ${className}`}
+    >
+      <span className="text-[#c8844f]">DI</span>
+      <span>market</span>
+    </span>
   )
 }
