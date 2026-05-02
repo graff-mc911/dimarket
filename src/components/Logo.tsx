@@ -1,82 +1,71 @@
 interface LogoProps {
   compact?: boolean
+  size?: 'sm' | 'md' | 'lg' | 'xl'
+  variant?: 'full' | 'icon' | 'text'
   className?: string
 }
 
-export function Logo({ compact = false, className = '' }: LogoProps) {
-  return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      
-      {/* SVG-іконка DImarket */}
-      <svg
-        width="52"
-        height="52"
-        viewBox="0 0 120 120"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="shrink-0"
+const sizes = {
+  sm: {
+    full: 'h-10',
+    icon: 'h-10 w-10',
+    text: 'text-[1.15rem]',
+  },
+  md: {
+    full: 'h-12',
+    icon: 'h-12 w-12',
+    text: 'text-[1.55rem]',
+  },
+  lg: {
+    full: 'h-14',
+    icon: 'h-14 w-14',
+    text: 'text-[1.95rem]',
+  },
+  xl: {
+    full: 'h-[72px]',
+    icon: 'h-[72px] w-[72px]',
+    text: 'text-[2.35rem]',
+  },
+} as const
+
+export function Logo({
+  compact = false,
+  size = 'md',
+  variant = 'full',
+  className = '',
+}: LogoProps) {
+  const current = sizes[size]
+
+  // Якщо десь у коді явно просять тільки текст,
+  // лишаємо текстовий режим, щоб нічого не ламалося.
+  if (variant === 'text') {
+    return (
+      <span
+        className={`font-[var(--font-display)] font-semibold tracking-[-0.045em] text-[#241b14] ${current.text} ${className}`}
       >
-        {/* Фон */}
-        <rect width="120" height="120" rx="26" fill="#F5E9D8" />
+        <span className="text-[#c8844f]">DI</span>
+        <span>market</span>
+      </span>
+    )
+  }
 
-        {/* Дах (вирівняний + однакова товщина) */}
-        <path
-          d="M26 50 L60 26 L94 50"
-          stroke="#E85D04"
-          strokeWidth="8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+  // У compact або icon режимі показуємо тільки іконку бренду.
+  if (compact || variant === 'icon') {
+    return (
+      <img
+        src="/logo-icon.png"
+        alt="DImarket icon"
+        className={`${current.icon} shrink-0 object-contain ${className}`}
+      />
+    )
+  }
 
-        {/* Димар */}
-        <rect x="82" y="28" width="12" height="18" fill="#4A2E1E" rx="2" />
-
-        {/* Літера D */}
-        <path
-          d="M28 54 H56 C74 54 86 68 86 86 C86 104 74 112 56 112 H28 Z"
-          fill="#1A1A1A"
-        />
-
-        {/* Внутрішній виріз */}
-        <path
-          d="M44 70 H55 C64 70 70 76 70 86 C70 96 64 102 55 102 H44 Z"
-          fill="#F5E9D8"
-        />
-
-       {/* Нижній акцент */}
-
-
-        {/* Літера I */}
-        <rect x="90" y="54" width="12" height="58" fill="#E85D04" rx="2" />
-
-        {/* Основа */}
-        <path
-          d="M86 112 H106"
-          stroke="#4A2E1E"
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
-
-        {/* 🔥 ЖОВТО-БЛАКИТНЕ ВІКНО */}
-        <rect x="48" y="76" width="8" height="8" rx="1.5" fill="#0057B7" />
-        <rect x="58" y="76" width="8" height="8" rx="1.5" fill="#0057B7" />
-        <rect x="48" y="86" width="8" height="8" rx="1.5" fill="#FFD700" />
-        <rect x="58" y="86" width="8" height="8" rx="1.5" fill="#FFD700" />
-      </svg>
-
-      {/* Текст */}
-      {!compact && (
-        <div className="leading-none">
-          <div className="text-2xl font-extrabold tracking-tight">
-            <span className="text-[#E85D04]">DI</span>
-            <span className="text-[#1A1A1A]">market</span>
-          </div>
-
-          <div className="text-[12px] uppercase tracking-[0.004em] text-[#4A2E1E] mt-1">
-           Everything for Construction & Renovation
-          </div>
-        </div>
-      )}
-    </div>
+  // У звичайному режимі показуємо саме новий затверджений логотип як зображення.
+  return (
+    <img
+      src="/logo-full.png"
+      alt="DImarket Build & Renovate"
+      className={`${current.full} w-auto shrink-0 object-contain ${className}`}
+    />
   )
 }
