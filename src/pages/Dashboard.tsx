@@ -45,6 +45,14 @@ const EMPTY_STATS: OwnerStats = {
   internalMessages: 0,
 }
 
+const OWNER_EMAIL = 'YOUR_EMAIL@gmail.com'
+
+function isOwnerEmail(email: string | null | undefined) {
+  // Тимчасово визначаємо власника сайту по email,
+  // щоб не залежати від прапорця is_site_owner у базі.
+  return (email || '').trim().toLowerCase() === OWNER_EMAIL.trim().toLowerCase()
+}
+
 export function Dashboard() {
   const { user } = useApp()
 
@@ -110,10 +118,17 @@ export function Dashboard() {
         return
       }
 
-      setProfile(profileData)
+      const resolvedProfile: Profile = {
+        ...profileData,
+        // Якщо прапорець у базі ще не спрацював,
+        // даємо доступ owner-кабінету по точному email.
+        is_site_owner: profileData.is_site_owner || isOwnerEmail(activeUser.email),
+      }
+
+      setProfile(resolvedProfile)
 
       // Якщо це не власник сайту, далі owner-дані навіть не запитуємо.
-      if (!profileData.is_site_owner) {
+      if (!resolvedProfile.is_site_owner) {
         return
       }
 
