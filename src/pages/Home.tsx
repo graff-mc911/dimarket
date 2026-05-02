@@ -140,7 +140,7 @@ export function Home() {
             </div>
 
             <div className="mt-5 max-w-3xl">
-              <h1 className="font-[var(--font-display)] text-[1.72rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[var(--ink-900)] md:text-[2.02rem] xl:text-[2.3rem]">
+              <h1 className="font-[var(--font-display)] text-[1.72rem] font-bold leading-[1.08] tracking-[-0.035em] text-[var(--ink-900)] md:text-[2.02rem] xl:text-[2.3rem]">
                 {t('home.heroSimpleTitle')}
               </h1>
 
@@ -251,7 +251,7 @@ export function Home() {
                     <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-[var(--ink-500)] transition group-hover:text-[var(--accent-700)]" />
                   </div>
 
-                  <h3 className="mt-4 text-[1rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)]">
+                  <h3 className="mt-4 text-[1rem] font-bold tracking-[-0.02em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)]">
                     {getCategoryName(category)}
                   </h3>
 
@@ -348,7 +348,7 @@ function SectionHeader({
   return (
     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h2 className="font-[var(--font-display)] text-[1.35rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[var(--ink-900)] md:text-[1.6rem]">
+        <h2 className="font-[var(--font-display)] text-[1.35rem] font-bold leading-[1.08] tracking-[-0.03em] text-[var(--ink-900)] md:text-[1.6rem]">
           {title}
         </h2>
         <p className="muted-text mt-2 max-w-2xl text-[13px] md:text-[14px]">{text}</p>
@@ -422,7 +422,7 @@ function HomeJobCard({
             {categoryLabel || unknownCategoryLabel}
           </span>
 
-          <h3 className="mt-4 line-clamp-2 text-[0.98rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)] md:text-[1.02rem]">
+          <h3 className="mt-4 line-clamp-2 text-[0.98rem] font-bold tracking-[-0.02em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)] md:text-[1.02rem]">
             {job.title}
           </h3>
         </div>
@@ -448,7 +448,7 @@ function HomeJobCard({
 
       <div className="mt-5 flex items-center justify-between border-t border-[var(--glass-border)] pt-4">
         <span className="text-[13px] text-[var(--ink-500)]">{budgetLabel}</span>
-        <span className="text-[15px] font-semibold text-[var(--ink-900)]">{budgetValue}</span>
+        <span className="text-[15px] font-bold text-[var(--ink-900)]">{budgetValue}</span>
       </div>
     </button>
   )
@@ -479,12 +479,12 @@ function ProfessionalPreviewCard({
     <div className="glass-card p-5 transition duration-300 hover:-translate-y-1">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.42)] text-base font-semibold text-[var(--accent-700)]">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.42)] text-base font-bold text-[var(--accent-700)]">
             {initials}
           </div>
 
           <div className="min-w-0">
-            <h3 className="truncate text-[0.98rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)] md:text-[1rem]">
+            <h3 className="truncate text-[0.98rem] font-bold tracking-[-0.02em] text-[var(--ink-900)] md:text-[1rem]">
               {professional.full_name || defaultNameLabel}
             </h3>
             <p className="mt-1 text-[13px] text-[var(--ink-500)]">
