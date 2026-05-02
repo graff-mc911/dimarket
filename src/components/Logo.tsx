@@ -77,12 +77,11 @@ export function Logo({ compact = false, size = 'md', className = '' }: LogoProps
           strokeLinecap="round"
         />
 
-        {/* Вікно теж переводимо в палітру бренду,
-            щоб не вибивалося з загального стилю застосунку. */}
-        <rect x="48" y="76" width="8" height="8" rx="1.5" fill="#C78A60" />
-        <rect x="58" y="76" width="8" height="8" rx="1.5" fill="#C78A60" />
-        <rect x="48" y="86" width="8" height="8" rx="1.5" fill="#EEDCCB" />
-        <rect x="58" y="86" width="8" height="8" rx="1.5" fill="#EEDCCB" />
+       {/* Синьо-жовте вікно навмисно лишаємо оригінальним. */}
+        <rect x="48" y="76" width="8" height="8" rx="1.5" fill="#0057B7" />
+        <rect x="58" y="76" width="8" height="8" rx="1.5" fill="#0057B7" />
+        <rect x="48" y="86" width="8" height="8" rx="1.5" fill="#FFD700" />
+        <rect x="58" y="86" width="8" height="8" rx="1.5" fill="#FFD700" />
       </svg>
 
       {!compact && (
