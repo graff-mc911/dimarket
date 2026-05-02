@@ -19,20 +19,21 @@ import { Dashboard } from './pages/Dashboard'
 import { Settings } from './pages/Settings'
 import { Favorites } from './pages/Favorites'
 import { Advertising } from './pages/Advertising'
+import { Contact } from './pages/Contact'
 import { navigateTo } from './lib/navigation'
 
 function AppContent() {
   const { t } = useApp()
 
-  // Зберігаємо поточну адресу сторінки в стані,
-  // щоб інтерфейс оновлювався після внутрішньої навігації без router.
+  // Зберігаємо поточну адресу сторінки в стані.
+  // Це потрібно, бо ми використовуємо власну просту навігацію без react-router.
   const [currentUrl, setCurrentUrl] = useState(
     `${window.location.pathname}${window.location.search}`
   )
 
   useEffect(() => {
-    // Слухаємо зміну маршруту через pushState/popstate
-    // і примусово оновлюємо локальний стан адреси.
+    // Оновлюємо стан, коли користувач переходить між сторінками
+    // або натискає кнопки браузера "назад / вперед".
     const handleRouteChange = () => {
       setCurrentUrl(`${window.location.pathname}${window.location.search}`)
     }
@@ -44,13 +45,13 @@ function AppContent() {
     }
   }, [])
 
-  // Відокремлюємо тільки pathname без query-параметрів,
-  // щоб простіше рендерити потрібну сторінку.
+  // Беремо pathname саме з currentUrl, а не напряму з window.location.
+  // Так React стабільно перемальовує сторінку після navigateTo().
   const path = useMemo(() => {
     return currentUrl.split('?')[0] || '/'
   }, [currentUrl])
 
-  // Тут описана вся проста маршрутизація застосунку.
+  // Тут зібрана вся ручна маршрутизація застосунку.
   const page = useMemo(() => {
     if (path === '/') {
       return <Home />
@@ -137,6 +138,11 @@ function AppContent() {
       return <Advertising />
     }
 
+    // Підключаємо окрему сторінку зворотного зв'язку.
+    if (path === '/contact') {
+      return <Contact />
+    }
+
     // Усі невідомі маршрути ведемо на заглушку.
     return (
       <RoutePlaceholder
@@ -153,11 +159,9 @@ function AppContent() {
   }, [path, t])
 
   return (
-    // Кореневий фон робимо нейтрально-сірим,
-    // щоб на десктопі більше не просвічував теплий рожевий відтінок.
-    <div className="min-h-screen bg-[#f1f3f5] flex flex-col w-full">
-
-      {/* key потрібен, щоб Header коректно оновлював активні стани після переходів */}
+    // Кореневий контейнер сторінки.
+    <div className="min-h-screen bg-[#e7eaee] flex flex-col w-full">
+      {/* key потрібен, щоб Header оновлював активні стани після переходів */}
       <Header key={`header-${currentUrl}`} />
 
       <main className="flex-1 w-full">
@@ -195,11 +199,11 @@ function RoutePlaceholder({
       <div className="mx-auto flex max-w-3xl items-center justify-center">
         <section className="glass-panel w-full p-6 text-center md:p-10">
           {/* Іконка заглушки для ще неготової або відсутньої сторінки */}
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-[rgba(160,170,180,0.20)] text-[#6b7280]">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-[rgba(245,166,109,0.18)] text-[#c96d2c] shadow-soft">
             <Icon className="h-8 w-8" />
           </div>
 
-          <p className="mt-5 text-sm font-semibold uppercase tracking-[0.22em] text-[#7b8794]">
+          <p className="mt-5 text-sm font-semibold uppercase tracking-[0.22em] text-[#b17a58]">
             {eyebrow}
           </p>
 
