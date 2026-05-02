@@ -6,26 +6,22 @@ interface LogoProps {
 
 const sizes = {
   sm: {
-    fullWrap: 'h-10 w-[60px]',
-    fullImage: 'scale-[1.65] -translate-y-[2px]',
+    full: 'h-10',
     icon: 'h-10 w-10',
     title: 'text-[1.15rem]',
   },
   md: {
-    fullWrap: 'h-12 w-[72px]',
-    fullImage: 'scale-[1.68] -translate-y-[2px]',
+    full: 'h-12',
     icon: 'h-12 w-12',
     title: 'text-[1.55rem]',
   },
   lg: {
-    fullWrap: 'h-14 w-[84px]',
-    fullImage: 'scale-[1.7] -translate-y-[3px]',
+    full: 'h-14',
     icon: 'h-14 w-14',
     title: 'text-[1.95rem]',
   },
   xl: {
-    fullWrap: 'h-[72px] w-[108px]',
-    fullImage: 'scale-[1.72] -translate-y-[4px]',
+    full: 'h-[72px]',
     icon: 'h-[72px] w-[72px]',
     title: 'text-[2.35rem]',
   },
@@ -34,26 +30,23 @@ const sizes = {
 export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProps) {
   const current = sizes[size]
 
-  // Повний логотип беремо напряму з затвердженого PNG.
-  // Зображення має великі білі поля, тому тут навмисно збільшуємо його всередині рамки,
-  // щоб у хедері й футері воно виглядало так само, як на референсі, а не губилося.
+  // Повний логотип беремо прямо з затвердженого PNG без перемальовування,
+  // щоб у застосунку він виглядав рівно так, як на твоєму зображенні.
   if (variant === 'full') {
     return (
-      <div className={`${current.fullWrap} shrink-0 overflow-hidden ${className}`}>
-        <img
-          src="/logo-full.png"
-          alt="DImarket Build & Renovate"
-          className={`h-full w-full object-contain transform-gpu ${current.fullImage}`}
-        />
-      </div>
+      <img
+        src="/logo-full.png?v=20260502-6"
+        alt="DImarket Build & Renovate"
+        className={`${current.full} w-auto shrink-0 object-contain ${className}`}
+      />
     )
   }
 
-  // Іконковий режим залишає тільки компактний знак.
+  // Іконковий режим залишає тільки окрему іконку бренду.
   if (variant === 'icon') {
     return (
       <img
-        src="/logo-icon.png"
+        src="/logo-icon.png?v=20260502-6"
         alt="DImarket icon"
         className={`${current.icon} shrink-0 object-contain ${className}`}
       />
@@ -61,7 +54,7 @@ export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProp
   }
 
   // Текстовий режим потрібен для місць,
-  // де треба показати лише назву бренду без графічної частини.
+  // де треба показати лише назву бренду без графіки.
   return (
     <span
       className={`font-[var(--font-display)] font-semibold tracking-[-0.045em] text-[#241b14] ${current.title} ${className}`}
