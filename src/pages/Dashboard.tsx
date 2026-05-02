@@ -1,82 +1,169 @@
 import { useEffect, useState } from 'react'
-import { Eye, MessageSquare, FileText, TrendingUp, CheckCircle, XCircle, Globe } from 'lucide-react'
+import {
+  AlertTriangle,
+  BarChart3,
+  FileText,
+  MessageSquare,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useApp } from '../contexts/AppContext'
-import { Profile } from '../lib/types'
 import { AdBanner } from '../components/AdBanner'
+import { navigateTo } from '../lib/navigation'
+import { Profile } from '../lib/types'
 
-interface Stats {
-  profileViews: number
-  totalMessages: number
-  activeListings: number
+interface OwnerStats {
+  totalVisits: number
   totalListings: number
+  activeListings: number
+  totalAds: number
+  pendingAds: number
+  feedbackMessages: number
+  internalMessages: number
 }
 
-interface UserListing {
+interface RecentListing {
   id: string
   title: string
+  location: string
   status: string
-  visibility_radius: string
   created_at: string
 }
 
+const EMPTY_STATS: OwnerStats = {
+  totalVisits: 0,
+  totalListings: 0,
+  activeListings: 0,
+  totalAds: 0,
+  pendingAds: 0,
+  feedbackMessages: 0,
+  internalMessages: 0,
+}
+
 export function Dashboard() {
-  const { user, t } = useApp()
-  const [stats, setStats] = useState<Stats>({
-    profileViews: 0,
-    totalMessages: 0,
-    activeListings: 0,
-    totalListings: 0
-  })
+  const { user } = useApp()
+
+  // Окремо зберігаємо профіль, щоб перевірити роль власника сайту.
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [userListings, setUserListings] = useState<UserListing[]>([])
+
+  // У цей стан складаємо зведені метрики для кабінету власника.
+  const [stats, setStats] = useState<OwnerStats>(EMPTY_STATS)
+
+  // Показуємо останні оголошення для швидкого контролю контенту.
+  const [recentListings, setRecentListings] = useState<RecentListing[]>([])
+
+  // Завантаження сторінки і текст помилки тримаємо окремо для зрозумілого UX.
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    if (user) {
-      loadDashboardData()
-    } else {
-      window.location.href = '/login'
-    }
+    // Перевіряємо користувача через контекст і, за потреби, напряму через Supabase,
+    // щоб не перекинути owner-профіль на /login під час першого монтування.
+    void loadOwnerDashboard()
   }, [user])
 
-  const loadDashboardData = async () => {
+  const loadOwnerDashboard = async () => {
+    setLoading(true)
+    setError('')
+
     try {
-      const { data: profileData } = await supabase
+      const activeUser = user ?? (await supabase.auth.getUser()).data.user ?? null
+
+      if (!activeUser) {
+        navigateTo('/login')
+        return
+      }
+
+      // Спочатку завжди перевіряємо профіль, бо саме він вирішує,
+      // чи можна відкривати особистий кабінет власника сайту.
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user!.id)
+        .eq('id', activeUser.id)
         .maybeSingle()
 
-      if (profileData) {
-        setProfile(profileData)
+      if (profileError) {
+        throw profileError
       }
 
-      const { count: messagesCount } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('recipient_id', user!.id)
-
-      setStats(prev => ({ ...prev, totalMessages: messagesCount || 0 }))
-
-      const { data: listingsData } = await supabase
-        .from('listings')
-        .select('id, title, status, visibility_radius, created_at')
-        .eq('author_id', user!.id)
-        .order('created_at', { ascending: false })
-        .limit(5)
-
-      if (listingsData) {
-        setUserListings(listingsData as UserListing[])
-        const active = listingsData.filter(l => l.status === 'active').length
-        setStats(prev => ({
-          ...prev,
-          activeListings: active,
-          totalListings: listingsData.length
-        }))
+      if (!profileData) {
+        navigateTo('/login')
+        return
       }
-    } catch (error) {
-      console.error('Error loading dashboard:', error)
+
+      setProfile(profileData)
+
+      // Якщо це не власник сайту, далі owner-дані навіть не запитуємо.
+      if (!profileData.is_site_owner) {
+        return
+      }
+
+      // Завантажуємо основні цифри для owner-кабінету.
+      const [
+        siteStatsResult,
+        listingsCountResult,
+        activeListingsCountResult,
+        adsCountResult,
+        pendingAdsCountResult,
+        feedbackCountResult,
+        messagesCountResult,
+        recentListingsResult,
+      ] = await Promise.all([
+        supabase
+          .from('app_site_stats')
+          .select('total_visits')
+          .eq('id', 1)
+          .maybeSingle(),
+
+        supabase
+          .from('listings')
+          .select('*', { count: 'exact', head: true }),
+
+        supabase
+          .from('listings')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active'),
+
+        supabase
+          .from('ad_campaigns')
+          .select('*', { count: 'exact', head: true }),
+
+        supabase
+          .from('ad_campaigns')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending_review'),
+
+        supabase
+          .from('feedback_messages')
+          .select('*', { count: 'exact', head: true }),
+
+        supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true }),
+
+        supabase
+          .from('listings')
+          .select('id, title, location, status, created_at')
+          .order('created_at', { ascending: false })
+          .limit(6),
+      ])
+
+      // Формуємо зручний об'єкт статистики для карток на сторінці.
+      setStats({
+        totalVisits: siteStatsResult.data?.total_visits || 0,
+        totalListings: listingsCountResult.count || 0,
+        activeListings: activeListingsCountResult.count || 0,
+        totalAds: adsCountResult.count || 0,
+        pendingAds: pendingAdsCountResult.count || 0,
+        feedbackMessages: feedbackCountResult.count || 0,
+        internalMessages: messagesCountResult.count || 0,
+      })
+
+      setRecentListings((recentListingsResult.data as RecentListing[] | null) || [])
+    } catch (loadError) {
+      console.error('Помилка завантаження owner-кабінету:', loadError)
+      setError('Не вдалося завантажити особистий кабінет власника сайту.')
     } finally {
       setLoading(false)
     }
@@ -84,244 +171,244 @@ export function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading dashboard...</p>
+      <div className="page-bg min-h-screen py-10">
+        <div className="mx-auto max-w-4xl px-4 md:px-6 xl:px-8 2xl:px-10">
+          <div className="glass-panel p-10 text-center">
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[rgba(148,163,184,0.18)] border-t-[#64748b]" />
+            <p className="mt-4 text-sm text-[#6f665d]">
+              Завантажуємо особистий кабінет...
+            </p>
           </div>
         </div>
       </div>
     )
   }
 
-  const getVisibilityLabel = (radius: string) => {
-    const labels: Record<string, string> = {
-      city: t('visibility.city') || 'Місто',
-      district: t('visibility.district') || 'Район',
-      region: t('visibility.region') || 'Область',
-      country: t('visibility.country') || 'Країна',
-      state: t('visibility.state') || 'Штат',
-      land: t('visibility.land') || 'Земля (DE)',
-      global: t('visibility.global') || 'Всі користувачі',
-    }
-    return labels[radius] || radius
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex gap-6">
-          <div className="hidden lg:block w-1/5">
-            <AdBanner position="left" sticky={true} />
-          </div>
-
-          <div className="flex-1 lg:w-3/5">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">Professional Dashboard</h1>
-              <p className="text-gray-600 mt-2">Welcome back, {profile?.full_name || 'Professional'}</p>
+  if (!profile?.is_site_owner) {
+    return (
+      <div className="page-bg min-h-screen py-10">
+        <div className="mx-auto max-w-3xl px-4 md:px-6 xl:px-8 2xl:px-10">
+          <div className="glass-panel p-8 text-center md:p-10">
+            {/* Цей блок показуємо всім, хто зайшов на /dashboard без owner-ролі. */}
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-[rgba(239,68,68,0.12)] text-[#b91c1c]">
+              <AlertTriangle className="h-8 w-8" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <Eye className="w-6 h-6 text-blue-600" />
-                  </div>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">{stats.profileViews}</h3>
-                <p className="text-gray-600 text-sm">Profile Views</p>
-              </div>
+            <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-[#2f2a24]">
+              Доступ заборонено
+            </h1>
 
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-green-100 rounded-lg">
-                    <MessageSquare className="w-6 h-6 text-green-600" />
-                  </div>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">{stats.totalMessages}</h3>
-                <p className="text-gray-600 text-sm">Messages</p>
-              </div>
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#6f665d] md:text-base">
+              Особистий кабінет власника сайту відкривається тільки для вашого
+              owner-профілю. Для інших користувачів ця сторінка недоступна.
+            </p>
 
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-orange-100 rounded-lg">
-                    <FileText className="w-6 h-6 text-orange-600" />
-                  </div>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">{stats.activeListings}</h3>
-                <p className="text-gray-600 text-sm">Active Listings</p>
-              </div>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <button
+                onClick={() => navigateTo('/')}
+                type="button"
+                className="btn-secondary rounded-full"
+              >
+                На головну
+              </button>
 
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-purple-100 rounded-lg">
-                    <TrendingUp className="w-6 h-6 text-purple-600" />
-                  </div>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">{stats.totalListings}</h3>
-                <p className="text-gray-600 text-sm">Total Listings</p>
-              </div>
+              <button
+                onClick={() => navigateTo('/settings')}
+                type="button"
+                className="btn-primary rounded-full"
+              >
+                Відкрити мій профіль
+              </button>
             </div>
-
-            <div className="grid grid-cols-1 gap-6">
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-                <div className="space-y-3">
-                  <a
-                    href="/settings"
-                    className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-                  >
-                    <div className="p-2 bg-blue-100 rounded-lg mr-4">
-                      <Eye className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">Edit Profile</div>
-                      <div className="text-sm text-gray-600">Update your information and portfolio</div>
-                    </div>
-                  </a>
-
-                  <a
-                    href="/create-ad"
-                    className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-                  >
-                    <div className="p-2 bg-green-100 rounded-lg mr-4">
-                      <FileText className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">Create New Ad</div>
-                      <div className="text-sm text-gray-600">Post a new listing or service</div>
-                    </div>
-                  </a>
-
-                  <a
-                    href="/messages"
-                    className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-                  >
-                    <div className="p-2 bg-purple-100 rounded-lg mr-4">
-                      <MessageSquare className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">View Messages</div>
-                      <div className="text-sm text-gray-600">Check your conversations</div>
-                    </div>
-                  </a>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Listings</h2>
-                {userListings.length > 0 ? (
-                  <div className="space-y-3">
-                    {userListings.map((listing) => (
-                      <div
-                        key={listing.id}
-                        className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-medium text-gray-900 text-sm line-clamp-1">
-                            {listing.title}
-                          </h3>
-                          <span
-                            className={`text-xs px-2 py-1 rounded ${
-                              listing.status === 'active'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-gray-100 text-gray-600'
-                            }`}
-                          >
-                            {listing.status}
-                          </span>
-                        </div>
-                        <div className="flex items-center text-xs text-gray-500">
-                          <Globe className="w-3 h-3 mr-1" />
-                          <span>{getVisibilityLabel(listing.visibility_radius)}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-sm">No listings yet</p>
-                )}
-              </div>
-
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Profile Completion</h2>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-600">Profile strength</span>
-                      <span className="font-semibold text-gray-900">
-                        {profile?.profile_photo && profile?.bio && profile?.phone ? '80%' : '40%'}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full transition-all"
-                        style={{
-                          width: `${profile?.profile_photo && profile?.bio && profile?.phone ? 80 : 40}%`
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 mt-4">
-                    <div className="flex items-center text-sm">
-                      {profile?.profile_photo ? (
-                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                      ) : (
-                        <XCircle className="w-4 h-4 text-gray-400 mr-2" />
-                      )}
-                      <span className={profile?.profile_photo ? 'text-gray-900' : 'text-gray-500'}>
-                        Profile photo added
-                      </span>
-                    </div>
-
-                    <div className="flex items-center text-sm">
-                      {profile?.bio ? (
-                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                      ) : (
-                        <XCircle className="w-4 h-4 text-gray-400 mr-2" />
-                      )}
-                      <span className={profile?.bio ? 'text-gray-900' : 'text-gray-500'}>
-                        Bio written
-                      </span>
-                    </div>
-
-                    <div className="flex items-center text-sm">
-                      {profile?.phone ? (
-                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                      ) : (
-                        <XCircle className="w-4 h-4 text-gray-400 mr-2" />
-                      )}
-                      <span className={profile?.phone ? 'text-gray-900' : 'text-gray-500'}>
-                        Phone number added
-                      </span>
-                    </div>
-
-                    <div className="flex items-center text-sm">
-                      <XCircle className="w-4 h-4 text-gray-400 mr-2" />
-                      <span className="text-gray-500">
-                        Portfolio images uploaded
-                      </span>
-                    </div>
-                  </div>
-
-                  <a
-                    href="/settings"
-                    className="btn-secondary block text-center mt-4"
-                  >
-                    Complete Your Profile
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="hidden lg:block w-1/5">
-            <AdBanner position="right" sticky={true} />
           </div>
         </div>
       </div>
+    )
+  }
+
+  const statCards = [
+    {
+      icon: BarChart3,
+      title: 'Трафік сайту',
+      value: stats.totalVisits,
+      text: 'Загальна кількість відвідувань платформи.',
+    },
+    {
+      icon: FileText,
+      title: 'Оголошення',
+      value: stats.totalListings,
+      text: `Активних зараз: ${stats.activeListings}.`,
+    },
+    {
+      icon: Sparkles,
+      title: 'Реклама',
+      value: stats.totalAds,
+      text: `На модерації зараз: ${stats.pendingAds}.`,
+    },
+    {
+      icon: MessageSquare,
+      title: 'Повідомлення',
+      value: stats.feedbackMessages + stats.internalMessages,
+      text: `Форма зворотного зв'язку: ${stats.feedbackMessages}.`,
+    },
+  ]
+
+  return (
+    <div className="page-bg min-h-screen py-8">
+      <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
+        <div className="flex gap-6">
+          <aside className="hidden xl:block w-[220px] 2xl:w-[260px] flex-shrink-0">
+            <AdBanner position="left" sticky={true} />
+          </aside>
+
+          <main className="min-w-0 flex-1">
+            <section className="glass-panel p-5 md:p-6 xl:p-8">
+              {/* Шапка owner-кабінету з коротким поясненням призначення сторінки. */}
+              <div className="mb-6">
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/42 bg-[rgba(248,250,252,0.70)] px-4 py-2 text-sm font-semibold text-[#64748b]">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>Особистий кабінет власника</span>
+                </div>
+
+                <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-[#2f2a24] md:text-4xl">
+                  Вітаю, {profile.full_name || 'власнику сайту'}
+                </h1>
+
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-[#6f665d] md:text-base">
+                  Тут бачите тільки ви: загальні цифри сайту, оголошення, рекламу
+                  та вхідні повідомлення.
+                </p>
+              </div>
+
+              {error && (
+                <div className="mb-6 rounded-[22px] border border-[rgba(221,138,120,0.35)] bg-[rgba(255,237,232,0.92)] px-4 py-3 text-sm text-[#a44a3a]">
+                  {error}
+                </div>
+              )}
+
+              {/* Верхній рядок ключових owner-метрик. */}
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {statCards.map((card) => (
+                  <div
+                    key={card.title}
+                    className="glass-card p-5"
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[rgba(148,163,184,0.14)] text-[#64748b]">
+                      <card.icon className="h-6 w-6" />
+                    </div>
+
+                    <div className="mt-4 text-3xl font-extrabold text-[#2f2a24]">
+                      {card.value.toLocaleString()}
+                    </div>
+
+                    <h2 className="mt-2 text-lg font-extrabold text-[#2f2a24]">
+                      {card.title}
+                    </h2>
+
+                    <p className="mt-2 text-sm leading-6 text-[#6f665d]">
+                      {card.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+                {/* Лівий блок залишаємо для швидкого контролю останніх оголошень. */}
+                <section className="glass-card p-5 md:p-6">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-xl font-extrabold text-[#2f2a24]">
+                        Останні оголошення
+                      </h2>
+                      <p className="mt-2 text-sm leading-6 text-[#6f665d]">
+                        Найновіший контент на платформі для швидкої перевірки.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => navigateTo('/listings')}
+                      type="button"
+                      className="btn-secondary rounded-full"
+                    >
+                      Відкрити всі
+                    </button>
+                  </div>
+
+                  <div className="mt-5 space-y-3">
+                    {recentListings.length > 0 ? (
+                      recentListings.map((listing) => (
+                        <div
+                          key={listing.id}
+                          className="rounded-[22px] border border-[rgba(148,163,184,0.16)] bg-[rgba(255,255,255,0.30)] p-4"
+                        >
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
+                              <h3 className="truncate text-base font-bold text-[#2f2a24]">
+                                {listing.title}
+                              </h3>
+                              <p className="mt-1 text-sm text-[#6f665d]">
+                                {listing.location}
+                              </p>
+                            </div>
+
+                            <span className="inline-flex self-start rounded-full bg-[rgba(148,163,184,0.14)] px-3 py-1 text-xs font-semibold text-[#475569]">
+                              {listing.status}
+                            </span>
+                          </div>
+
+                          <p className="mt-3 text-xs text-[#7a7168]">
+                            Створено: {new Date(listing.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-[#7a7168]">
+                        Поки що немає оголошень для відображення.
+                      </p>
+                    )}
+                  </div>
+                </section>
+
+                {/* Правий блок підказує, що саме вже доступно власнику. */}
+                <section className="glass-card p-5 md:p-6">
+                  <h2 className="text-xl font-extrabold text-[#2f2a24]">
+                    Що вже під контролем
+                  </h2>
+
+                  <div className="mt-5 space-y-3 text-sm text-[#6f665d]">
+                    <OwnerFeatureRow text="Тільки owner-профіль бачить цей кабінет." />
+                    <OwnerFeatureRow text="Ви бачите загальний трафік сайту та кількість оголошень." />
+                    <OwnerFeatureRow text="Ви бачите кількість рекламних кампаній і заявок на модерацію." />
+                    <OwnerFeatureRow text="Ви бачите повідомлення із зворотного зв'язку та внутрішні повідомлення." />
+                  </div>
+
+                  <div className="mt-6 rounded-[22px] border border-[rgba(148,163,184,0.16)] bg-[rgba(255,255,255,0.30)] p-4">
+                    <p className="text-sm leading-6 text-[#6f665d]">
+                      Наступним кроком тут можна буде додати:
+                      видалення оголошень, керування рекламою та окремий inbox
+                      для звернень.
+                    </p>
+                  </div>
+                </section>
+              </div>
+            </section>
+          </main>
+
+          <aside className="hidden xl:block w-[220px] 2xl:w-[260px] flex-shrink-0">
+            <AdBanner position="right" sticky={true} />
+          </aside>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function OwnerFeatureRow({ text }: { text: string }) {
+  return (
+    // Короткий рядок-пояснення для owner-функцій.
+    <div className="flex items-start gap-3">
+      <div className="mt-1.5 h-2.5 w-2.5 rounded-full bg-[rgba(148,163,184,0.55)]" />
+      <span>{text}</span>
     </div>
   )
 }
