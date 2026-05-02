@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<browserconfig>
+  <!-- Окрема конфігурація для Windows tile-іконки. -->
+  <msapplication>
+    <tile>
+      <square150x150logo src="/mstile-150x150.png?v=20260502-4" />
+      <TileColor>#8D5636</TileColor>
+    </tile>
+  </msapplication>
+</browserconfig>
