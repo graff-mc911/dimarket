@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   ArrowRight,
   Clock3,
@@ -8,6 +8,7 @@ import {
   PlusCircle,
   Search,
   ShieldCheck,
+  Sparkles,
   Star,
   UserRound,
 } from 'lucide-react'
@@ -19,20 +20,14 @@ import { navigateTo } from '../lib/navigation'
 export function Home() {
   const { currency, language, t } = useApp()
 
-  // Дані для головної сторінки: категорії, майстри, світі job requests.
   const [categories, setCategories] = useState<Category[]>([])
   const [professionals, setProfessionals] = useState<Profile[]>([])
   const [jobs, setJobs] = useState<ListingWithImages[]>([])
-
-  // Поля пошуку у hero-блоці.
   const [searchQuery, setSearchQuery] = useState('')
   const [locationQuery, setLocationQuery] = useState('')
-
-  // Стан початкового завантаження сторінки.
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // При першому відкритті сторінки підтягуємо весь потрібний контент.
     void loadHomeData()
   }, [])
 
@@ -42,10 +37,6 @@ export function Home() {
     try {
       const now = new Date().toISOString()
 
-      // Для головної сторінки беремо:
-      // - верхні категорії
-      // - популярних майстрів
-      // - тільки активні service_request, щоб блок був релевантним клієнтам і майстрам.
       const [categoriesResult, professionalsResult, jobsResult] = await Promise.all([
         supabase
           .from('categories')
@@ -97,16 +88,11 @@ export function Home() {
       params.set('location', locationQuery.trim())
     }
 
-    // Передаємо фільтри через query params,
-    // щоб сторінка listings відкрилась уже з готовим пошуком.
     const query = params.toString()
     navigateTo(query ? `/listings?${query}` : '/listings')
   }
 
-  // Допоміжний виклик перекладу для динамічних ключів категорій.
-  const translateUnsafe = (key: string) => {
-    return t(key)
-  }
+  const translateUnsafe = (key: string) => t(key)
 
   const getCategoryName = (category: Category) => {
     const newKey = `category.name.${category.slug}`
@@ -145,129 +131,162 @@ export function Home() {
     return getCategoryName(job.category)
   }
 
+  const heroStats = useMemo(
+    () => [
+      { value: categories.length || 8, label: t('home.popularCategoriesTitle') },
+      { value: jobs.length || 6, label: t('home.freshRequestsTitle') },
+      { value: professionals.length || 4, label: t('home.popularProsTitle') },
+    ],
+    [categories.length, jobs.length, professionals.length, t]
+  )
+
+  const featuredCategories = categories.slice(0, 5)
+
   return (
     <div className="page-bg min-h-screen">
-      {/* Верхній hero-блок із швидким пошуком */}
       <section className="px-4 pb-6 pt-4 md:px-6 md:pb-8 xl:px-8 2xl:px-10">
-        <div className="mx-auto grid max-w-7xl gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="glass-panel overflow-hidden p-5 md:p-8">
-            {/* Невеликий бейдж над заголовком */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/42 bg-[rgba(248,250,252,0.70)] px-4 py-2 text-sm font-semibold text-[#64748b]">
+        <div className="mx-auto grid max-w-7xl gap-5 xl:grid-cols-[minmax(0,1.18fr)_360px]">
+          <div className="hero-glass fade-rise p-6 md:p-8 xl:p-10">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(255,220,194,0.20)] bg-[rgba(255,245,236,0.10)] px-4 py-2 text-sm font-semibold text-[rgba(255,239,227,0.92)] backdrop-blur-md">
               <ShieldCheck className="h-4 w-4" />
               <span>{t('home.globalEyebrow')}</span>
             </div>
 
-            <h1 className="mt-5 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-[#2f2a24] md:text-5xl">
+            <h1 className="hero-title mt-6 max-w-4xl">
               {t('home.heroSimpleTitle')}
             </h1>
 
-            <p className="mt-4 max-w-2xl text-base leading-7 text-[#6f665d] md:text-lg">
+            <p className="hero-muted-text mt-4 max-w-3xl text-base md:text-lg">
               {t('home.heroSimpleDescription')}
             </p>
 
-            {/* Пошук по типу роботи і локації */}
             <form
               onSubmit={handleSearch}
-              className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_240px_180px]"
+              className="mt-8 grid gap-3 xl:grid-cols-[minmax(0,1fr)_240px_190px]"
             >
-              <div className="relative sm:col-span-2 xl:col-span-1">
-                <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#94a3b8]" />
+              <div className="relative xl:col-span-1">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[rgba(255,236,220,0.66)]" />
                 <input
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder={t('home.whatNeedsToBeDone')}
-                  className="input-glass h-14 pl-12"
+                  className="input-hero h-14 pl-11"
                 />
               </div>
 
               <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#94a3b8]" />
+                <MapPin className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[rgba(255,236,220,0.66)]" />
                 <input
                   value={locationQuery}
                   onChange={(event) => setLocationQuery(event.target.value)}
                   placeholder={t('home.cityOrCountry')}
-                  className="input-glass h-14 pl-12"
+                  className="input-hero h-14 pl-11"
                 />
               </div>
 
-              <button type="submit" className="btn-primary h-14 rounded-[20px]">
+              <button type="submit" className="btn-primary h-14 rounded-full">
                 {t('listings.findRequests')}
               </button>
             </form>
 
-            {/* Швидкі кнопки переходу */}
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <button
                 onClick={() => navigateTo('/create-ad')}
                 type="button"
-                className="btn-secondary rounded-[20px]"
+                className="btn-primary rounded-full"
               >
-                <PlusCircle className="h-5 w-5" />
-                {t('home.postJob')}
+                <PlusCircle className="h-4 w-4" />
+                Додати оголошення
               </button>
 
               <button
-                onClick={() => navigateTo('/listings')}
+                onClick={() => navigateTo('/professionals')}
                 type="button"
-                className="btn-outline rounded-[20px]"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-[rgba(255,223,199,0.20)] bg-[rgba(255,248,241,0.08)] px-6 py-3.5 font-semibold text-[rgba(255,244,234,0.94)] transition hover:bg-[rgba(255,248,241,0.14)]"
               >
-                <Hammer className="h-5 w-5" />
-                {t('home.browseRequests')}
+                <Hammer className="h-4 w-4" />
+                {t('home.findProfessionals')}
               </button>
             </div>
 
-            {/* Швидкі категорії під hero-блоком */}
-            <div className="mt-7 flex flex-wrap gap-2">
-              {categories.slice(0, 4).map((category) => (
+            <div className="mt-8 flex flex-wrap gap-2">
+              {featuredCategories.map((category) => (
                 <button
                   key={category.id}
                   onClick={() => navigateTo(`/listings?category=${category.slug}`)}
                   type="button"
-                  className="rounded-full border border-white/38 bg-[rgba(255,255,255,0.34)] px-4 py-2 text-sm font-semibold text-[#5f5a54] transition hover:bg-[rgba(255,255,255,0.52)] hover:text-[#2f2a24]"
+                  className="rounded-full border border-[rgba(255,223,199,0.18)] bg-[rgba(255,248,241,0.08)] px-4 py-2 text-sm font-medium text-[rgba(255,242,231,0.88)] transition hover:bg-[rgba(255,248,241,0.15)]"
                 >
                   {getCategoryName(category)}
                 </button>
               ))}
             </div>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              {heroStats.map((item, index) => (
+                <div
+                  key={item.label}
+                  className={`rounded-[24px] border border-[rgba(255,223,199,0.16)] bg-[rgba(255,248,241,0.08)] px-4 py-4 backdrop-blur-md fade-rise ${
+                    index === 0 ? 'stagger-1' : index === 1 ? 'stagger-2' : 'stagger-3'
+                  }`}
+                >
+                  <div className="text-2xl font-semibold text-[#fff8f2]">{item.value}</div>
+                  <div className="mt-1 text-sm text-[rgba(255,240,228,0.72)]">{item.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Бокова рекламна картка у hero-частині */}
-          <aside className="glass-card flex min-h-[320px] flex-col justify-between p-5">
-            <div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[rgba(148,163,184,0.16)] text-[#64748b]">
-                <Megaphone className="h-6 w-6" />
-              </div>
-
-              <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-[#2f2a24]">
-                {t('home.adTitle')}
-              </h2>
-
-              <p className="mt-3 text-sm leading-6 text-[#6f665d]">
-                {t('home.adText')}
+          <div className="space-y-5">
+            <div className="glass-card fade-rise p-6">
+              <div className="eyebrow">DImarket</div>
+              <h2 className="section-title mt-5 text-[2rem]">Спокійний пошук без зайвого шуму</h2>
+              <p className="muted-text mt-4 text-sm md:text-base">
+                Один простий вхід: знайти майстра, переглянути оголошення або залишити свій запит.
               </p>
 
-              <div className="mt-5 grid gap-3">
-                <AdPill label={t('home.adCardOne')} />
-                <AdPill label={t('home.adCardTwo')} />
-                <AdPill label={t('home.adCardThree')} />
+              <div className="mt-5 space-y-3">
+                <InfoRow text="Пошук по сайту прямо з головної сторінки" />
+                <InfoRow text="Тонкі помаранчеві акценти замість грубих блоків" />
+                <InfoRow text="Зручна мобільна версія без перевантаження" />
               </div>
             </div>
 
-            <button
-              onClick={() => navigateTo('/advertise')}
-              type="button"
-              className="btn-primary mt-6 w-full rounded-[20px]"
-            >
-              {t('home.adButton')}
-            </button>
-          </aside>
+            <div className="glass-card fade-rise p-6 stagger-2">
+              <div className="flex h-12 w-12 items-center justify-center rounded-[20px] border border-[var(--glass-border)] bg-[rgba(255,247,239,0.42)] text-[var(--accent-700)]">
+                <Megaphone className="h-5 w-5" />
+              </div>
+
+              <h3 className="mt-5 text-2xl font-semibold tracking-[-0.04em] text-[var(--ink-900)]">
+                {t('home.adTitle')}
+              </h3>
+
+              <p className="muted-text mt-3 text-sm md:text-base">
+                {t('home.adText')}
+              </p>
+
+              <div className="mt-5 space-y-3">
+                <MiniGlassPill label={t('home.adCardOne')} />
+                <MiniGlassPill label={t('home.adCardTwo')} />
+                <MiniGlassPill label={t('home.adCardThree')} />
+              </div>
+
+              <button
+                onClick={() => navigateTo('/advertise')}
+                type="button"
+                className="btn-secondary mt-6 w-full rounded-full"
+              >
+                {t('home.adButton')}
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Блок популярних категорій */}
       <section className="px-4 py-6 md:px-6 xl:px-8 2xl:px-10">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
+            eyebrow={t('home.popularCategoriesTitle')}
             title={t('home.popularCategoriesTitle')}
             text={t('home.popularCategoriesText')}
             buttonText={t('home.browseRequests')}
@@ -278,30 +297,14 @@ export function Home() {
             <LoadingBlock text={t('home.loading')} />
           ) : categories.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {categories.map((category) => (
-                <button
+              {categories.map((category, index) => (
+                <CategorySpotlightCard
                   key={category.id}
-                  onClick={() => navigateTo(`/listings?category=${category.slug}`)}
-                  type="button"
-                  className="glass-card group p-5 text-left transition duration-200 hover:-translate-y-0.5"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="text-3xl text-[#64748b]">
-                        {category.icon || '...'}
-                      </div>
-                      <h3 className="mt-4 text-xl font-extrabold text-[#2f2a24] transition group-hover:text-[#475569]">
-                        {getCategoryName(category)}
-                      </h3>
-                    </div>
-
-                    <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-[#94a3b8] transition group-hover:text-[#475569]" />
-                  </div>
-
-                  <p className="mt-3 text-sm leading-6 text-[#6f665d]">
-                    {getCategoryDescription(category)}
-                  </p>
-                </button>
+                  category={category}
+                  index={index}
+                  title={getCategoryName(category)}
+                  description={getCategoryDescription(category)}
+                />
               ))}
             </div>
           ) : (
@@ -310,11 +313,11 @@ export function Home() {
         </div>
       </section>
 
-      {/* Блок свіжих job requests */}
       <section className="px-4 py-6 md:px-6 xl:px-8 2xl:px-10">
-        <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div>
             <SectionHeader
+              eyebrow={t('home.freshRequestsTitle')}
               title={t('home.freshRequestsTitle')}
               text={t('home.freshRequestsText')}
               buttonText={t('home.allRequests')}
@@ -325,30 +328,19 @@ export function Home() {
               <LoadingBlock text={t('home.loading')} />
             ) : jobs.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {jobs.map((job, index) => (
-                  <div key={job.id} className="contents">
-                    <HomeJobCard
-                      job={job}
-                      categoryLabel={getListingCategoryName(job)}
-                      currencySymbol={currency.symbol}
-                      locale={language.code}
-                      budgetLabel={t('home.budgetLabel')}
-                      activeLabel={t('home.activeLabel')}
-                      noBudgetLabel={t('listing.contactForPrice')}
-                      noLocationLabel={t('home.noLocation')}
-                      unknownCategoryLabel={t('home.unknownCategory')}
-                    />
-
-                    {/* Вставляємо проміжну рекламну картку між job cards */}
-                    {index === 1 && (
-                      <InlineAdCard
-                        title={t('home.adTitle')}
-                        text={t('home.sponsoredPlacement')}
-                        actionLabel={t('home.adButton')}
-                        onClick={() => navigateTo('/advertise')}
-                      />
-                    )}
-                  </div>
+                {jobs.map((job) => (
+                  <HomeJobCard
+                    key={job.id}
+                    job={job}
+                    categoryLabel={getListingCategoryName(job)}
+                    currencySymbol={currency.symbol}
+                    locale={language.code}
+                    budgetLabel={t('home.budgetLabel')}
+                    activeLabel={t('home.activeLabel')}
+                    noBudgetLabel={t('listing.contactForPrice')}
+                    noLocationLabel={t('home.noLocation')}
+                    unknownCategoryLabel={t('home.unknownCategory')}
+                  />
                 ))}
               </div>
             ) : (
@@ -356,13 +348,19 @@ export function Home() {
             )}
           </div>
 
-          {/* Бокові рекламні підказки */}
           <div className="space-y-4">
-            <SidebarAdCard
+            <InlineInfoCard
+              icon={<Sparkles className="h-5 w-5" />}
+              title="Glass UI для щоденного користування"
+              text="Картки, поля й панелі тепер читаються легше, виглядають тонше і не тиснуть візуально."
+            />
+            <InlineInfoCard
+              icon={<Megaphone className="h-5 w-5" />}
               title={t('home.adCardOne')}
               text={t('home.sidebarAdOne')}
             />
-            <SidebarAdCard
+            <InlineInfoCard
+              icon={<Megaphone className="h-5 w-5" />}
               title={t('home.adCardTwo')}
               text={t('home.sidebarAdTwo')}
             />
@@ -370,10 +368,10 @@ export function Home() {
         </div>
       </section>
 
-      {/* Блок популярних майстрів */}
       <section className="px-4 pb-14 pt-6 md:px-6 xl:px-8 2xl:px-10">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
+            eyebrow={t('home.popularProsTitle')}
             title={t('home.popularProsTitle')}
             text={t('home.popularProsText')}
             buttonText={t('home.allPros')}
@@ -407,38 +405,71 @@ export function Home() {
 }
 
 function SectionHeader({
+  eyebrow,
   title,
   text,
   buttonText,
   onClick,
 }: {
+  eyebrow: string
   title: string
   text: string
   buttonText: string
   onClick: () => void
 }) {
   return (
-    // Універсальна шапка секції:
-    // заголовок, пояснення та кнопка переходу праворуч.
-    <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h2 className="text-2xl font-extrabold tracking-tight text-[#2f2a24] md:text-3xl">
-          {title}
-        </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6f665d] md:text-base">
-          {text}
-        </p>
+    <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div className="max-w-3xl">
+        <div className="eyebrow">{eyebrow}</div>
+        <h2 className="section-title mt-4">{title}</h2>
+        <p className="muted-text mt-3 text-sm md:text-base">{text}</p>
       </div>
 
       <button
         onClick={onClick}
         type="button"
-        className="btn-ghost self-start rounded-full px-0 sm:self-auto"
+        className="btn-ghost self-start rounded-full px-0 md:self-auto"
       >
         {buttonText}
         <ArrowRight className="h-4 w-4" />
       </button>
     </div>
+  )
+}
+
+function CategorySpotlightCard({
+  category,
+  index,
+  title,
+  description,
+}: {
+  category: Category
+  index: number
+  title: string
+  description: string
+}) {
+  return (
+    <button
+      onClick={() => navigateTo(`/listings?category=${category.slug}`)}
+      type="button"
+      className={`glass-card fade-rise group p-5 text-left transition duration-300 hover:-translate-y-1 ${
+        index < 3 ? `stagger-${index + 1}` : ''
+      }`}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex h-14 w-14 items-center justify-center rounded-[22px] border border-[var(--glass-border)] bg-[rgba(255,247,239,0.46)] text-2xl text-[var(--accent-700)]">
+          {category.icon || '•'}
+        </div>
+
+        <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-[var(--ink-500)] transition group-hover:text-[var(--accent-700)]" />
+      </div>
+
+      <h3 className="mt-5 text-[1.45rem] font-semibold tracking-[-0.04em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)]">
+        {title}
+      </h3>
+
+      <p className="muted-text mt-3 text-sm">{description}</p>
+    </button>
   )
 }
 
@@ -463,13 +494,11 @@ function HomeJobCard({
   noLocationLabel: string
   unknownCategoryLabel: string
 }) {
-  // Форматуємо дату створення в локалі поточної мови.
   const createdLabel = new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'short',
   }).format(new Date(job.created_at))
 
-  // Якщо бюджету немає, показуємо запасний текст.
   const budgetValue = job.price
     ? `${currencySymbol}${job.price.toLocaleString()}`
     : noBudgetLabel
@@ -478,41 +507,41 @@ function HomeJobCard({
     <button
       onClick={() => navigateTo(`/listing/${job.id}`)}
       type="button"
-      className="glass-card group p-5 text-left transition duration-200 hover:-translate-y-0.5"
+      className="glass-card group p-5 text-left transition duration-300 hover:-translate-y-1"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <span className="inline-flex rounded-full bg-[rgba(148,163,184,0.14)] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#475569]">
+          <span className="inline-flex rounded-full border border-[var(--glass-border)] bg-[rgba(255,248,241,0.42)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-700)]">
             {categoryLabel || unknownCategoryLabel}
           </span>
 
-          <h3 className="mt-3 line-clamp-2 text-xl font-extrabold text-[#2f2a24] transition group-hover:text-[#475569]">
+          <h3 className="mt-4 line-clamp-2 text-[1.35rem] font-semibold tracking-[-0.04em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)]">
             {job.title}
           </h3>
         </div>
 
-        <span className="shrink-0 rounded-full bg-[rgba(126,180,141,0.16)] px-3 py-1 text-xs font-bold text-[#3d7a52]">
+        <span className="shrink-0 rounded-full border border-[rgba(111,145,125,0.22)] bg-[rgba(111,145,125,0.10)] px-3 py-1 text-xs font-semibold text-[#4d755e]">
           {activeLabel}
         </span>
       </div>
 
-      <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#6f665d]">
-        {job.description}
-      </p>
+      <p className="muted-text mt-3 line-clamp-3 text-sm">{job.description}</p>
 
-      <div className="mt-4 flex items-center gap-2 text-sm text-[#7a7168]">
-        <MapPin className="h-4 w-4" />
-        <span>{job.location || noLocationLabel}</span>
+      <div className="mt-5 grid gap-2 text-sm text-[var(--ink-700)]">
+        <div className="flex items-center gap-2">
+          <MapPin className="h-4 w-4 text-[var(--accent-700)]" />
+          <span>{job.location || noLocationLabel}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Clock3 className="h-4 w-4 text-[var(--accent-700)]" />
+          <span>{createdLabel}</span>
+        </div>
       </div>
 
-      <div className="mt-2 flex items-center gap-2 text-sm text-[#7a7168]">
-        <Clock3 className="h-4 w-4" />
-        <span>{createdLabel}</span>
-      </div>
-
-      <div className="mt-5 flex flex-col gap-3 border-t border-[rgba(148,163,184,0.16)] pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <span className="text-sm text-[#7a7168]">{budgetLabel}</span>
-        <span className="text-lg font-extrabold text-[#2f2a24]">{budgetValue}</span>
+      <div className="mt-5 flex items-center justify-between border-t border-[var(--glass-border)] pt-4">
+        <span className="text-sm text-[var(--ink-500)]">{budgetLabel}</span>
+        <span className="text-lg font-semibold text-[var(--ink-900)]">{budgetValue}</span>
       </div>
     </button>
   )
@@ -535,44 +564,41 @@ function ProfessionalPreviewCard({
   reviewLabel: string
   actionLabel: string
 }) {
-  // Формуємо ініціали, якщо в майстра немає фото.
   const initials = getInitials(professional.full_name)
-
-  // Якщо рейтингу ще немає, показуємо бейдж "new".
   const ratingLabel =
     professional.rating > 0 ? professional.rating.toFixed(1) : newLabel
 
   return (
-    <div className="glass-card overflow-hidden p-5">
+    <div className="glass-card overflow-hidden p-5 transition duration-300 hover:-translate-y-1">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] bg-[linear-gradient(135deg,rgba(248,250,252,0.92),rgba(203,213,225,0.72))] text-lg font-extrabold text-[#475569]">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[22px] border border-[var(--glass-border)] bg-[linear-gradient(135deg,rgba(255,247,239,0.64),rgba(242,204,171,0.46))] text-lg font-semibold text-[var(--accent-700)]">
             {initials}
           </div>
 
           <div className="min-w-0">
-            <h3 className="truncate text-lg font-extrabold text-[#2f2a24]">
+            <h3 className="truncate text-[1.2rem] font-semibold tracking-[-0.04em] text-[var(--ink-900)]">
               {professional.full_name || defaultNameLabel}
             </h3>
-            <p className="mt-1 text-sm text-[#7a7168]">
+            <p className="mt-1 text-sm text-[var(--ink-500)]">
               {professional.location || globalLabel}
             </p>
           </div>
         </div>
 
-        <div className="inline-flex items-center gap-1 rounded-full bg-[rgba(241,245,249,0.92)] px-3 py-1 text-sm font-bold text-[#475569]">
+        <div className="inline-flex items-center gap-1 rounded-full border border-[var(--glass-border)] bg-[rgba(255,248,241,0.42)] px-3 py-1 text-sm font-semibold text-[#8c6728]">
           <Star className="h-4 w-4 fill-current" />
           <span>{ratingLabel}</span>
         </div>
       </div>
 
-      <p className="mt-4 line-clamp-3 text-sm leading-6 text-[#6f665d]">
+      <p className="muted-text mt-4 line-clamp-3 text-sm">
         {professional.bio || noBioLabel}
       </p>
 
-      <div className="mt-5 flex flex-col gap-3 border-t border-[rgba(148,163,184,0.16)] pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2 text-sm text-[#7a7168]">
-          <UserRound className="h-4 w-4" />
+      <div className="mt-5 flex flex-col gap-3 border-t border-[var(--glass-border)] pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2 text-sm text-[var(--ink-500)]">
+          <UserRound className="h-4 w-4 text-[var(--accent-700)]" />
           <span>
             {professional.total_reviews} {reviewLabel}
           </span>
@@ -581,81 +607,58 @@ function ProfessionalPreviewCard({
         <button
           onClick={() => navigateTo(`/professional/${professional.id}`)}
           type="button"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[rgba(148,163,184,0.16)] px-4 py-2 text-sm font-bold text-[#475569] transition hover:bg-[rgba(148,163,184,0.24)] sm:w-auto"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--accent-700)] transition hover:text-[var(--ink-900)]"
         >
-          <ArrowRight className="h-4 w-4" />
           <span>{actionLabel}</span>
+          <ArrowRight className="h-4 w-4" />
         </button>
       </div>
     </div>
   )
 }
 
-function AdPill({ label }: { label: string }) {
+function InlineInfoCard({
+  icon,
+  title,
+  text,
+}: {
+  icon: ReactNode
+  title: string
+  text: string
+}) {
   return (
-    // Невеликий декоративний елемент для рекламних напрямків.
-    <div className="rounded-[20px] border border-white/38 bg-[rgba(255,255,255,0.30)] px-4 py-3 text-sm font-semibold text-[#5f5a54]">
+    <div className="glass-card p-5">
+      <div className="flex h-11 w-11 items-center justify-center rounded-[18px] border border-[var(--glass-border)] bg-[rgba(255,247,239,0.42)] text-[var(--accent-700)]">
+        {icon}
+      </div>
+      <h3 className="mt-4 text-[1.3rem] font-semibold tracking-[-0.04em] text-[var(--ink-900)]">{title}</h3>
+      <p className="muted-text mt-3 text-sm">{text}</p>
+    </div>
+  )
+}
+
+function MiniGlassPill({ label }: { label: string }) {
+  return (
+    <div className="rounded-[20px] border border-[var(--glass-border)] bg-[rgba(255,250,245,0.40)] px-4 py-3 text-sm font-medium text-[var(--ink-700)] backdrop-blur-sm">
       {label}
     </div>
   )
 }
 
-function InlineAdCard({
-  title,
-  text,
-  actionLabel,
-  onClick,
-}: {
-  title: string
-  text: string
-  actionLabel: string
-  onClick: () => void
-}) {
+function InfoRow({ text }: { text: string }) {
   return (
-    // Рекламна картка всередині сітки job requests.
-    <div className="glass-card flex flex-col justify-between p-5 text-left">
-      <div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-[rgba(148,163,184,0.16)] text-[#64748b]">
-          <Megaphone className="h-6 w-6" />
-        </div>
-        <h3 className="mt-4 text-xl font-extrabold text-[#2f2a24]">{title}</h3>
-        <p className="mt-3 text-sm leading-6 text-[#6f665d]">{text}</p>
+    <div className="flex items-start gap-3 rounded-[20px] border border-[var(--glass-border)] bg-[rgba(255,250,245,0.36)] px-4 py-3 backdrop-blur-sm">
+      <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[rgba(169,105,66,0.12)] text-[var(--accent-700)]">
+        <Sparkles className="h-3.5 w-3.5" />
       </div>
-
-      <button
-        onClick={onClick}
-        type="button"
-        className="btn-secondary mt-5 w-full rounded-[20px]"
-      >
-        {actionLabel}
-      </button>
-    </div>
-  )
-}
-
-function SidebarAdCard({
-  title,
-  text,
-}: {
-  title: string
-  text: string
-}) {
-  return (
-    // Бокова рекламна картка для правої колонки.
-    <div className="glass-card p-5">
-      <div className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-[rgba(148,163,184,0.16)] text-[#64748b]">
-        <Megaphone className="h-5 w-5" />
-      </div>
-      <h3 className="mt-4 text-lg font-extrabold text-[#2f2a24]">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-[#6f665d]">{text}</p>
+      <span className="text-sm text-[var(--ink-700)]">{text}</span>
     </div>
   )
 }
 
 function LoadingBlock({ text }: { text: string }) {
   return (
-    // Універсальний стан завантаження для секцій home.
-    <div className="glass-card p-8 text-center text-[#7a7168]">
+    <div className="glass-card p-8 text-center text-[var(--ink-500)]">
       {text}
     </div>
   )
@@ -663,8 +666,7 @@ function LoadingBlock({ text }: { text: string }) {
 
 function EmptyBlock({ text }: { text: string }) {
   return (
-    // Універсальний пустий стан, якщо даних ще немає.
-    <div className="glass-card p-8 text-center text-[#7a7168]">
+    <div className="glass-card p-8 text-center text-[var(--ink-500)]">
       {text}
     </div>
   )
@@ -672,10 +674,10 @@ function EmptyBlock({ text }: { text: string }) {
 
 function getInitials(fullName: string | null) {
   if (!fullName) {
-    return 'DM'
+    return 'DI'
   }
 
   const parts = fullName.trim().split(/\s+/).slice(0, 2)
 
-  return parts.map((part) => part[0]?.toUpperCase() || '').join('') || 'DM'
+  return parts.map((part) => part[0]?.toUpperCase() || '').join('') || 'DI'
 }
