@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import {
   ArrowRight,
   Clock3,
-  Hammer,
   MapPin,
   Megaphone,
   PlusCircle,
@@ -131,69 +130,58 @@ export function Home() {
     return getCategoryName(job.category)
   }
 
-  const heroStats = useMemo(
-    () => [
-      { value: categories.length || 8, label: t('home.popularCategoriesTitle') },
-      { value: jobs.length || 6, label: t('home.freshRequestsTitle') },
-      { value: professionals.length || 4, label: t('home.popularProsTitle') },
-    ],
-    [categories.length, jobs.length, professionals.length, t]
-  )
-
-  const featuredCategories = categories.slice(0, 5)
-
   return (
     <div className="page-bg min-h-screen">
       <section className="px-4 pb-6 pt-4 md:px-6 md:pb-8 xl:px-8 2xl:px-10">
-        <div className="mx-auto grid max-w-7xl gap-5 xl:grid-cols-[minmax(0,1.18fr)_360px]">
-          <div className="hero-glass fade-rise p-6 md:p-8 xl:p-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(255,220,194,0.20)] bg-[rgba(255,245,236,0.10)] px-4 py-2 text-sm font-semibold text-[rgba(255,239,227,0.92)] backdrop-blur-md">
+        <div className="mx-auto grid max-w-7xl gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="glass-panel fade-rise p-6 md:p-8 xl:p-9">
+            <div className="eyebrow">
               <ShieldCheck className="h-4 w-4" />
               <span>{t('home.globalEyebrow')}</span>
             </div>
 
-            <h1 className="hero-title mt-6 max-w-4xl">
+            <h1 className="mt-5 max-w-3xl font-[var(--font-display)] text-[2.05rem] font-semibold leading-[1.05] tracking-[-0.04em] text-[var(--ink-900)] md:text-[2.65rem] xl:text-[3rem]">
               {t('home.heroSimpleTitle')}
             </h1>
 
-            <p className="hero-muted-text mt-4 max-w-3xl text-base md:text-lg">
+            <p className="muted-text mt-4 max-w-2xl text-[15px] md:text-base">
               {t('home.heroSimpleDescription')}
             </p>
 
             <form
               onSubmit={handleSearch}
-              className="mt-8 grid gap-3 xl:grid-cols-[minmax(0,1fr)_240px_190px]"
+              className="mt-7 grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px_168px]"
             >
-              <div className="relative xl:col-span-1">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[rgba(255,236,220,0.66)]" />
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[var(--ink-500)]" />
                 <input
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder={t('home.whatNeedsToBeDone')}
-                  className="input-hero h-14 pl-11"
+                  className="input-glass h-[52px] pl-11"
                 />
               </div>
 
               <div className="relative">
-                <MapPin className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[rgba(255,236,220,0.66)]" />
+                <MapPin className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[var(--ink-500)]" />
                 <input
                   value={locationQuery}
                   onChange={(event) => setLocationQuery(event.target.value)}
                   placeholder={t('home.cityOrCountry')}
-                  className="input-hero h-14 pl-11"
+                  className="input-glass h-[52px] pl-11"
                 />
               </div>
 
-              <button type="submit" className="btn-primary h-14 rounded-full">
+              <button type="submit" className="btn-primary h-[52px] rounded-full px-5">
                 {t('listings.findRequests')}
               </button>
             </form>
 
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
               <button
                 onClick={() => navigateTo('/create-ad')}
                 type="button"
-                className="btn-primary rounded-full"
+                className="btn-primary rounded-full px-5"
               >
                 <PlusCircle className="h-4 w-4" />
                 Додати оголошення
@@ -202,83 +190,50 @@ export function Home() {
               <button
                 onClick={() => navigateTo('/professionals')}
                 type="button"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-[rgba(255,223,199,0.20)] bg-[rgba(255,248,241,0.08)] px-6 py-3.5 font-semibold text-[rgba(255,244,234,0.94)] transition hover:bg-[rgba(255,248,241,0.14)]"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--accent-700)] transition hover:text-[var(--ink-900)]"
               >
-                <Hammer className="h-4 w-4" />
-                {t('home.findProfessionals')}
+                <span>{t('home.findProfessionals')}</span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+
+              <button
+                onClick={() => navigateTo('/listings')}
+                type="button"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--ink-700)] transition hover:text-[var(--accent-700)]"
+              >
+                <span>{t('home.browseRequests')}</span>
+                <ArrowRight className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-2">
-              {featuredCategories.map((category) => (
+            <div className="mt-7 flex flex-wrap gap-2">
+              {categories.slice(0, 5).map((category) => (
                 <button
                   key={category.id}
                   onClick={() => navigateTo(`/listings?category=${category.slug}`)}
                   type="button"
-                  className="rounded-full border border-[rgba(255,223,199,0.18)] bg-[rgba(255,248,241,0.08)] px-4 py-2 text-sm font-medium text-[rgba(255,242,231,0.88)] transition hover:bg-[rgba(255,248,241,0.15)]"
+                  className="stat-chip"
                 >
                   {getCategoryName(category)}
                 </button>
               ))}
             </div>
-
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              {heroStats.map((item, index) => (
-                <div
-                  key={item.label}
-                  className={`rounded-[24px] border border-[rgba(255,223,199,0.16)] bg-[rgba(255,248,241,0.08)] px-4 py-4 backdrop-blur-md fade-rise ${
-                    index === 0 ? 'stagger-1' : index === 1 ? 'stagger-2' : 'stagger-3'
-                  }`}
-                >
-                  <div className="text-2xl font-semibold text-[#fff8f2]">{item.value}</div>
-                  <div className="mt-1 text-sm text-[rgba(255,240,228,0.72)]">{item.label}</div>
-                </div>
-              ))}
-            </div>
           </div>
 
-          <div className="space-y-5">
-            <div className="glass-card fade-rise p-6">
-              <div className="eyebrow">DImarket</div>
-              <h2 className="section-title mt-5 text-[2rem]">Спокійний пошук без зайвого шуму</h2>
-              <p className="muted-text mt-4 text-sm md:text-base">
-                Один простий вхід: знайти майстра, переглянути оголошення або залишити свій запит.
-              </p>
+          <div className="space-y-4">
+            <InfoCard
+              icon={<Sparkles className="h-4 w-4" />}
+              title="Акуратний і спокійний інтерфейс"
+              text="Ми залишаємо тільки потрібні дії: пошук, майстри, оголошення і чисту навігацію без важких блоків."
+            />
 
-              <div className="mt-5 space-y-3">
-                <InfoRow text="Пошук по сайту прямо з головної сторінки" />
-                <InfoRow text="Тонкі помаранчеві акценти замість грубих блоків" />
-                <InfoRow text="Зручна мобільна версія без перевантаження" />
-              </div>
-            </div>
-
-            <div className="glass-card fade-rise p-6 stagger-2">
-              <div className="flex h-12 w-12 items-center justify-center rounded-[20px] border border-[var(--glass-border)] bg-[rgba(255,247,239,0.42)] text-[var(--accent-700)]">
-                <Megaphone className="h-5 w-5" />
-              </div>
-
-              <h3 className="mt-5 text-2xl font-semibold tracking-[-0.04em] text-[var(--ink-900)]">
-                {t('home.adTitle')}
-              </h3>
-
-              <p className="muted-text mt-3 text-sm md:text-base">
-                {t('home.adText')}
-              </p>
-
-              <div className="mt-5 space-y-3">
-                <MiniGlassPill label={t('home.adCardOne')} />
-                <MiniGlassPill label={t('home.adCardTwo')} />
-                <MiniGlassPill label={t('home.adCardThree')} />
-              </div>
-
-              <button
-                onClick={() => navigateTo('/advertise')}
-                type="button"
-                className="btn-secondary mt-6 w-full rounded-full"
-              >
-                {t('home.adButton')}
-              </button>
-            </div>
+            <InfoCard
+              icon={<Megaphone className="h-4 w-4" />}
+              title={t('home.adTitle')}
+              text={t('home.adText')}
+              actionLabel={t('home.adButton')}
+              onClick={() => navigateTo('/advertise')}
+            />
           </div>
         </div>
       </section>
@@ -286,7 +241,6 @@ export function Home() {
       <section className="px-4 py-6 md:px-6 xl:px-8 2xl:px-10">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
-            eyebrow={t('home.popularCategoriesTitle')}
             title={t('home.popularCategoriesTitle')}
             text={t('home.popularCategoriesText')}
             buttonText={t('home.browseRequests')}
@@ -297,14 +251,27 @@ export function Home() {
             <LoadingBlock text={t('home.loading')} />
           ) : categories.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {categories.map((category, index) => (
-                <CategorySpotlightCard
+              {categories.map((category) => (
+                <button
                   key={category.id}
-                  category={category}
-                  index={index}
-                  title={getCategoryName(category)}
-                  description={getCategoryDescription(category)}
-                />
+                  onClick={() => navigateTo(`/listings?category=${category.slug}`)}
+                  type="button"
+                  className="glass-card group p-5 text-left transition duration-300 hover:-translate-y-1"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-[18px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.34)] text-xl text-[var(--accent-700)]">
+                      {category.icon || '•'}
+                    </div>
+
+                    <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-[var(--ink-500)] transition group-hover:text-[var(--accent-700)]" />
+                  </div>
+
+                  <h3 className="mt-4 text-[1.08rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)]">
+                    {getCategoryName(category)}
+                  </h3>
+
+                  <p className="muted-text mt-3 text-sm">{getCategoryDescription(category)}</p>
+                </button>
               ))}
             </div>
           ) : (
@@ -314,10 +281,9 @@ export function Home() {
       </section>
 
       <section className="px-4 py-6 md:px-6 xl:px-8 2xl:px-10">
-        <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
           <div>
             <SectionHeader
-              eyebrow={t('home.freshRequestsTitle')}
               title={t('home.freshRequestsTitle')}
               text={t('home.freshRequestsText')}
               buttonText={t('home.allRequests')}
@@ -349,20 +315,13 @@ export function Home() {
           </div>
 
           <div className="space-y-4">
-            <InlineInfoCard
-              icon={<Sparkles className="h-5 w-5" />}
-              title="Glass UI для щоденного користування"
-              text="Картки, поля й панелі тепер читаються легше, виглядають тонше і не тиснуть візуально."
+            <MiniInfoCard
+              title="Glass UI"
+              text="Тонші межі, м'якше світло і більше повітря між блоками."
             />
-            <InlineInfoCard
-              icon={<Megaphone className="h-5 w-5" />}
+            <MiniInfoCard
               title={t('home.adCardOne')}
               text={t('home.sidebarAdOne')}
-            />
-            <InlineInfoCard
-              icon={<Megaphone className="h-5 w-5" />}
-              title={t('home.adCardTwo')}
-              text={t('home.sidebarAdTwo')}
             />
           </div>
         </div>
@@ -371,7 +330,6 @@ export function Home() {
       <section className="px-4 pb-14 pt-6 md:px-6 xl:px-8 2xl:px-10">
         <div className="mx-auto max-w-7xl">
           <SectionHeader
-            eyebrow={t('home.popularProsTitle')}
             title={t('home.popularProsTitle')}
             text={t('home.popularProsText')}
             buttonText={t('home.allPros')}
@@ -405,71 +363,32 @@ export function Home() {
 }
 
 function SectionHeader({
-  eyebrow,
   title,
   text,
   buttonText,
   onClick,
 }: {
-  eyebrow: string
   title: string
   text: string
   buttonText: string
   onClick: () => void
 }) {
   return (
-    <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-      <div className="max-w-3xl">
-        <div className="eyebrow">{eyebrow}</div>
-        <h2 className="section-title mt-4">{title}</h2>
-        <p className="muted-text mt-3 text-sm md:text-base">{text}</p>
+    <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h2 className="section-title">{title}</h2>
+        <p className="muted-text mt-2 max-w-2xl text-sm md:text-base">{text}</p>
       </div>
 
       <button
         onClick={onClick}
         type="button"
-        className="btn-ghost self-start rounded-full px-0 md:self-auto"
+        className="btn-ghost self-start rounded-full px-0 sm:self-auto"
       >
         {buttonText}
         <ArrowRight className="h-4 w-4" />
       </button>
     </div>
-  )
-}
-
-function CategorySpotlightCard({
-  category,
-  index,
-  title,
-  description,
-}: {
-  category: Category
-  index: number
-  title: string
-  description: string
-}) {
-  return (
-    <button
-      onClick={() => navigateTo(`/listings?category=${category.slug}`)}
-      type="button"
-      className={`glass-card fade-rise group p-5 text-left transition duration-300 hover:-translate-y-1 ${
-        index < 3 ? `stagger-${index + 1}` : ''
-      }`}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-[22px] border border-[var(--glass-border)] bg-[rgba(255,247,239,0.46)] text-2xl text-[var(--accent-700)]">
-          {category.icon || '•'}
-        </div>
-
-        <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-[var(--ink-500)] transition group-hover:text-[var(--accent-700)]" />
-      </div>
-
-      <h3 className="mt-5 text-[1.45rem] font-semibold tracking-[-0.04em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)]">
-        {title}
-      </h3>
-
-      <p className="muted-text mt-3 text-sm">{description}</p>
-    </button>
   )
 }
 
@@ -511,23 +430,23 @@ function HomeJobCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <span className="inline-flex rounded-full border border-[var(--glass-border)] bg-[rgba(255,248,241,0.42)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-700)]">
+          <span className="inline-flex rounded-full border border-[var(--glass-border)] bg-[rgba(255,252,248,0.38)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-700)]">
             {categoryLabel || unknownCategoryLabel}
           </span>
 
-          <h3 className="mt-4 line-clamp-2 text-[1.35rem] font-semibold tracking-[-0.04em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)]">
+          <h3 className="mt-4 line-clamp-2 text-[1.08rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)]">
             {job.title}
           </h3>
         </div>
 
-        <span className="shrink-0 rounded-full border border-[rgba(111,145,125,0.22)] bg-[rgba(111,145,125,0.10)] px-3 py-1 text-xs font-semibold text-[#4d755e]">
+        <span className="shrink-0 rounded-full border border-[rgba(111,145,125,0.18)] bg-[rgba(111,145,125,0.08)] px-3 py-1 text-[11px] font-semibold text-[#4d755e]">
           {activeLabel}
         </span>
       </div>
 
       <p className="muted-text mt-3 line-clamp-3 text-sm">{job.description}</p>
 
-      <div className="mt-5 grid gap-2 text-sm text-[var(--ink-700)]">
+      <div className="mt-4 space-y-2 text-sm text-[var(--ink-700)]">
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-[var(--accent-700)]" />
           <span>{job.location || noLocationLabel}</span>
@@ -541,7 +460,7 @@ function HomeJobCard({
 
       <div className="mt-5 flex items-center justify-between border-t border-[var(--glass-border)] pt-4">
         <span className="text-sm text-[var(--ink-500)]">{budgetLabel}</span>
-        <span className="text-lg font-semibold text-[var(--ink-900)]">{budgetValue}</span>
+        <span className="text-base font-semibold text-[var(--ink-900)]">{budgetValue}</span>
       </div>
     </button>
   )
@@ -569,15 +488,15 @@ function ProfessionalPreviewCard({
     professional.rating > 0 ? professional.rating.toFixed(1) : newLabel
 
   return (
-    <div className="glass-card overflow-hidden p-5 transition duration-300 hover:-translate-y-1">
+    <div className="glass-card p-5 transition duration-300 hover:-translate-y-1">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[22px] border border-[var(--glass-border)] bg-[linear-gradient(135deg,rgba(255,247,239,0.64),rgba(242,204,171,0.46))] text-lg font-semibold text-[var(--accent-700)]">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.42)] text-sm font-semibold text-[var(--accent-700)]">
             {initials}
           </div>
 
           <div className="min-w-0">
-            <h3 className="truncate text-[1.2rem] font-semibold tracking-[-0.04em] text-[var(--ink-900)]">
+            <h3 className="truncate text-[1.05rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)]">
               {professional.full_name || defaultNameLabel}
             </h3>
             <p className="mt-1 text-sm text-[var(--ink-500)]">
@@ -586,7 +505,7 @@ function ProfessionalPreviewCard({
           </div>
         </div>
 
-        <div className="inline-flex items-center gap-1 rounded-full border border-[var(--glass-border)] bg-[rgba(255,248,241,0.42)] px-3 py-1 text-sm font-semibold text-[#8c6728]">
+        <div className="inline-flex items-center gap-1 rounded-full border border-[var(--glass-border)] bg-[rgba(255,252,248,0.38)] px-3 py-1 text-sm font-semibold text-[#8c6728]">
           <Star className="h-4 w-4 fill-current" />
           <span>{ratingLabel}</span>
         </div>
@@ -617,59 +536,56 @@ function ProfessionalPreviewCard({
   )
 }
 
-function InlineInfoCard({
+function InfoCard({
   icon,
   title,
   text,
+  actionLabel,
+  onClick,
 }: {
   icon: ReactNode
   title: string
   text: string
+  actionLabel?: string
+  onClick?: () => void
 }) {
   return (
     <div className="glass-card p-5">
-      <div className="flex h-11 w-11 items-center justify-center rounded-[18px] border border-[var(--glass-border)] bg-[rgba(255,247,239,0.42)] text-[var(--accent-700)]">
+      <div className="flex h-10 w-10 items-center justify-center rounded-[16px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.36)] text-[var(--accent-700)]">
         {icon}
       </div>
-      <h3 className="mt-4 text-[1.3rem] font-semibold tracking-[-0.04em] text-[var(--ink-900)]">{title}</h3>
+
+      <h3 className="mt-4 text-[1.08rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)]">{title}</h3>
+      <p className="muted-text mt-3 text-sm">{text}</p>
+
+      {actionLabel && onClick && (
+        <button
+          onClick={onClick}
+          type="button"
+          className="btn-secondary mt-5 w-full rounded-full"
+        >
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  )
+}
+
+function MiniInfoCard({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="glass-card p-5">
+      <h3 className="text-[1rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)]">{title}</h3>
       <p className="muted-text mt-3 text-sm">{text}</p>
     </div>
   )
 }
 
-function MiniGlassPill({ label }: { label: string }) {
-  return (
-    <div className="rounded-[20px] border border-[var(--glass-border)] bg-[rgba(255,250,245,0.40)] px-4 py-3 text-sm font-medium text-[var(--ink-700)] backdrop-blur-sm">
-      {label}
-    </div>
-  )
-}
-
-function InfoRow({ text }: { text: string }) {
-  return (
-    <div className="flex items-start gap-3 rounded-[20px] border border-[var(--glass-border)] bg-[rgba(255,250,245,0.36)] px-4 py-3 backdrop-blur-sm">
-      <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[rgba(169,105,66,0.12)] text-[var(--accent-700)]">
-        <Sparkles className="h-3.5 w-3.5" />
-      </div>
-      <span className="text-sm text-[var(--ink-700)]">{text}</span>
-    </div>
-  )
-}
-
 function LoadingBlock({ text }: { text: string }) {
-  return (
-    <div className="glass-card p-8 text-center text-[var(--ink-500)]">
-      {text}
-    </div>
-  )
+  return <div className="glass-card p-8 text-center text-[var(--ink-500)]">{text}</div>
 }
 
 function EmptyBlock({ text }: { text: string }) {
-  return (
-    <div className="glass-card p-8 text-center text-[var(--ink-500)]">
-      {text}
-    </div>
-  )
+  return <div className="glass-card p-8 text-center text-[var(--ink-500)]">{text}</div>
 }
 
 function getInitials(fullName: string | null) {
