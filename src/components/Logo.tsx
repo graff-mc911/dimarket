@@ -135,6 +135,12 @@ function BrandMark({ className }: { className?: string }) {
         strokeLinecap="round"
       />
 
-     
+      {/* Синьо-жовте вікно навмисно залишаємо без змін
+          як окремий впізнаваний акцент бренду. */}
+      <rect x="48" y="74" width="7.5" height="7.5" rx="1.3" fill="#0057B7" />
+      <rect x="57.5" y="74" width="7.5" height="7.5" rx="1.3" fill="#0057B7" />
+      <rect x="48" y="83.5" width="7.5" height="7.5" rx="1.3" fill="#FFD700" />
+      <rect x="57.5" y="83.5" width="7.5" height="7.5" rx="1.3" fill="#FFD700" />
+    </svg>
   )
 }
