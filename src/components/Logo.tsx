@@ -3,10 +3,10 @@ interface LogoIconProps {
   className?: string
 }
 
-export function LogoIcon({ compact = false, className = '' }: LogoIconProps) {
+export function LogoIcon({ size = 52, className = '' }: LogoIconProps) {
   return (
     <div
-      className={`flex items-center gap-3 ${className}`}>
+      className={`flex items-center justify-center ${className}`}
       style={{ width: size, height: size }}
     >
       {/* 
