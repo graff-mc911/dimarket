@@ -19,21 +19,20 @@ import { Dashboard } from './pages/Dashboard'
 import { Settings } from './pages/Settings'
 import { Favorites } from './pages/Favorites'
 import { Advertising } from './pages/Advertising'
-import { Contact } from './pages/Contact'
 import { navigateTo } from './lib/navigation'
 
 function AppContent() {
   const { t } = useApp()
 
-  // Зберігаємо поточну адресу сторінки в стані.
-  // Це потрібно, бо ми використовуємо власну просту навігацію без react-router.
+  // Зберігаємо поточну адресу сторінки в стані,
+  // бо тут використовується власна проста навігація без react-router.
   const [currentUrl, setCurrentUrl] = useState(
     `${window.location.pathname}${window.location.search}`
   )
 
   useEffect(() => {
-    // Оновлюємо стан, коли користувач переходить між сторінками
-    // або натискає кнопки браузера "назад / вперед".
+    // Слухаємо зміну маршруту після navigateTo()
+    // і після кнопок браузера "назад / вперед".
     const handleRouteChange = () => {
       setCurrentUrl(`${window.location.pathname}${window.location.search}`)
     }
@@ -45,22 +44,25 @@ function AppContent() {
     }
   }, [])
 
-  // Беремо pathname саме з currentUrl, а не напряму з window.location.
-  // Так React стабільно перемальовує сторінку після navigateTo().
+  // Відокремлюємо pathname від query-параметрів,
+  // щоб простіше рендерити потрібну сторінку.
   const path = useMemo(() => {
     return currentUrl.split('?')[0] || '/'
   }, [currentUrl])
 
-  // Тут зібрана вся ручна маршрутизація застосунку.
   const page = useMemo(() => {
+    // Головна сторінка.
     if (path === '/') {
       return <Home />
     }
 
+    // Каталог майстрів / спеціалістів.
     if (path === '/professionals') {
       return <Professionals />
     }
 
+    // Заглушка для окремої сторінки спеціаліста,
+    // поки повноцінний профіль ще не підключено.
     if (path.startsWith('/professional/')) {
       return (
         <RoutePlaceholder
@@ -70,16 +72,19 @@ function AppContent() {
           description={t('route.professionalProfileDescription')}
           primaryLabel={t('header.findProfessionals')}
           primaryPath="/professionals"
-          secondaryLabel={t('header.createAd')}
+          secondaryLabel={t('header.postJob')}
           secondaryPath="/create-ad"
         />
       )
     }
 
+    // Список оголошень.
     if (path === '/listings') {
       return <Listings />
     }
 
+    // Заглушка для окремої сторінки оголошення,
+    // поки повна деталка ще не підключена.
     if (path.startsWith('/listing/')) {
       return (
         <RoutePlaceholder
@@ -89,20 +94,24 @@ function AppContent() {
           description={t('route.jobRequestDescription')}
           primaryLabel={t('home.viewAllListings')}
           primaryPath="/listings"
-          secondaryLabel={t('header.createAd')}
+          secondaryLabel={t('header.postJob')}
           secondaryPath="/create-ad"
         />
       )
     }
 
+    // Створення оголошення.
     if (path === '/create-ad') {
       return <CreateAd />
     }
 
+    // Улюблені.
     if (path === '/favorites') {
       return <Favorites />
     }
 
+    // Тимчасова заглушка для сторінки повідомлень,
+    // поки окремий чат-інтерфейс ще не зібраний.
     if (path === '/messages') {
       return (
         <RoutePlaceholder
@@ -118,32 +127,49 @@ function AppContent() {
       )
     }
 
+    // Авторизація.
     if (path === '/login') {
       return <Login />
     }
 
+    // Реєстрація.
     if (path === '/register') {
       return <Register />
     }
 
+    // Особистий кабінет власника сайту.
     if (path === '/dashboard') {
       return <Dashboard />
     }
 
+    // Налаштування профілю.
     if (path === '/settings') {
       return <Settings />
     }
 
+    // Сторінка реклами.
     if (path === '/advertise') {
       return <Advertising />
     }
 
-    // Підключаємо окрему сторінку зворотного зв'язку.
+    // Тимчасова сторінка для /contact,
+    // щоб кнопки не вели на "битий" маршрут.
     if (path === '/contact') {
-      return <Contact />
+      return (
+        <RoutePlaceholder
+          icon={MessageSquare}
+          eyebrow="Зворотний зв'язок"
+          title="Сторінка звернення готується"
+          description="Маршрут уже підключений. Наступним кроком ми можемо одразу додати повноцінну форму зворотного зв'язку."
+          primaryLabel="На головну"
+          primaryPath="/"
+          secondaryLabel="Реклама на сайті"
+          secondaryPath="/advertise"
+        />
+      )
     }
 
-    // Усі невідомі маршрути ведемо на заглушку.
+    // Усі невідомі маршрути ведемо на універсальну заглушку.
     return (
       <RoutePlaceholder
         icon={AlertCircle}
@@ -159,9 +185,9 @@ function AppContent() {
   }, [path, t])
 
   return (
-    // Кореневий контейнер сторінки.
-    <div className="min-h-screen bg-[#e7eaee] flex flex-col w-full">
-      {/* key потрібен, щоб Header оновлював активні стани після переходів */}
+    // Кореневий контейнер застосунку.
+    <div className="min-h-screen flex w-full flex-col bg-[#e7eaee]">
+      {/* Ключ потрібен, щоб Header коректно оновлював стани після переходів. */}
       <Header key={`header-${currentUrl}`} />
 
       <main className="flex-1 w-full">
@@ -198,7 +224,7 @@ function RoutePlaceholder({
     <div className="page-bg min-h-[calc(100vh-12rem)] px-4 py-10 md:px-6 xl:px-8 2xl:px-10">
       <div className="mx-auto flex max-w-3xl items-center justify-center">
         <section className="glass-panel w-full p-6 text-center md:p-10">
-          {/* Іконка заглушки для ще неготової або відсутньої сторінки */}
+          {/* Іконка для ще неготових або резервних сторінок. */}
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-[rgba(245,166,109,0.18)] text-[#c96d2c] shadow-soft">
             <Icon className="h-8 w-8" />
           </div>
