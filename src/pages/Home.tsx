@@ -145,7 +145,7 @@ export function Home() {
               </h1>
 
               <p className="muted-text mt-4 max-w-2xl text-[14px] md:text-[15px]">
-                Знайдіть майстра або опублікуйте своє оголошення. Без зайвих кроків і без оплат для користувачів.
+              
               </p>
             </div>
 
