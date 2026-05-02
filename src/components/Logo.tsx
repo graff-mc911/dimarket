@@ -1,68 +1,85 @@
 interface LogoProps {
-  variant?: 'full' | 'icon' | 'text'
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  compact?: boolean
   className?: string
 }
 
-const sizes = {
-  sm: {
-    icon: 'h-9 w-9 rounded-[14px]',
-    full: 'w-[118px] sm:w-[128px]',
-    title: 'text-lg',
-  },
-  md: {
-    icon: 'h-11 w-11 rounded-[16px]',
-    full: 'w-[132px] sm:w-[148px]',
-    title: 'text-xl',
-  },
-  lg: {
-    icon: 'h-14 w-14 rounded-[20px]',
-    full: 'w-[188px] sm:w-[214px]',
-    title: 'text-2xl',
-  },
-  xl: {
-    icon: 'h-16 w-16 rounded-[22px]',
-    full: 'w-[220px] sm:w-[252px]',
-    title: 'text-3xl',
-  },
-} as const
-
-export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProps) {
-  const current = sizes[size]
-
-  // Квадратну іконку використовуємо там,
-  // де потрібен компактний знак без повного напису.
-  const icon = (
-    <img
-      src="/logo-icon.png"
-      alt="DImarket icon"
-      className={`${current.icon} shrink-0 object-cover shadow-[0_12px_28px_rgba(82,54,32,0.10)]`}
-    />
-  )
-
-  // Повний логотип беремо з public,
-  // тому файл logo-full.png має обов'язково лежати в папці public.
-  const fullLogo = (
-    <img
-      src="/logo-full.png"
-      alt="DImarket - Everything for construction and renovation"
-      className={`${current.full} block h-auto shrink-0 object-contain`}
-    />
-  )
-
-  if (variant === 'icon') {
-    return <div className={className}>{icon}</div>
-  }
-
-  if (variant === 'text') {
-    return (
-      <span
-        className={`font-[var(--font-display)] font-bold tracking-[-0.04em] text-[#241b14] ${current.title} ${className}`}
+export function Logo({ compact = false, className = '' }: LogoProps) {
+  return (
+    <div className={`flex items-center gap-3 ${className}`}>
+      
+      {/* SVG-іконка DImarket */}
+      <svg
+        width="52"
+        height="52"
+        viewBox="0 0 120 120"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="shrink-0"
       >
-        DImarket
-      </span>
-    )
-  }
+        {/* Фон */}
+        <rect width="120" height="120" rx="26" fill="#F5E9D8" />
 
-  return <div className={className}>{fullLogo}</div>
+        {/* Дах (вирівняний + однакова товщина) */}
+        <path
+          d="M26 50 L60 26 L94 50"
+          stroke="#E85D04"
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Димар */}
+        <rect x="82" y="28" width="12" height="18" fill="#4A2E1E" rx="2" />
+
+        {/* Літера D */}
+        <path
+          d="M28 54 H56 C74 54 86 68 86 86 C86 104 74 112 56 112 H28 Z"
+          fill="#1A1A1A"
+        />
+
+        {/* Внутрішній виріз */}
+        <path
+          d="M44 70 H55 C64 70 70 76 70 86 C70 96 64 102 55 102 H44 Z"
+          fill="#F5E9D8"
+        />
+
+        {/* Нижній акцент */}
+        <path
+          d="M28 112 L48 90 V112 Z"
+          fill="#E85D04"
+        />
+
+        {/* Літера I */}
+        <rect x="90" y="54" width="12" height="58" fill="#E85D04" rx="2" />
+
+        {/* Основа */}
+        <path
+          d="M86 112 H106"
+          stroke="#4A2E1E"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+
+        {/* 🔥 ЖОВТО-БЛАКИТНЕ ВІКНО */}
+        <rect x="48" y="76" width="8" height="8" rx="1.5" fill="#0057B7" />
+        <rect x="58" y="76" width="8" height="8" rx="1.5" fill="#0057B7" />
+        <rect x="48" y="86" width="8" height="8" rx="1.5" fill="#FFD700" />
+        <rect x="58" y="86" width="8" height="8" rx="1.5" fill="#FFD700" />
+      </svg>
+
+      {/* Текст */}
+      {!compact && (
+        <div className="leading-none">
+          <div className="text-2xl font-extrabold tracking-tight">
+            <span className="text-[#E85D04]">DI</span>
+            <span className="text-[#1A1A1A]">market</span>
+          </div>
+
+          <div className="text-[10px] uppercase tracking-[0.25em] text-[#4A2E1E] mt-1">
+            все для будівництва та ремонту
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
