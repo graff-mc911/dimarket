@@ -3,7 +3,7 @@
   <!-- Окрема конфігурація для Windows tile-іконки. -->
   <msapplication>
     <tile>
-      <square150x150logo src="/mstile-150x150.png?v=20260502-4" />
+      <square150x150logo src="/mstile-150x150.png?v=20260502-5" />
       <TileColor>#8D5636</TileColor>
     </tile>
   </msapplication>
