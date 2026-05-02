@@ -25,7 +25,7 @@ interface NavItem {
   icon: LucideIcon
 }
 
-const OWNER_EMAIL = 'ivan.sovban@gmail.com'
+const OWNER_EMAIL = 'YOUR_EMAIL@gmail.com'
 
 function isOwnerEmail(email: string | null | undefined) {
   // Тимчасово страхуємо owner-доступ по email,
@@ -201,7 +201,7 @@ export function Header() {
               className="hidden min-w-0 flex-1 items-center xl:flex xl:max-w-[620px]"
             >
               <div className="relative w-full">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#a08b79]" />
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#a08b79]" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -419,7 +419,7 @@ export function Header() {
           {/* На мобільному теж показуємо пошук окремим чистим рядком. */}
           <form onSubmit={handleSearchSubmit} className="mt-4 xl:hidden">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-[#a08b79]" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#a08b79]" />
               <input
                 type="text"
                 value={searchQuery}
