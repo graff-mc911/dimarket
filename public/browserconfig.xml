@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <browserconfig>
-  <!-- Окрема конфігурація для Windows tile-іконки. -->
+  <!-- Windows tile теж підтягуємо відносно цієї xml-конфігурації. -->
   <msapplication>
     <tile>
-      <square150x150logo src="/mstile-150x150.png?v=20260502-5" />
+      <square150x150logo src="mstile-150x150.png?v=20260502-7" />
       <TileColor>#8D5636</TileColor>
     </tile>
   </msapplication>
