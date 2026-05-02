@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Eye,
   FileText,
-  Mail,
   MessageSquare,
   ShieldCheck,
   Sparkles,
@@ -16,7 +15,7 @@ import { supabase } from '../lib/supabase'
 import { useApp } from '../contexts/AppContext'
 import { AdBanner } from '../components/AdBanner'
 import { navigateTo } from '../lib/navigation'
-import { AdCampaign, FeedbackMessage, Profile } from '../lib/types'
+import { AdCampaign, FeedbackMessage, Message, Profile } from '../lib/types'
 
 interface OwnerStats {
   totalVisits: number
@@ -32,7 +31,7 @@ interface RecentListing {
   id: string
   title: string
   location: string
-  status: string
+  status: 'active' | 'expired' | 'sold' | 'deleted'
   created_at: string
 }
 
@@ -64,12 +63,17 @@ export function Dashboard() {
   // Тут зберігаємо повідомлення із форми зворотного зв'язку.
   const [feedbackInbox, setFeedbackInbox] = useState<FeedbackMessage[]>([])
 
+  // Тут зберігаємо внутрішні повідомлення платформи.
+  const [internalInbox, setInternalInbox] = useState<Message[]>([])
+
   // Через ці стани показуємо глобальні й локальні дії користувачу.
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [campaignActionId, setCampaignActionId] = useState<string | null>(null)
   const [feedbackActionId, setFeedbackActionId] = useState<string | null>(null)
+  const [listingActionId, setListingActionId] = useState<string | null>(null)
+  const [messageActionId, setMessageActionId] = useState<string | null>(null)
 
   useEffect(() => {
     // Перевіряємо користувача через контекст і, за потреби, напряму через Supabase,
@@ -114,7 +118,7 @@ export function Dashboard() {
       }
 
       // Завантажуємо основні цифри, останні оголошення, рекламні кампанії
-      // і повідомлення зі зворотного зв'язку в один прохід.
+      // і всі два типи повідомлень в один прохід.
       const [
         siteStatsResult,
         listingsCountResult,
@@ -126,6 +130,7 @@ export function Dashboard() {
         recentListingsResult,
         adCampaignsResult,
         feedbackInboxResult,
+        internalInboxResult,
       ] = await Promise.all([
         supabase
           .from('app_site_stats')
@@ -135,7 +140,8 @@ export function Dashboard() {
 
         supabase
           .from('listings')
-          .select('*', { count: 'exact', head: true }),
+          .select('*', { count: 'exact', head: true })
+          .neq('status', 'deleted'),
 
         supabase
           .from('listings')
@@ -144,7 +150,8 @@ export function Dashboard() {
 
         supabase
           .from('ad_campaigns')
-          .select('*', { count: 'exact', head: true }),
+          .select('*', { count: 'exact', head: true })
+          .neq('status', 'deleted'),
 
         supabase
           .from('ad_campaigns')
@@ -162,8 +169,9 @@ export function Dashboard() {
         supabase
           .from('listings')
           .select('id, title, location, status, created_at')
+          .neq('status', 'deleted')
           .order('created_at', { ascending: false })
-          .limit(6),
+          .limit(8),
 
         supabase
           .from('ad_campaigns')
@@ -173,6 +181,12 @@ export function Dashboard() {
 
         supabase
           .from('feedback_messages')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(12),
+
+        supabase
+          .from('messages')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(12),
@@ -192,6 +206,7 @@ export function Dashboard() {
       setRecentListings((recentListingsResult.data as RecentListing[] | null) || [])
       setAdCampaigns((adCampaignsResult.data as AdCampaign[] | null) || [])
       setFeedbackInbox((feedbackInboxResult.data as FeedbackMessage[] | null) || [])
+      setInternalInbox((internalInboxResult.data as Message[] | null) || [])
     } catch (loadError) {
       console.error('Помилка завантаження owner-кабінету:', loadError)
       setError('Не вдалося завантажити особистий кабінет власника сайту.')
@@ -391,6 +406,79 @@ export function Dashboard() {
     }
   }
 
+  const handleDeleteListing = async (listingId: string) => {
+    const confirmed = window.confirm(
+      'Ви впевнені, що хочете видалити це оголошення?'
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setListingActionId(listingId)
+    setNotice('')
+    setError('')
+
+    try {
+      // Технічно видаляємо оголошення через статус deleted,
+      // щоб не ламати пов'язані дані і водночас прибрати його з публічного показу.
+      const { error: updateError } = await supabase
+        .from('listings')
+        .update({
+          status: 'deleted',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', listingId)
+
+      if (updateError) {
+        throw updateError
+      }
+
+      setNotice('Оголошення позначено як видалене.')
+      await loadOwnerDashboard()
+    } catch (actionError) {
+      console.error('Помилка видалення оголошення:', actionError)
+      setError('Не вдалося видалити оголошення.')
+    } finally {
+      setListingActionId(null)
+    }
+  }
+
+  const handleDeleteInternalMessage = async (messageId: string) => {
+    const confirmed = window.confirm(
+      'Ви впевнені, що хочете видалити це внутрішнє повідомлення?'
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setMessageActionId(messageId)
+    setNotice('')
+    setError('')
+
+    try {
+      // Видаляємо внутрішнє повідомлення з owner-кабінету,
+      // якщо воно більше не потрібне для контролю платформи.
+      const { error: deleteError } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId)
+
+      if (deleteError) {
+        throw deleteError
+      }
+
+      setNotice('Внутрішнє повідомлення видалено.')
+      await loadOwnerDashboard()
+    } catch (actionError) {
+      console.error('Помилка видалення внутрішнього повідомлення:', actionError)
+      setError('Не вдалося видалити внутрішнє повідомлення.')
+    } finally {
+      setMessageActionId(null)
+    }
+  }
+
   if (loading) {
     return (
       <div className="page-bg min-h-screen py-10">
@@ -471,7 +559,7 @@ export function Dashboard() {
       icon: MessageSquare,
       title: 'Повідомлення',
       value: stats.feedbackMessages + stats.internalMessages,
-      text: `Форма зворотного зв'язку: ${stats.feedbackMessages}.`,
+      text: `Зворотний зв'язок: ${stats.feedbackMessages}.`,
     },
   ]
 
@@ -549,7 +637,7 @@ export function Dashboard() {
                         Останні оголошення
                       </h2>
                       <p className="mt-2 text-sm leading-6 text-[#6f665d]">
-                        Найновіший контент на платформі для швидкої перевірки.
+                        Найновіший контент на платформі для швидкої перевірки і видалення.
                       </p>
                     </div>
 
@@ -564,31 +652,53 @@ export function Dashboard() {
 
                   <div className="mt-5 space-y-3">
                     {recentListings.length > 0 ? (
-                      recentListings.map((listing) => (
-                        <div
-                          key={listing.id}
-                          className="rounded-[22px] border border-[rgba(148,163,184,0.16)] bg-[rgba(255,255,255,0.30)] p-4"
-                        >
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                            <div className="min-w-0">
-                              <h3 className="truncate text-base font-bold text-[#2f2a24]">
-                                {listing.title}
-                              </h3>
-                              <p className="mt-1 text-sm text-[#6f665d]">
-                                {listing.location}
-                              </p>
+                      recentListings.map((listing) => {
+                        const isBusy = listingActionId === listing.id
+                        const isDeleted = listing.status === 'deleted'
+
+                        return (
+                          <div
+                            key={listing.id}
+                            className="rounded-[22px] border border-[rgba(148,163,184,0.16)] bg-[rgba(255,255,255,0.30)] p-4"
+                          >
+                            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                  <div className="min-w-0">
+                                    <h3 className="truncate text-base font-bold text-[#2f2a24]">
+                                      {listing.title}
+                                    </h3>
+                                    <p className="mt-1 text-sm text-[#6f665d]">
+                                      {listing.location}
+                                    </p>
+                                  </div>
+
+                                  <span className="inline-flex self-start rounded-full bg-[rgba(148,163,184,0.14)] px-3 py-1 text-xs font-semibold text-[#475569]">
+                                    {getListingStatusLabel(listing.status)}
+                                  </span>
+                                </div>
+
+                                <p className="mt-3 text-xs text-[#7a7168]">
+                                  Створено: {new Date(listing.created_at).toLocaleString()}
+                                </p>
+                              </div>
+
+                              {/* Кнопка дає owner швидко прибрати оголошення з публічного показу. */}
+                              <div className="flex shrink-0">
+                                <button
+                                  onClick={() => handleDeleteListing(listing.id)}
+                                  type="button"
+                                  disabled={isBusy || isDeleted}
+                                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[rgba(239,68,68,0.12)] px-4 py-2 text-sm font-semibold text-[#b91c1c] transition hover:bg-[rgba(239,68,68,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  {isDeleted ? 'Видалено' : 'Видалити'}
+                                </button>
+                              </div>
                             </div>
-
-                            <span className="inline-flex self-start rounded-full bg-[rgba(148,163,184,0.14)] px-3 py-1 text-xs font-semibold text-[#475569]">
-                              {listing.status}
-                            </span>
                           </div>
-
-                          <p className="mt-3 text-xs text-[#7a7168]">
-                            Створено: {new Date(listing.created_at).toLocaleString()}
-                          </p>
-                        </div>
-                      ))
+                        )
+                      })
                     ) : (
                       <p className="text-sm text-[#7a7168]">
                         Поки що немає оголошень для відображення.
@@ -606,8 +716,9 @@ export function Dashboard() {
                   <div className="mt-5 space-y-3 text-sm text-[#6f665d]">
                     <OwnerFeatureRow text="Тільки owner-профіль бачить цей кабінет." />
                     <OwnerFeatureRow text="Ви бачите загальний трафік сайту та кількість оголошень." />
+                    <OwnerFeatureRow text="Ви можете прибирати оголошення зі статусом deleted." />
                     <OwnerFeatureRow text="Ви бачите кількість рекламних кампаній і заявок на модерацію." />
-                    <OwnerFeatureRow text="Ви бачите повідомлення із зворотного зв'язку та внутрішні повідомлення." />
+                    <OwnerFeatureRow text="Ви бачите зворотний зв'язок та внутрішні повідомлення." />
                   </div>
                 </section>
               </div>
@@ -833,6 +944,107 @@ export function Dashboard() {
                   )}
                 </div>
               </section>
+
+              {/* Тут owner бачить внутрішні повідомлення між користувачами платформи. */}
+              <section className="glass-card mt-6 p-5 md:p-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-xl font-extrabold text-[#2f2a24]">
+                      Внутрішні повідомлення
+                    </h2>
+                    <p className="mt-2 text-sm leading-6 text-[#6f665d]">
+                      Тут відображається листування, яке проходить усередині платформи.
+                    </p>
+                  </div>
+
+                  <div className="rounded-full bg-[rgba(148,163,184,0.14)] px-4 py-2 text-sm font-semibold text-[#475569]">
+                    Усього: {stats.internalMessages}
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-4">
+                  {internalInbox.length > 0 ? (
+                    internalInbox.map((message) => {
+                      const isBusy = messageActionId === message.id
+
+                      return (
+                        <div
+                          key={message.id}
+                          className="rounded-[24px] border border-[rgba(148,163,184,0.16)] bg-[rgba(255,255,255,0.30)] p-4"
+                        >
+                          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="min-w-0">
+                                  <h3 className="truncate text-lg font-extrabold text-[#2f2a24]">
+                                    {getMessageSenderLabel(message)}
+                                  </h3>
+                                  <p className="mt-1 text-sm text-[#6f665d]">
+                                    {message.sender_email || 'Email не вказано'}
+                                  </p>
+                                </div>
+
+                                {!message.is_read && (
+                                  <span className="inline-flex rounded-full bg-[rgba(245,158,11,0.14)] px-3 py-1 text-xs font-semibold text-[#b45309]">
+                                    Непрочитане
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="mt-4 rounded-[18px] bg-[rgba(255,255,255,0.34)] p-4 text-sm leading-6 text-[#2f2a24]">
+                                {message.content}
+                              </div>
+
+                              <div className="mt-4 grid gap-2 text-xs text-[#7a7168] md:grid-cols-2">
+                                <div>
+                                  Розмова: {message.conversation_id}
+                                </div>
+                                <div>
+                                  Отримувач: {message.recipient_id}
+                                </div>
+                                <div>
+                                  Оголошення: {message.listing_id || 'Немає'}
+                                </div>
+                                <div>
+                                  Створено: {new Date(message.created_at).toLocaleString()}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Тут owner може швидко очистити непотрібне внутрішнє листування. */}
+                            <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+                              {message.listing_id && (
+                                <button
+                                  onClick={() => navigateTo(`/listing/${message.listing_id}`)}
+                                  type="button"
+                                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[rgba(59,130,246,0.12)] px-4 py-2 text-sm font-semibold text-[#2563eb] transition hover:bg-[rgba(59,130,246,0.18)]"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  До оголошення
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() => handleDeleteInternalMessage(message.id)}
+                                type="button"
+                                disabled={isBusy}
+                                className="inline-flex items-center justify-center gap-2 rounded-full bg-[rgba(239,68,68,0.12)] px-4 py-2 text-sm font-semibold text-[#b91c1c] transition hover:bg-[rgba(239,68,68,0.18)] disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Видалити
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="rounded-[22px] border border-[rgba(148,163,184,0.16)] bg-[rgba(255,255,255,0.24)] p-5 text-sm text-[#7a7168]">
+                      Поки що немає внутрішніх повідомлень.
+                    </div>
+                  )}
+                </div>
+              </section>
             </section>
           </main>
 
@@ -951,4 +1163,21 @@ function getCampaignPeriodLabel(campaign: AdCampaign) {
   }
 
   return `${new Date(campaign.starts_at as string).toLocaleString()} - ${new Date(campaign.ends_at as string).toLocaleString()}`
+}
+
+function getListingStatusLabel(status: RecentListing['status']) {
+  const labels: Record<RecentListing['status'], string> = {
+    active: 'Активне',
+    expired: 'Завершене',
+    sold: 'Закрите',
+    deleted: 'Видалене',
+  }
+
+  return labels[status]
+}
+
+function getMessageSenderLabel(message: Message) {
+  // Показуємо найзрозуміліше джерело повідомлення:
+  // спочатку ім'я, потім email, і лише потім запасний підпис.
+  return message.sender_name || message.sender_email || 'Невідомий відправник'
 }
