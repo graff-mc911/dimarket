@@ -2,8 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Базові стилі всього сайту */
 @layer base {
+  :root {
+    --font-sans: "Aptos", "Segoe UI Variable Text", "Segoe UI", sans-serif;
+    --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    --bg-canvas: #f3efe8;
+    --bg-soft: #fbf8f3;
+    --panel: rgba(255, 251, 246, 0.84);
+    --panel-strong: rgba(255, 252, 248, 0.92);
+    --line: rgba(142, 115, 88, 0.14);
+    --line-strong: rgba(142, 115, 88, 0.22);
+    --ink-900: #241b14;
+    --ink-700: #5c4d41;
+    --ink-500: #8b7868;
+    --accent-700: #8d5636;
+    --accent-600: #a96942;
+    --accent-500: #c78a60;
+    --accent-soft: rgba(169, 105, 66, 0.10);
+    --mint-soft: rgba(111, 145, 125, 0.12);
+  }
+
   html {
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
@@ -12,16 +30,30 @@
   body {
     margin: 0;
     min-height: 100vh;
-    color: #1f2937;
-    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #f1f3f5;
+    overflow-x: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(201, 166, 124, 0.12), transparent 24%),
+      radial-gradient(circle at top right, rgba(122, 147, 161, 0.10), transparent 22%),
+      linear-gradient(180deg, #fbf8f3 0%, #f4efe7 48%, #eee7dc 100%);
+    color: var(--ink-900);
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
   }
 
   * {
     box-sizing: border-box;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.04em;
   }
 
   button,
@@ -35,10 +67,14 @@
     cursor: pointer;
   }
 
-  /* Колір виділення тексту робимо теж спокійнішим і менш щільним */
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
   ::selection {
-    background: rgba(249, 115, 22, 0.16);
-    color: #111827;
+    background: rgba(169, 105, 66, 0.20);
+    color: var(--ink-900);
   }
 
   @media (max-width: 640px) {
@@ -50,186 +86,251 @@
   }
 }
 
-/* Глобальні стилі Dimarket */
 @layer components {
-  /* Основний фон сторінки:
-     замість теплого рожево-бежевого робимо холодніший сірий,
-     а кольорові плями залишаємо, але значно прозоріші */
   .page-bg {
     background:
-      radial-gradient(circle at 8% 8%, rgba(249, 115, 22, 0.08), transparent 34%),
-      radial-gradient(circle at 92% 14%, rgba(20, 184, 166, 0.06), transparent 32%),
-      radial-gradient(circle at 50% 100%, rgba(15, 23, 42, 0.06), transparent 36%),
-      linear-gradient(180deg, #eff1f3 0%, #e3e6ea 54%, #d8dce1 100%);
+      radial-gradient(circle at 8% 12%, rgba(201, 166, 124, 0.12), transparent 24%),
+      radial-gradient(circle at 92% 16%, rgba(140, 164, 176, 0.12), transparent 22%),
+      radial-gradient(circle at 50% 100%, rgba(82, 63, 47, 0.06), transparent 34%),
+      linear-gradient(180deg, #fbf8f3 0%, #f4efe7 58%, #ede6dc 100%);
   }
 
-  /* Базова скляна картка:
-     робимо фон і рамку прозорішими, щоб інтерфейс виглядав легше */
   .glass-card {
-    background: rgba(255, 255, 255, 0.44);
+    background:
+      linear-gradient(180deg, rgba(255, 253, 249, 0.92), rgba(255, 249, 242, 0.76));
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 28px;
+    box-shadow:
+      0 24px 60px rgba(67, 44, 26, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.64);
+  }
+
+  .glass-panel {
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, rgba(255, 252, 247, 0.94), rgba(252, 247, 240, 0.82));
     backdrop-filter: blur(22px);
     -webkit-backdrop-filter: blur(22px);
-    border: 1px solid rgba(255, 255, 255, 0.34);
-    border-radius: 24px;
-    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.76);
+    border-radius: 34px;
+    box-shadow:
+      0 28px 70px rgba(67, 44, 26, 0.09),
+      inset 0 1px 0 rgba(255, 255, 255, 0.76);
   }
 
-  /* Головна панель:
-     теж робимо трохи прозорішою і менш контрастною */
-  .glass-panel {
-    background: rgba(255, 255, 255, 0.50);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
-    border: 1px solid rgba(255, 255, 255, 0.40);
-    border-radius: 30px;
-    box-shadow: 0 20px 56px rgba(15, 23, 42, 0.06);
-  }
-
-  /* Темна hero-панель:
-     зменшуємо щільність кольору, щоб не тиснула візуально */
-  .hero-glass {
+  .glass-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
     background:
-      linear-gradient(135deg, rgba(31, 41, 55, 0.62), rgba(17, 24, 39, 0.50)),
-      radial-gradient(circle at top left, rgba(249, 115, 22, 0.12), transparent 36%);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 32px;
-    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+      radial-gradient(circle at top left, rgba(201, 166, 124, 0.12), transparent 28%),
+      radial-gradient(circle at bottom right, rgba(140, 164, 176, 0.10), transparent 24%);
   }
 
-  /* Світла допоміжна картка */
+  .glass-panel > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-glass {
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(140deg, rgba(50, 35, 24, 0.92), rgba(79, 55, 38, 0.84)),
+      radial-gradient(circle at top left, rgba(231, 185, 140, 0.16), transparent 28%);
+    border: 1px solid rgba(255, 244, 233, 0.16);
+    border-radius: 36px;
+    box-shadow: 0 34px 80px rgba(44, 28, 17, 0.22);
+  }
+
   .soft-card {
-    background: rgba(255, 255, 255, 0.60);
-    border: 1px solid rgba(255, 255, 255, 0.42);
-    border-radius: 24px;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
+    background: rgba(255, 252, 248, 0.98);
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    box-shadow: 0 16px 40px rgba(67, 44, 26, 0.06);
   }
 
-  /* Основна кнопка:
-     акцент лишаємо теплим, але трохи зменшуємо насиченість */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold text-white transition-all duration-200 active:scale-[0.98];
-    background: rgba(249, 115, 22, 0.74);
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 font-semibold transition-all duration-300 active:scale-[0.985];
+    background: linear-gradient(135deg, var(--accent-600), var(--accent-700));
+    color: #fff8f1;
     border: 1px solid rgba(255, 255, 255, 0.18);
-    box-shadow: 0 12px 24px rgba(249, 115, 22, 0.16);
+    box-shadow: 0 16px 34px rgba(141, 86, 54, 0.22);
   }
 
   .btn-primary:hover {
-    background: rgba(234, 88, 12, 0.82);
-    box-shadow: 0 14px 28px rgba(249, 115, 22, 0.22);
     transform: translateY(-1px);
+    box-shadow: 0 20px 40px rgba(141, 86, 54, 0.28);
+    background: linear-gradient(135deg, #b5754c, #7e492d);
   }
 
-  /* Друга кнопка:
-     робимо її легшою і більш скляною */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold text-gray-900 transition-all duration-200 active:scale-[0.98];
-    background: rgba(255, 255, 255, 0.50);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.38);
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 font-semibold transition-all duration-300 active:scale-[0.985];
+    background: rgba(255, 253, 250, 0.92);
+    color: var(--ink-900);
+    border: 1px solid rgba(255, 255, 255, 0.86);
+    box-shadow:
+      0 14px 34px rgba(67, 44, 26, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.86);
   }
 
   .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.66);
     transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.98);
   }
 
-  /* Контурна кнопка:
-     зменшуємо щільність білого і hover-ефекту */
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold text-gray-800 transition-all duration-200 active:scale-[0.98];
-    background: rgba(255, 255, 255, 0.26);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.34);
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 font-semibold transition-all duration-300 active:scale-[0.985];
+    background: rgba(255, 251, 245, 0.62);
+    color: var(--ink-700);
+    border: 1px solid var(--line-strong);
   }
 
   .btn-outline:hover {
-    background: rgba(249, 115, 22, 0.06);
-    color: #c2410c;
+    transform: translateY(-1px);
+    background: rgba(255, 247, 240, 0.82);
+    border-color: rgba(169, 105, 66, 0.24);
+    color: var(--accent-700);
   }
 
-  /* Текстова кнопка */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold text-gray-700 transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-semibold transition-all duration-300;
+    color: var(--ink-700);
   }
 
   .btn-ghost:hover {
-    background: rgba(249, 115, 22, 0.06);
-    color: #c2410c;
+    background: var(--accent-soft);
+    color: var(--accent-700);
   }
 
-  /* Поле вводу:
-     робимо його менш "молочним", щоб фон дихав */
-  .input-glass {
-    @apply w-full px-4 py-3 rounded-2xl outline-none transition-all duration-200 text-gray-900 placeholder-gray-500;
-    background: rgba(255, 255, 255, 0.50);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.38);
+  .input-glass,
+  .select-glass {
+    @apply w-full rounded-[22px] px-4 py-3.5 outline-none transition-all duration-300;
+    background: rgba(255, 253, 250, 0.88);
+    color: var(--ink-900);
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
   }
 
-  .input-glass:focus {
-    border-color: rgba(249, 115, 22, 0.28);
-    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.10);
+  .input-glass::placeholder {
+    color: #9a8776;
   }
 
-  /* Темне поле hero-блоку */
+  .input-glass:focus,
+  .select-glass:focus {
+    border-color: rgba(169, 105, 66, 0.34);
+    box-shadow:
+      0 0 0 4px rgba(169, 105, 66, 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.84);
+  }
+
   .input-hero {
-    @apply w-full px-4 py-3 rounded-2xl outline-none transition-all duration-200 text-white placeholder-gray-300;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    @apply w-full rounded-[22px] px-4 py-3.5 outline-none transition-all duration-300;
+    background: rgba(255, 248, 241, 0.12);
+    color: #fff8f3;
+    border: 1px solid rgba(255, 240, 227, 0.18);
+  }
+
+  .input-hero::placeholder {
+    color: rgba(255, 245, 236, 0.66);
   }
 
   .input-hero:focus {
-    border-color: rgba(249, 115, 22, 0.40);
-    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.12);
+    border-color: rgba(255, 214, 182, 0.42);
+    box-shadow: 0 0 0 4px rgba(231, 185, 140, 0.12);
   }
 
-  /* Select робимо в тій самій прозорій логіці, що і input */
-  .select-glass {
-    @apply w-full px-4 py-3 rounded-2xl outline-none transition-all duration-200 text-gray-900;
-    background: rgba(255, 255, 255, 0.50);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.38);
-  }
-
-  /* Заголовки */
   .page-title {
-    @apply text-3xl md:text-5xl font-extrabold tracking-tight text-gray-950;
+    font-family: var(--font-display);
+    font-size: clamp(2.9rem, 6vw, 5.2rem);
+    line-height: 0.98;
+    font-weight: 600;
+    color: var(--ink-900);
   }
 
   .hero-title {
-    @apply text-3xl md:text-5xl font-extrabold tracking-tight text-white;
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    line-height: 0.96;
+    font-weight: 600;
+    color: #fffaf5;
   }
 
   .section-title {
-    @apply text-2xl md:text-3xl font-extrabold tracking-tight text-gray-950;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3vw, 3.15rem);
+    line-height: 1.02;
+    font-weight: 600;
+    color: var(--ink-900);
   }
 
   .muted-text {
-    @apply text-gray-600 leading-relaxed;
+    color: var(--ink-700);
+    line-height: 1.8;
   }
 
   .hero-muted-text {
-    @apply text-gray-200 leading-relaxed;
+    color: rgba(255, 244, 234, 0.84);
+    line-height: 1.8;
   }
 
-  @media (max-width: 640px) {
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold;
+    background: rgba(255, 249, 241, 0.88);
+    color: var(--accent-700);
+    border: 1px solid rgba(231, 212, 193, 0.74);
+  }
+
+  .stat-chip {
+    @apply inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold;
+    background: rgba(255, 253, 248, 0.82);
+    color: var(--ink-700);
+    border: 1px solid rgba(255, 255, 255, 0.78);
+  }
+
+  .fade-rise {
+    animation: fade-rise 0.6s ease-out both;
+  }
+
+  .stagger-1 {
+    animation-delay: 0.06s;
+  }
+
+  .stagger-2 {
+    animation-delay: 0.12s;
+  }
+
+  .stagger-3 {
+    animation-delay: 0.18s;
+  }
+
+  @keyframes fade-rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 768px) {
     .glass-card {
-      border-radius: 22px;
+      border-radius: 24px;
     }
 
     .glass-panel {
-      border-radius: 26px;
+      border-radius: 28px;
     }
+  }
 
+  @media (max-width: 640px) {
     .btn-primary,
     .btn-secondary,
     .btn-outline {
