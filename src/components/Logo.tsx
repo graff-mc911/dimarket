@@ -3,7 +3,7 @@ interface LogoIconProps {
   className?: string
 }
 
-export function LogoIcon({ size = 72, className = '' }: LogoIconProps) {
+export function LogoIcon({ compact = false, className = '' }: LogoIconProps) {
   return (
     <div
       className={`flex items-center justify-center ${className}`}
