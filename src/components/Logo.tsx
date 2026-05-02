@@ -135,8 +135,6 @@ function BrandMark({ className }: { className?: string }) {
         strokeLinecap="round"
       />
 
-      {/* Синьо-жовте вікно навмисно залишаємо без змін
-          як окремий впізнаваний акцент бренду. */}
-   
+     
   )
 }
