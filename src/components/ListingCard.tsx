@@ -79,7 +79,7 @@ export function ListingCard({ listing }: ListingCardProps) {
   }
 
   const formatBudget = () => {
-    if (!listing.price) {
+    if (listing.price === null || listing.price === undefined) {
       return t('listing.contactForPrice')
     }
 
@@ -94,84 +94,80 @@ export function ListingCard({ listing }: ListingCardProps) {
     <button
       onClick={() => navigateTo(`/listing/${listing.id}`)}
       type="button"
-      className="glass-card group flex h-full flex-col overflow-hidden text-left transition duration-200 hover:-translate-y-0.5"
+      className="glass-card group flex h-full flex-col overflow-hidden text-left transition duration-300 hover:-translate-y-1"
     >
-      <div className="flex flex-1 flex-col gap-4 p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      {primaryImage ? (
+        <img
+          src={primaryImage}
+          alt={listing.title}
+          className="h-52 w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-52 w-full items-center justify-center bg-[linear-gradient(135deg,rgba(255,248,241,0.82),rgba(244,210,180,0.56))] text-[var(--accent-700)]">
+          <ClipboardList className="h-12 w-12" />
+        </div>
+      )}
+
+      <div className="flex flex-1 flex-col p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <span className="rounded-full bg-[rgba(242,171,116,0.18)] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-[#9a5525]">
+            <span className="rounded-full border border-[var(--glass-border)] bg-[rgba(242,171,116,0.14)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-700)]">
               {typeLabel}
             </span>
 
-            <span className="rounded-full bg-white/65 px-3 py-1 text-xs font-semibold text-[#6f665d]">
+            <span className="rounded-full border border-[var(--glass-border)] bg-[rgba(255,252,248,0.38)] px-3 py-1 text-[11px] font-semibold text-[var(--ink-700)]">
               {categoryLabel}
             </span>
           </div>
 
-          <span className="rounded-full bg-[rgba(126,180,141,0.16)] px-3 py-1 text-xs font-bold text-[#3d7a52]">
+          <span className="rounded-full border border-[rgba(111,145,125,0.18)] bg-[rgba(111,145,125,0.08)] px-3 py-1 text-[10px] font-semibold text-[#3d7a52]">
             {getStatusLabel()}
           </span>
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row">
-          {primaryImage ? (
-            <img
-              src={primaryImage}
-              alt={listing.title}
-              className="h-44 w-full shrink-0 rounded-[22px] object-cover sm:h-24 sm:w-24"
-            />
-          ) : (
-            <div className="flex h-28 w-full shrink-0 items-center justify-center rounded-[22px] bg-[linear-gradient(135deg,rgba(255,244,234,0.95),rgba(244,186,134,0.72))] text-[#9a5525] sm:h-24 sm:w-24">
-              <ClipboardList className="h-8 w-8" />
-            </div>
-          )}
+        <h3 className="mt-4 line-clamp-2 text-[1.02rem] font-bold leading-[1.3] tracking-[-0.02em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)] md:text-[1.08rem]">
+          {listing.title}
+        </h3>
 
-          <div className="min-w-0 flex-1">
-            <h3 className="line-clamp-2 text-xl font-extrabold leading-tight text-[#2f2a24] transition group-hover:text-[#9a5525]">
-              {listing.title}
-            </h3>
+        <p className="muted-text mt-3 line-clamp-3 text-[13px]">
+          {listing.description}
+        </p>
 
-            <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#6f665d]">
-              {listing.description}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-2 text-sm text-[#7a7168]">
+        <div className="mt-4 space-y-2 text-[13px] text-[var(--ink-700)]">
           <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 shrink-0" />
+            <MapPin className="h-4 w-4 shrink-0 text-[var(--accent-700)]" />
             <span>{listing.location || t('listing.locationNotSpecified')}</span>
           </div>
 
           {visibilityRadius && (
             <div className="flex items-center gap-2">
-              <Globe className="h-4 w-4 shrink-0" />
+              <Globe className="h-4 w-4 shrink-0 text-[var(--accent-700)]" />
               <span>{getVisibilityLabel(visibilityRadius)}</span>
             </div>
           )}
         </div>
-      </div>
 
-      <div className="mt-auto border-t border-[rgba(190,168,150,0.28)] px-5 py-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9d8b7a]">
-              {t('listing.budget')}
+        <div className="mt-5 border-t border-[var(--glass-border)] pt-4">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--ink-500)]">
+                {t('listing.budget')}
+              </div>
+              <div className="mt-1 text-[1rem] font-bold text-[var(--ink-900)]">
+                {formatBudget()}
+              </div>
             </div>
-            <div className="mt-1 text-lg font-extrabold text-[#2f2a24]">
-              {formatBudget()}
-            </div>
-          </div>
 
-          <div className="text-xs text-[#7a7168] sm:text-right">
-            <div className="flex items-center gap-1 sm:justify-end">
-              <Calendar className="h-3.5 w-3.5" />
-              <span>
-                {daysRemaining} {t('listing.daysLeft')}
-              </span>
-            </div>
-            <div className="mt-1">
-              {listing.views_count} {t('listing.views')}
+            <div className="text-right text-[12px] text-[var(--ink-500)]">
+              <div className="flex items-center justify-end gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                <span>
+                  {daysRemaining} {t('listing.daysLeft')}
+                </span>
+              </div>
+              <div className="mt-1">
+                {listing.views_count} {t('listing.views')}
+              </div>
             </div>
           </div>
         </div>
