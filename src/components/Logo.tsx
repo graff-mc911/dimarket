@@ -1,146 +1,161 @@
 interface LogoProps {
-  variant?: 'full' | 'icon' | 'text'
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  compact?: boolean
   className?: string
 }
 
-const sizes = {
-  sm: {
-    gap: 'gap-2.5',
-    mark: 'h-10 w-10',
-    title: 'text-[1.4rem]',
-    subtitle: 'text-[9px]',
-  },
-  md: {
-    gap: 'gap-3',
-    mark: 'h-[52px] w-[52px]',
-    title: 'text-[2rem]',
-    subtitle: 'text-[10px]',
-  },
-  lg: {
-    gap: 'gap-3.5',
-    mark: 'h-[60px] w-[60px]',
-    title: 'text-[2.25rem]',
-    subtitle: 'text-[11px]',
-  },
-  xl: {
-    gap: 'gap-4',
-    mark: 'h-[72px] w-[72px]',
-    title: 'text-[2.75rem]',
-    subtitle: 'text-[12px]',
-  },
-} as const
-
-export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProps) {
-  const current = sizes[size]
-
-  // Текстову частину логотипа збираємо окремо,
-  // щоб її можна було показувати разом зі знаком або без нього.
-  const wordmark = (
-    <div className="min-w-0 leading-none">
-      <div
-        className={`font-[var(--font-display)] ${current.title} whitespace-nowrap font-black tracking-[-0.055em]`}
-      >
-        <span className="text-[#a96942]">DI</span>
-        <span className="text-[#241b14]">market</span>
-      </div>
-
-      <div
-        className={`mt-1.5 font-semibold uppercase tracking-[0.12em] text-[#5c4d41] ${current.subtitle}`}
-      >
-        Everything for construction and renovation
-      </div>
-    </div>
-  )
-
-  // Режим only-text потрібен для місць,
-  // де знак не потрібен або немає для нього місця.
-  if (variant === 'text') {
-    return <div className={className}>{wordmark}</div>
-  }
-
-  // Режим icon показує тільки сам знак без тексту.
-  if (variant === 'icon') {
-    return <BrandMark className={`${current.mark} ${className}`} />
-  }
-
-  // За замовчуванням віддаємо повний логотип:
-  // знак + назва + нижній підпис.
+export function Logo({ compact = false, className = '' }: LogoProps) {
   return (
-    <div className={`flex items-center ${current.gap} ${className}`}>
-      <BrandMark className={current.mark} />
-      {wordmark}
+    <div className={`flex items-center gap-3 ${className}`}>
+      {/* 
+        ІКОНКА DImarket у стилі Apple / Notion:
+        - прості форми
+        - мʼякі кути
+        - мінімум дрібних деталей
+        - добре читається навіть у маленькому розмірі
+      */}
+      <svg
+        width="52"
+        height="52"
+        viewBox="0 0 120 120"
+        xmlns="http://www.w3.org/2000/svg"
+        className="shrink-0"
+        role="img"
+        aria-label="DImarket logo"
+      >
+        {/* 
+          Основний фон іконки.
+          Колір теплий бежевий — під будівництво, дерево, матеріали.
+        */}
+        <rect
+          x="6"
+          y="6"
+          width="108"
+          height="108"
+          rx="28"
+          fill="#F5E9D8"
+        />
+
+        {/* 
+          Мʼяка внутрішня тінь/рамка.
+          Дає відчуття якісної app icon, але не перевантажує.
+        */}
+        <rect
+          x="6.5"
+          y="6.5"
+          width="107"
+          height="107"
+          rx="27.5"
+          fill="none"
+          stroke="rgba(74, 46, 30, 0.16)"
+        />
+
+        {/* 
+          Стилізований дах.
+          Не як реалістичний будинок, а як чистий геометричний символ.
+        */}
+        <path
+          d="M31 51 L60 30 L89 51"
+          fill="none"
+          stroke="#E85D04"
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* 
+          Основна форма D.
+          Вона велика, масивна і рівна — це головний бренд-символ.
+        */}
+        <path
+          d="M30 58 H55 C73 58 84 70 84 86 C84 102 73 111 55 111 H30 V58 Z"
+          fill="#1A1A1A"
+        />
+
+        {/* 
+          Внутрішній виріз у D.
+          Робить літеру читабельною і не дає їй виглядати як чорна пляма.
+        */}
+        <path
+          d="M45 73 H55 C64 73 69 78 69 86 C69 94 64 99 55 99 H45 V73 Z"
+          fill="#F5E9D8"
+        />
+
+        {/* 
+          Літера I.
+          Проста вертикальна форма у помаранчевому кольорі.
+          Вона балансує чорну D і додає енергію.
+        */}
+        <rect
+          x="90"
+          y="58"
+          width="10"
+          height="53"
+          rx="4"
+          fill="#E85D04"
+        />
+
+        {/* 
+          Малий коричневий акцент знизу.
+          Дає іконці “будівельну” вагу, але не виглядає як зайва деталь.
+        */}
+        <rect
+          x="88"
+          y="108"
+          width="16"
+          height="4"
+          rx="2"
+          fill="#4A2E1E"
+        />
+
+        {/* 
+          Український акцент у вікні:
+          верх — синій, низ — жовтий.
+          Дуже маленька деталь, але вона додає характер бренду.
+        */}
+        <rect
+          x="50"
+          y="80"
+          width="10"
+          height="5"
+          rx="1.5"
+          fill="#0057B7"
+        />
+        <rect
+          x="50"
+          y="86"
+          width="10"
+          height="5"
+          rx="1.5"
+          fill="#FFD700"
+        />
+      </svg>
+
+      {/* 
+        Текстова частина логотипу.
+        Якщо compact=true — показуємо тільки іконку.
+        Це зручно для мобільного меню, favicon-зони або вузьких місць.
+      */}
+      {!compact && (
+        <div className="leading-none">
+          {/* 
+            Назва бренду.
+            DI — помаранчевий акцент.
+            market — чорний, щоб текст виглядав стабільно і дорого.
+          */}
+          <div className="text-2xl font-sora font-semibold tracking-normal">
+            <span className="text-[#E85D04]">DI</span>
+            <span className="text-[#1A1A1A]">market</span>
+          </div>
+
+          {/* 
+            Короткий підпис.
+            tracking дуже малий, щоб текст не розтягувався.
+          */}
+          <div className="text-[10px] font-sora uppercase tracking-[0.004em] text-[#4A2E1E] mt-1">
+            Build & Renovate
+          </div>
+        </div>
+      )}
     </div>
-  )
-}
-
-function BrandMark({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 120 120"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={`${className || ''} shrink-0 drop-shadow-[0_10px_24px_rgba(82,54,32,0.08)]`}
-      aria-label="DImarket logo"
-      role="img"
-    >
-      {/* М'який квадратний фон у кольорах застосунку. */}
-      <rect
-        x="6"
-        y="6"
-        width="108"
-        height="108"
-        rx="26"
-        fill="#F8F5EF"
-        stroke="#E7D6C4"
-        strokeWidth="1.5"
-      />
-
-      {/* Дах будинку вирівняний симетрично, щоб знак виглядав акуратно. */}
-      <path
-        d="M22 45L60 17L98 45"
-        stroke="#A96942"
-        strokeWidth="7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      {/* Димар залишаємо темнішим для контрасту. */}
-      <rect x="78" y="18" width="12" height="18" rx="2" fill="#5C4D41" />
-
-      {/* Основна форма літери D. */}
-      <path
-        d="M29 52H54C72.5 52 85 64 85 82C85 100 72.5 111 54 111H29V52Z"
-        fill="#241B14"
-      />
-
-      {/* Внутрішній проріз літери D робимо світлим,
-          щоб форма добре читалась на малих розмірах. */}
-      <path
-        d="M41 65H52C62 65 69 72 69 82C69 92 62 98 52 98H41V65Z"
-        fill="#FDFBF7"
-      />
-
-      {/* Нижній скошений акцент зліва формує фірмовий силует знака. */}
-      <path d="M29 111L42 98V111H29Z" fill="#F8F5EF" />
-
-      {/* Стійка літери I стилізована як права частина будинку. */}
-      <path d="M82 51C91 53 97 60 97 69V111H82V51Z" fill="#8D5636" />
-
-      {/* Основа внизу тримає композицію і візуально заземляє знак. */}
-      <path
-        d="M79 111H101"
-        stroke="#5C4D41"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-      />
-
-      {/* Синьо-жовте вікно навмисно залишаємо без змін
-          як окремий впізнаваний акцент бренду. */}
-      <rect x="48" y="74" width="7.5" height="7.5" rx="1.3" fill="#0057B7" />
-      <rect x="57.5" y="74" width="7.5" height="7.5" rx="1.3" fill="#0057B7" />
-      <rect x="48" y="83.5" width="7.5" height="7.5" rx="1.3" fill="#FFD700" />
-      <rect x="57.5" y="83.5" width="7.5" height="7.5" rx="1.3" fill="#FFD700" />
-    </svg>
   )
 }
