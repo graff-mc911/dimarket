@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   ArrowRight,
   Clock3,
+  ClipboardList,
   MapPin,
   PlusCircle,
   Search,
@@ -243,7 +244,7 @@ export function Home() {
                   className="glass-card group p-5 text-left transition duration-300 hover:-translate-y-1"
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-[16px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.34)] text-lg text-[var(--accent-700)]">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-[18px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.34)] text-xl text-[var(--accent-700)]">
                       {category.icon || '•'}
                     </div>
 
@@ -395,12 +396,26 @@ function HomeJobCard({
     ? `${currencySymbol}${job.price.toLocaleString()}`
     : noBudgetLabel
 
+  const primaryImage = job.images?.[0]?.image_url || null
+
   return (
     <button
       onClick={() => navigateTo(`/listing/${job.id}`)}
       type="button"
-      className="glass-card group p-5 text-left transition duration-300 hover:-translate-y-1"
+      className="glass-card group overflow-hidden p-5 text-left transition duration-300 hover:-translate-y-1"
     >
+      {primaryImage ? (
+        <img
+          src={primaryImage}
+          alt={job.title}
+          className="mb-4 h-44 w-full rounded-[20px] object-cover"
+        />
+      ) : (
+        <div className="mb-4 flex h-44 w-full items-center justify-center rounded-[20px] border border-[var(--glass-border)] bg-[linear-gradient(135deg,rgba(255,248,241,0.72),rgba(244,210,180,0.46))] text-[var(--accent-700)]">
+          <ClipboardList className="h-10 w-10" />
+        </div>
+      )}
+
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <span className="inline-flex rounded-full border border-[var(--glass-border)] bg-[rgba(255,252,248,0.38)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-700)]">
@@ -464,7 +479,7 @@ function ProfessionalPreviewCard({
     <div className="glass-card p-5 transition duration-300 hover:-translate-y-1">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.42)] text-sm font-semibold text-[var(--accent-700)]">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.42)] text-base font-semibold text-[var(--accent-700)]">
             {initials}
           </div>
 
