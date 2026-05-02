@@ -19,6 +19,7 @@ import { Dashboard } from './pages/Dashboard'
 import { Settings } from './pages/Settings'
 import { Favorites } from './pages/Favorites'
 import { Advertising } from './pages/Advertising'
+import { Contact } from './pages/Contact'
 import { navigateTo } from './lib/navigation'
 
 function AppContent() {
@@ -152,21 +153,9 @@ function AppContent() {
       return <Advertising />
     }
 
-    // Тимчасова сторінка для /contact,
-    // щоб кнопки не вели на "битий" маршрут.
+    // Реальна сторінка зворотного зв'язку.
     if (path === '/contact') {
-      return (
-        <RoutePlaceholder
-          icon={MessageSquare}
-          eyebrow="Зворотний зв'язок"
-          title="Сторінка звернення готується"
-          description="Маршрут уже підключений. Наступним кроком ми можемо одразу додати повноцінну форму зворотного зв'язку."
-          primaryLabel="На головну"
-          primaryPath="/"
-          secondaryLabel="Реклама на сайті"
-          secondaryPath="/advertise"
-        />
-      )
+      return <Contact />
     }
 
     // Усі невідомі маршрути ведемо на універсальну заглушку.
