@@ -73,7 +73,7 @@ export function Logo({ compact = false, className = '' }: LogoProps) {
           </div>
 
           <div className="text-[10px] uppercase tracking-[0.25em] text-[#4A2E1E] mt-1">
-            все для будівництва та ремонту
+           Everything for Construction & Renovation
           </div>
         </div>
       )}
