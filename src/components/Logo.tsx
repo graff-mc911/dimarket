@@ -6,22 +6,26 @@ interface LogoProps {
 
 const sizes = {
   sm: {
-    full: 'h-10',
+    fullWrap: 'h-10 w-[60px]',
+    fullImage: 'scale-[1.65] -translate-y-[2px]',
     icon: 'h-10 w-10',
     title: 'text-[1.15rem]',
   },
   md: {
-    full: 'h-12',
+    fullWrap: 'h-12 w-[72px]',
+    fullImage: 'scale-[1.68] -translate-y-[2px]',
     icon: 'h-12 w-12',
     title: 'text-[1.55rem]',
   },
   lg: {
-    full: 'h-14',
+    fullWrap: 'h-14 w-[84px]',
+    fullImage: 'scale-[1.7] -translate-y-[3px]',
     icon: 'h-14 w-14',
     title: 'text-[1.95rem]',
   },
   xl: {
-    full: 'h-[72px]',
+    fullWrap: 'h-[72px] w-[108px]',
+    fullImage: 'scale-[1.72] -translate-y-[4px]',
     icon: 'h-[72px] w-[72px]',
     title: 'text-[2.35rem]',
   },
@@ -30,19 +34,22 @@ const sizes = {
 export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProps) {
   const current = sizes[size]
 
-  // Повний логотип беремо напряму з PNG,
-  // щоб у застосунку він виглядав точно так само, як на затвердженому зображенні.
+  // Повний логотип беремо напряму з затвердженого PNG.
+  // Зображення має великі білі поля, тому тут навмисно збільшуємо його всередині рамки,
+  // щоб у хедері й футері воно виглядало так само, як на референсі, а не губилося.
   if (variant === 'full') {
     return (
-      <img
-        src="/logo-full.png"
-        alt="DImarket Build & Renovate"
-        className={`${current.full} w-auto shrink-0 object-contain ${className}`}
-      />
+      <div className={`${current.fullWrap} shrink-0 overflow-hidden ${className}`}>
+        <img
+          src="/logo-full.png"
+          alt="DImarket Build & Renovate"
+          className={`h-full w-full object-contain transform-gpu ${current.fullImage}`}
+        />
+      </div>
     )
   }
 
-  // Іконковий режим залишає тільки знак без нижнього тексту.
+  // Іконковий режим залишає тільки компактний знак.
   if (variant === 'icon') {
     return (
       <img
