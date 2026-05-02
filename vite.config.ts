@@ -1,10 +1,12 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
-// https://vitejs.dev/config/
+// Ставимо відносну base-адресу,
+// щоб іконки, assets і built-файли працювали не лише з кореня домену.
 export default defineConfig({
+  base: './',
   plugins: [react()],
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
-});
+})
