@@ -40,13 +40,13 @@ export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProp
     />
   )
 
-  // Повний логотип беремо окремим PNG,
-  // щоб у шапці й футері показувався саме готовий фірмовий знак з підписом англійською.
+  // Повний логотип беремо з public,
+  // тому файл logo-full.png має обов'язково лежати в папці public.
   const fullLogo = (
     <img
       src="/logo-full.png"
       alt="DImarket - Everything for construction and renovation"
-      className={`${current.full} h-auto shrink-0 object-contain`}
+      className={`${current.full} block h-auto shrink-0 object-contain`}
     />
   )
 
