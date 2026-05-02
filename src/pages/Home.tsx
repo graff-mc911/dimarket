@@ -1,13 +1,11 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import {
   ArrowRight,
   Clock3,
   MapPin,
-  Megaphone,
   PlusCircle,
   Search,
   ShieldCheck,
-  Sparkles,
   Star,
   UserRound,
 } from 'lucide-react'
@@ -133,24 +131,26 @@ export function Home() {
   return (
     <div className="page-bg min-h-screen">
       <section className="px-4 pb-6 pt-4 md:px-6 md:pb-8 xl:px-8 2xl:px-10">
-        <div className="mx-auto grid max-w-7xl gap-5 xl:grid-cols-[minmax(0,1fr)_290px]">
+        <div className="mx-auto max-w-7xl">
           <div className="glass-panel fade-rise p-6 md:p-7 xl:p-8">
             <div className="eyebrow">
               <ShieldCheck className="h-4 w-4" />
               <span>{t('home.globalEyebrow')}</span>
             </div>
 
-            <h1 className="mt-5 max-w-3xl font-[var(--font-display)] text-[1.82rem] font-semibold leading-[1.06] tracking-[-0.04em] text-[var(--ink-900)] md:text-[2.15rem] xl:text-[2.45rem]">
-              {t('home.heroSimpleTitle')}
-            </h1>
+            <div className="mt-5 max-w-3xl">
+              <h1 className="font-[var(--font-display)] text-[1.72rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[var(--ink-900)] md:text-[2.02rem] xl:text-[2.3rem]">
+                {t('home.heroSimpleTitle')}
+              </h1>
 
-            <p className="muted-text mt-4 max-w-2xl text-[14px] md:text-[15px]">
-              {t('home.heroSimpleDescription')}
-            </p>
+              <p className="muted-text mt-4 max-w-2xl text-[14px] md:text-[15px]">
+                Знайдіть майстра або опублікуйте своє оголошення. Без зайвих кроків і без оплат для користувачів.
+              </p>
+            </div>
 
             <form
               onSubmit={handleSearch}
-              className="mt-7 grid gap-3 xl:grid-cols-[minmax(0,1fr)_210px_164px]"
+              className="mt-7 grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px_166px]"
             >
               <div className="relative">
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[var(--ink-500)]" />
@@ -206,8 +206,8 @@ export function Home() {
               </button>
             </div>
 
-            <div className="mt-7 flex flex-wrap gap-2">
-              {categories.slice(0, 5).map((category) => (
+            <div className="mt-6 flex flex-wrap gap-2">
+              {categories.slice(0, 6).map((category) => (
                 <button
                   key={category.id}
                   onClick={() => navigateTo(`/listings?category=${category.slug}`)}
@@ -218,22 +218,6 @@ export function Home() {
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="space-y-4">
-            <InfoCard
-              icon={<Sparkles className="h-4 w-4" />}
-              title="Як це працює"
-              text="Клієнти публікують запити на роботу, майстри відповідають напряму, а DImarket залишається безкоштовним для користувачів."
-            />
-
-            <InfoCard
-              icon={<Megaphone className="h-4 w-4" />}
-              title={t('home.adTitle')}
-              text={t('home.adText')}
-              actionLabel={t('home.adButton')}
-              onClick={() => navigateTo('/advertise')}
-            />
           </div>
         </div>
       </section>
@@ -281,49 +265,36 @@ export function Home() {
       </section>
 
       <section className="px-4 py-6 md:px-6 xl:px-8 2xl:px-10">
-        <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,1fr)_270px]">
-          <div>
-            <SectionHeader
-              title={t('home.freshRequestsTitle')}
-              text={t('home.freshRequestsText')}
-              buttonText={t('home.allRequests')}
-              onClick={() => navigateTo('/listings')}
-            />
+        <div className="mx-auto max-w-7xl">
+          <SectionHeader
+            title={t('home.freshRequestsTitle')}
+            text={t('home.freshRequestsText')}
+            buttonText={t('home.allRequests')}
+            onClick={() => navigateTo('/listings')}
+          />
 
-            {loading ? (
-              <LoadingBlock text={t('home.loading')} />
-            ) : jobs.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {jobs.map((job) => (
-                  <HomeJobCard
-                    key={job.id}
-                    job={job}
-                    categoryLabel={getListingCategoryName(job)}
-                    currencySymbol={currency.symbol}
-                    locale={language.code}
-                    budgetLabel={t('home.budgetLabel')}
-                    activeLabel={t('home.activeLabel')}
-                    noBudgetLabel={t('listing.contactForPrice')}
-                    noLocationLabel={t('home.noLocation')}
-                    unknownCategoryLabel={t('home.unknownCategory')}
-                  />
-                ))}
-              </div>
-            ) : (
-              <EmptyBlock text={t('home.noJobs')} />
-            )}
-          </div>
-
-          <div className="space-y-4">
-            <MiniInfoCard
-              title="Glass UI"
-              text="Тонші межі, м'якше світло і більше повітря між блоками."
-            />
-            <MiniInfoCard
-              title={t('home.adCardOne')}
-              text={t('home.sidebarAdOne')}
-            />
-          </div>
+          {loading ? (
+            <LoadingBlock text={t('home.loading')} />
+          ) : jobs.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {jobs.map((job) => (
+                <HomeJobCard
+                  key={job.id}
+                  job={job}
+                  categoryLabel={getListingCategoryName(job)}
+                  currencySymbol={currency.symbol}
+                  locale={language.code}
+                  budgetLabel={t('home.budgetLabel')}
+                  activeLabel={t('home.activeLabel')}
+                  noBudgetLabel={t('listing.contactForPrice')}
+                  noLocationLabel={t('home.noLocation')}
+                  unknownCategoryLabel={t('home.unknownCategory')}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyBlock text={t('home.noJobs')} />
+          )}
         </div>
       </section>
 
@@ -376,7 +347,7 @@ function SectionHeader({
   return (
     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h2 className="font-[var(--font-display)] text-[1.42rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[var(--ink-900)] md:text-[1.7rem]">
+        <h2 className="font-[var(--font-display)] text-[1.35rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[var(--ink-900)] md:text-[1.6rem]">
           {title}
         </h2>
         <p className="muted-text mt-2 max-w-2xl text-[13px] md:text-[14px]">{text}</p>
@@ -534,50 +505,6 @@ function ProfessionalPreviewCard({
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>
-    </div>
-  )
-}
-
-function InfoCard({
-  icon,
-  title,
-  text,
-  actionLabel,
-  onClick,
-}: {
-  icon: ReactNode
-  title: string
-  text: string
-  actionLabel?: string
-  onClick?: () => void
-}) {
-  return (
-    <div className="glass-card p-5">
-      <div className="flex h-10 w-10 items-center justify-center rounded-[16px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.36)] text-[var(--accent-700)]">
-        {icon}
-      </div>
-
-      <h3 className="mt-4 text-[1rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)]">{title}</h3>
-      <p className="muted-text mt-3 text-[13px]">{text}</p>
-
-      {actionLabel && onClick && (
-        <button
-          onClick={onClick}
-          type="button"
-          className="btn-secondary mt-5 w-full rounded-full text-sm"
-        >
-          {actionLabel}
-        </button>
-      )}
-    </div>
-  )
-}
-
-function MiniInfoCard({ title, text }: { title: string; text: string }) {
-  return (
-    <div className="glass-card p-5">
-      <h3 className="text-[0.98rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)]">{title}</h3>
-      <p className="muted-text mt-3 text-[13px]">{text}</p>
     </div>
   )
 }
