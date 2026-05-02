@@ -45,7 +45,7 @@ const EMPTY_STATS: OwnerStats = {
   internalMessages: 0,
 }
 
-const OWNER_EMAIL = 'YOUR_EMAIL@gmail.com'
+const OWNER_EMAIL = 'ivan.sovban@gmail.com'
 
 function isOwnerEmail(email: string | null | undefined) {
   // Тимчасово визначаємо власника сайту по email,
