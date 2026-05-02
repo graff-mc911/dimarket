@@ -72,7 +72,7 @@ export function Logo({ compact = false, className = '' }: LogoProps) {
             <span className="text-[#1A1A1A]">market</span>
           </div>
 
-          <div className="text-[10px] uppercase tracking-[0.06em] text-[#4A2E1E] mt-1">
+          <div className="text-[10px] uppercase tracking-[0.004em] text-[#4A2E1E] mt-1">
            Everything for Construction & Renovation
           </div>
         </div>
