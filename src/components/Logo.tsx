@@ -43,11 +43,11 @@ export function Logo({ compact = false, className = '' }: LogoProps) {
           fill="#F5E9D8"
         />
 
-        {/* Нижній акцент */}
-        <path
-          d="M28 112 L48 90 V112 Z"
-          fill="#E85D04"
-        />
+       {/* Нижній акцент */}
+<path
+  d="M28 112 L48 90 V112 Z"
+  fill="#E85D04"
+/>
 
         {/* Літера I */}
         <rect x="90" y="54" width="12" height="58" fill="#E85D04" rx="2" />
