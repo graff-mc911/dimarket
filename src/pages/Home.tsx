@@ -133,24 +133,24 @@ export function Home() {
   return (
     <div className="page-bg min-h-screen">
       <section className="px-4 pb-6 pt-4 md:px-6 md:pb-8 xl:px-8 2xl:px-10">
-        <div className="mx-auto grid max-w-7xl gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
-          <div className="glass-panel fade-rise p-6 md:p-8 xl:p-9">
+        <div className="mx-auto grid max-w-7xl gap-5 xl:grid-cols-[minmax(0,1fr)_290px]">
+          <div className="glass-panel fade-rise p-6 md:p-7 xl:p-8">
             <div className="eyebrow">
               <ShieldCheck className="h-4 w-4" />
               <span>{t('home.globalEyebrow')}</span>
             </div>
 
-            <h1 className="mt-5 max-w-3xl font-[var(--font-display)] text-[2.05rem] font-semibold leading-[1.05] tracking-[-0.04em] text-[var(--ink-900)] md:text-[2.65rem] xl:text-[3rem]">
+            <h1 className="mt-5 max-w-3xl font-[var(--font-display)] text-[1.82rem] font-semibold leading-[1.06] tracking-[-0.04em] text-[var(--ink-900)] md:text-[2.15rem] xl:text-[2.45rem]">
               {t('home.heroSimpleTitle')}
             </h1>
 
-            <p className="muted-text mt-4 max-w-2xl text-[15px] md:text-base">
+            <p className="muted-text mt-4 max-w-2xl text-[14px] md:text-[15px]">
               {t('home.heroSimpleDescription')}
             </p>
 
             <form
               onSubmit={handleSearch}
-              className="mt-7 grid gap-3 xl:grid-cols-[minmax(0,1fr)_220px_168px]"
+              className="mt-7 grid gap-3 xl:grid-cols-[minmax(0,1fr)_210px_164px]"
             >
               <div className="relative">
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[var(--ink-500)]" />
@@ -158,7 +158,7 @@ export function Home() {
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder={t('home.whatNeedsToBeDone')}
-                  className="input-glass h-[52px] pl-11"
+                  className="input-glass h-[50px] pl-11"
                 />
               </div>
 
@@ -168,11 +168,11 @@ export function Home() {
                   value={locationQuery}
                   onChange={(event) => setLocationQuery(event.target.value)}
                   placeholder={t('home.cityOrCountry')}
-                  className="input-glass h-[52px] pl-11"
+                  className="input-glass h-[50px] pl-11"
                 />
               </div>
 
-              <button type="submit" className="btn-primary h-[52px] rounded-full px-5">
+              <button type="submit" className="btn-primary h-[50px] rounded-full px-5 text-sm">
                 {t('listings.findRequests')}
               </button>
             </form>
@@ -181,7 +181,7 @@ export function Home() {
               <button
                 onClick={() => navigateTo('/create-ad')}
                 type="button"
-                className="btn-primary rounded-full px-5"
+                className="btn-primary rounded-full px-5 text-sm"
               >
                 <PlusCircle className="h-4 w-4" />
                 Додати оголошення
@@ -212,7 +212,7 @@ export function Home() {
                   key={category.id}
                   onClick={() => navigateTo(`/listings?category=${category.slug}`)}
                   type="button"
-                  className="stat-chip"
+                  className="stat-chip text-[13px]"
                 >
                   {getCategoryName(category)}
                 </button>
@@ -223,8 +223,8 @@ export function Home() {
           <div className="space-y-4">
             <InfoCard
               icon={<Sparkles className="h-4 w-4" />}
-              title="Акуратний і спокійний інтерфейс"
-              text="Ми залишаємо тільки потрібні дії: пошук, майстри, оголошення і чисту навігацію без важких блоків."
+              title="Як це працює"
+              text="Клієнти публікують запити на роботу, майстри відповідають напряму, а DImarket залишається безкоштовним для користувачів."
             />
 
             <InfoCard
@@ -259,18 +259,18 @@ export function Home() {
                   className="glass-card group p-5 text-left transition duration-300 hover:-translate-y-1"
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-[18px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.34)] text-xl text-[var(--accent-700)]">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-[16px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.34)] text-lg text-[var(--accent-700)]">
                       {category.icon || '•'}
                     </div>
 
-                    <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-[var(--ink-500)] transition group-hover:text-[var(--accent-700)]" />
+                    <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-[var(--ink-500)] transition group-hover:text-[var(--accent-700)]" />
                   </div>
 
-                  <h3 className="mt-4 text-[1.08rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)]">
+                  <h3 className="mt-4 text-[1rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)]">
                     {getCategoryName(category)}
                   </h3>
 
-                  <p className="muted-text mt-3 text-sm">{getCategoryDescription(category)}</p>
+                  <p className="muted-text mt-3 text-[13px]">{getCategoryDescription(category)}</p>
                 </button>
               ))}
             </div>
@@ -281,7 +281,7 @@ export function Home() {
       </section>
 
       <section className="px-4 py-6 md:px-6 xl:px-8 2xl:px-10">
-        <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,1fr)_270px]">
           <div>
             <SectionHeader
               title={t('home.freshRequestsTitle')}
@@ -376,14 +376,16 @@ function SectionHeader({
   return (
     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h2 className="section-title">{title}</h2>
-        <p className="muted-text mt-2 max-w-2xl text-sm md:text-base">{text}</p>
+        <h2 className="font-[var(--font-display)] text-[1.42rem] font-semibold leading-[1.08] tracking-[-0.04em] text-[var(--ink-900)] md:text-[1.7rem]">
+          {title}
+        </h2>
+        <p className="muted-text mt-2 max-w-2xl text-[13px] md:text-[14px]">{text}</p>
       </div>
 
       <button
         onClick={onClick}
         type="button"
-        className="btn-ghost self-start rounded-full px-0 sm:self-auto"
+        className="btn-ghost self-start rounded-full px-0 text-sm sm:self-auto"
       >
         {buttonText}
         <ArrowRight className="h-4 w-4" />
@@ -430,23 +432,23 @@ function HomeJobCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <span className="inline-flex rounded-full border border-[var(--glass-border)] bg-[rgba(255,252,248,0.38)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-700)]">
+          <span className="inline-flex rounded-full border border-[var(--glass-border)] bg-[rgba(255,252,248,0.38)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-700)]">
             {categoryLabel || unknownCategoryLabel}
           </span>
 
-          <h3 className="mt-4 line-clamp-2 text-[1.08rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)]">
+          <h3 className="mt-4 line-clamp-2 text-[0.98rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)] transition group-hover:text-[var(--accent-700)] md:text-[1.02rem]">
             {job.title}
           </h3>
         </div>
 
-        <span className="shrink-0 rounded-full border border-[rgba(111,145,125,0.18)] bg-[rgba(111,145,125,0.08)] px-3 py-1 text-[11px] font-semibold text-[#4d755e]">
+        <span className="shrink-0 rounded-full border border-[rgba(111,145,125,0.18)] bg-[rgba(111,145,125,0.08)] px-3 py-1 text-[10px] font-semibold text-[#4d755e]">
           {activeLabel}
         </span>
       </div>
 
-      <p className="muted-text mt-3 line-clamp-3 text-sm">{job.description}</p>
+      <p className="muted-text mt-3 line-clamp-3 text-[13px]">{job.description}</p>
 
-      <div className="mt-4 space-y-2 text-sm text-[var(--ink-700)]">
+      <div className="mt-4 space-y-2 text-[13px] text-[var(--ink-700)]">
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-[var(--accent-700)]" />
           <span>{job.location || noLocationLabel}</span>
@@ -459,8 +461,8 @@ function HomeJobCard({
       </div>
 
       <div className="mt-5 flex items-center justify-between border-t border-[var(--glass-border)] pt-4">
-        <span className="text-sm text-[var(--ink-500)]">{budgetLabel}</span>
-        <span className="text-base font-semibold text-[var(--ink-900)]">{budgetValue}</span>
+        <span className="text-[13px] text-[var(--ink-500)]">{budgetLabel}</span>
+        <span className="text-[15px] font-semibold text-[var(--ink-900)]">{budgetValue}</span>
       </div>
     </button>
   )
@@ -491,32 +493,32 @@ function ProfessionalPreviewCard({
     <div className="glass-card p-5 transition duration-300 hover:-translate-y-1">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.42)] text-sm font-semibold text-[var(--accent-700)]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] border border-[var(--glass-border)] bg-[rgba(255,248,241,0.42)] text-sm font-semibold text-[var(--accent-700)]">
             {initials}
           </div>
 
           <div className="min-w-0">
-            <h3 className="truncate text-[1.05rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)]">
+            <h3 className="truncate text-[0.98rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)] md:text-[1rem]">
               {professional.full_name || defaultNameLabel}
             </h3>
-            <p className="mt-1 text-sm text-[var(--ink-500)]">
+            <p className="mt-1 text-[13px] text-[var(--ink-500)]">
               {professional.location || globalLabel}
             </p>
           </div>
         </div>
 
-        <div className="inline-flex items-center gap-1 rounded-full border border-[var(--glass-border)] bg-[rgba(255,252,248,0.38)] px-3 py-1 text-sm font-semibold text-[#8c6728]">
+        <div className="inline-flex items-center gap-1 rounded-full border border-[var(--glass-border)] bg-[rgba(255,252,248,0.38)] px-3 py-1 text-[13px] font-semibold text-[#8c6728]">
           <Star className="h-4 w-4 fill-current" />
           <span>{ratingLabel}</span>
         </div>
       </div>
 
-      <p className="muted-text mt-4 line-clamp-3 text-sm">
+      <p className="muted-text mt-4 line-clamp-3 text-[13px]">
         {professional.bio || noBioLabel}
       </p>
 
       <div className="mt-5 flex flex-col gap-3 border-t border-[var(--glass-border)] pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2 text-sm text-[var(--ink-500)]">
+        <div className="flex items-center gap-2 text-[13px] text-[var(--ink-500)]">
           <UserRound className="h-4 w-4 text-[var(--accent-700)]" />
           <span>
             {professional.total_reviews} {reviewLabel}
@@ -526,7 +528,7 @@ function ProfessionalPreviewCard({
         <button
           onClick={() => navigateTo(`/professional/${professional.id}`)}
           type="button"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--accent-700)] transition hover:text-[var(--ink-900)]"
+          className="inline-flex items-center gap-2 text-[13px] font-semibold text-[var(--accent-700)] transition hover:text-[var(--ink-900)]"
         >
           <span>{actionLabel}</span>
           <ArrowRight className="h-4 w-4" />
@@ -555,14 +557,14 @@ function InfoCard({
         {icon}
       </div>
 
-      <h3 className="mt-4 text-[1.08rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)]">{title}</h3>
-      <p className="muted-text mt-3 text-sm">{text}</p>
+      <h3 className="mt-4 text-[1rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)]">{title}</h3>
+      <p className="muted-text mt-3 text-[13px]">{text}</p>
 
       {actionLabel && onClick && (
         <button
           onClick={onClick}
           type="button"
-          className="btn-secondary mt-5 w-full rounded-full"
+          className="btn-secondary mt-5 w-full rounded-full text-sm"
         >
           {actionLabel}
         </button>
@@ -574,8 +576,8 @@ function InfoCard({
 function MiniInfoCard({ title, text }: { title: string; text: string }) {
   return (
     <div className="glass-card p-5">
-      <h3 className="text-[1rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)]">{title}</h3>
-      <p className="muted-text mt-3 text-sm">{text}</p>
+      <h3 className="text-[0.98rem] font-semibold tracking-[-0.03em] text-[var(--ink-900)]">{title}</h3>
+      <p className="muted-text mt-3 text-[13px]">{text}</p>
     </div>
   )
 }
