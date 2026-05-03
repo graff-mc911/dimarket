@@ -1,86 +1,138 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
-// Імпортуємо функцію та типи саме з нашого i18n.ts
-import { getTranslation } from '../lib/Translations/i18n';
-import type { TranslationKey } from '../lib/Translations/i18n';
-import { Search, Loader2, MapPin } from 'lucide-react';
+import { useState } from 'react'
+import { LogIn } from 'lucide-react'
+import { useApp } from '../contexts/AppContext'
+import { supabase } from '../lib/supabase'
+import { navigateTo } from '../lib/navigation'
 
-interface Listing {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  images: string[];
-  location?: string;
-}
+export function Login() {
+  const { t } = useApp()
 
-const Listings = () => {
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('listings')
-          .select('*')
-          .order('created_at', { ascending: false });
-        if (error) throw error;
-        setListings(data || []);
-      } catch (err) {
-        console.error('Fetch error:', err);
-      } finally {
-        setLoading(false);
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (loginError) {
+        throw loginError
       }
-    };
-    fetchListings();
-  }, []);
 
-  const filtered = listings.filter(l => l.title.toLowerCase().includes(searchTerm.toLowerCase()));
+      navigateTo('/dashboard')
+    } catch (loginFailure) {
+      setError(
+        loginFailure instanceof Error ? loginFailure.message : t('common.error')
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">
-          {getTranslation('listings_title' as TranslationKey) || 'Оголошення'}
-        </h1>
-        <div className="relative w-64">
-          <Search className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder={getTranslation('search_placeholder' as TranslationKey) || 'Пошук...'}
-            className="w-full pl-9 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+    <div className="page-bg min-h-screen px-4 py-10 md:px-6 xl:px-8 2xl:px-10">
+      <div className="mx-auto flex max-w-md items-center justify-center">
+        <div className="w-full space-y-6">
+          <div className="glass-panel p-6 text-center md:p-8">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[22px] bg-[linear-gradient(135deg,rgba(47,42,36,0.92),rgba(25,23,20,0.92))] text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)]">
+              <LogIn className="h-8 w-8" />
+            </div>
+
+            <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-[#2f2a24]">
+              {t('login.title')}
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-[#6f665d] md:text-base">
+              {t('login.subtitle')}
+            </p>
+
+            {error && (
+              <div className="mt-6 rounded-[20px] border border-[rgba(221,138,120,0.35)] bg-[rgba(255,237,232,0.92)] px-4 py-3 text-left text-sm text-[#a44a3a]">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="mt-6 space-y-5 text-left">
+              <div>
+                <label
+                  htmlFor="email"
+                  className="mb-2 block text-sm font-semibold text-[#5f5a54]"
+                >
+                  {t('login.email')}
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  className="input-glass"
+                  placeholder={t('login.emailPlaceholder')}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="password"
+                  className="mb-2 block text-sm font-semibold text-[#5f5a54]"
+                >
+                  {t('login.password')}
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="input-glass"
+                  placeholder={t('login.passwordPlaceholder')}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-secondary w-full justify-center disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? t('login.signingIn') : t('login.signIn')}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-sm text-[#6f665d]">
+                {t('login.noAccount')}{' '}
+                <button
+                  onClick={() => navigateTo('/register')}
+                  type="button"
+                  className="font-semibold text-[#2f2a24] transition hover:text-[#9a5525]"
+                >
+                  {t('login.registerLink')}
+                </button>
+              </p>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <p className="text-sm text-[#7a7168]">
+              {t('login.lookingToPost')}{' '}
+              <button
+                onClick={() => navigateTo('/create-ad')}
+                type="button"
+                className="font-semibold text-[#c96d2c] transition hover:text-[#9a5525]"
+              >
+                {t('login.noRegistrationRequired')}
+              </button>
+            </p>
+          </div>
         </div>
       </div>
-
-      {loading ? (
-        <div className="flex justify-center py-20"><Loader2 className="animate-spin text-blue-500" /></div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filtered.map(item => (
-            <div key={item.id} className="border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
-              <div className="h-48 bg-gray-100">
-                {item.images?.[0] && <img src={item.images[0]} alt="" className="w-full h-full object-cover" />}
-              </div>
-              <div className="p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-medium truncate">{item.title}</h3>
-                  <span className="text-blue-600 font-bold">{item.price} ₴</span>
-                </div>
-                <div className="flex items-center text-xs text-gray-400">
-                  <MapPin className="w-3 h-3 mr-1" />
-                  {item.location || 'Україна'}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
-  );
-};
-
-export default Listings;
+  )
+}
