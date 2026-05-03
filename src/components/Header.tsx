@@ -1,12 +1,13 @@
 /**
- * Шапка сайту: логотип (без зміни вигляду), навігація, мова/валюта, мобільне меню.
- * Для мобільних додано зручніші зони натискання та aria-атрибути для доступності.
+ * Шапка сайту: навігація, мова/валюта, мобільне меню.
+ * Логотип беремо з окремого компонента Logo (ваш оригінальний файл).
  */
 import { useEffect, useRef, useState } from 'react'
 import { Menu, X, Globe, User, LogOut } from 'lucide-react'
 import { useApp } from '../contexts/AppContext'
 import { CURRENCIES, LANGUAGES } from '../lib/types'
 import { navigateTo } from '../lib/navigation'
+import { Logo } from './Logo'
 
 export function Header() {
   const {
@@ -28,7 +29,6 @@ export function Header() {
   const currencyRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    // Закриваємо випадаючі списки при кліку поза ними
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node
 
@@ -41,7 +41,6 @@ export function Header() {
       }
     }
 
-    // Закриваємо меню при натисканні Esc
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setLanguageOpen(false)
@@ -103,18 +102,16 @@ export function Header() {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50 w-full">
       <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20">
           {/* Логотип */}
-          <div className="flex items-center">
+          <div className="flex items-center min-w-0">
             <button
               onClick={goToHome}
-              className="flex items-center space-x-2"
+              className="flex items-center min-w-0"
               type="button"
+              aria-label="DImarket — на головну"
             >
-              <div className="bg-gradient-to-br from-primary to-secondary p-2 rounded-lg">
-                <div className="text-white font-bold text-xl">DI</div>
-              </div>
-              <span className="text-2xl font-bold text-gray-900">DImarket</span>
+              <Logo size="md" className="max-w-[180px] sm:max-w-[220px]" />
             </button>
           </div>
 
@@ -136,7 +133,6 @@ export function Header() {
               {t('header.findProfessionals')}
             </button>
 
-            {/* Вибір мови */}
             <div ref={languageRef} className="relative">
               <button
                 onClick={() => {
@@ -173,7 +169,6 @@ export function Header() {
               )}
             </div>
 
-            {/* Вибір валюти */}
             <div ref={currencyRef} className="relative">
               <button
                 onClick={() => {
@@ -210,7 +205,6 @@ export function Header() {
               )}
             </div>
 
-            {/* Блок користувача */}
             {user && profile ? (
               <div className="relative group">
                 <button
@@ -218,9 +212,7 @@ export function Header() {
                   className="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition"
                 >
                   <User className="w-5 h-5" />
-                  <span className="font-semibold">
-                    {profile.full_name || t('header.account')}
-                  </span>
+                  <span className="font-semibold">{profile.full_name || t('header.account')}</span>
                 </button>
 
                 <div className="hidden group-hover:block absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2 z-50 border border-gray-100">
@@ -297,7 +289,6 @@ export function Header() {
         </div>
       </div>
 
-      {/* Мобільне меню */}
       {mobileMenuOpen && (
         <div
           id="mobile-primary-menu"
@@ -305,7 +296,7 @@ export function Header() {
           role="navigation"
           aria-label="Мобільна навігація"
         >
-          <div className="px-2 pt-2 pb-3 space-y-1 max-h-[calc(100vh-4rem)] overflow-y-auto overscroll-contain">
+          <div className="px-2 pt-2 pb-3 space-y-1 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain">
             <button
               onClick={goToListings}
               type="button"
@@ -327,9 +318,7 @@ export function Header() {
             <div className="px-3 py-3 bg-gray-50 rounded-lg">
               <div className="flex items-center space-x-2 mb-3">
                 <Globe className="w-5 h-5 text-gray-600" />
-                <span className="text-sm font-semibold text-gray-700">
-                  {t('header.language')}
-                </span>
+                <span className="text-sm font-semibold text-gray-700">{t('header.language')}</span>
               </div>
 
               <select
@@ -351,9 +340,7 @@ export function Header() {
             <div className="px-3 py-3 bg-gray-50 rounded-lg">
               <div className="flex items-center space-x-2 mb-3">
                 <span className="text-lg">{currency.symbol}</span>
-                <span className="text-sm font-semibold text-gray-700">
-                  {t('header.currency')}
-                </span>
+                <span className="text-sm font-semibold text-gray-700">{t('header.currency')}</span>
               </div>
 
               <select
