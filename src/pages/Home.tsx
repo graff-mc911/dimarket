@@ -185,7 +185,7 @@ export function Home() {
                 className="btn-primary rounded-full px-5 text-sm"
               >
                 <PlusCircle className="h-4 w-4" />
-                {t('header.createAd')}
+                Додати оголошення
               </button>
 
               <button
