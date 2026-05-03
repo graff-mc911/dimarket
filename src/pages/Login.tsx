@@ -1,193 +1,119 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { supabase } from '../lib/supabase'; // Переконайтеся, що шлях до клієнта supabase вірний
-import { Camera, Loader2, MapPin, Tag } from 'lucide-react';
+import { useState } from 'react'
+import { supabase } from '../lib/supabase'
+import { LogIn } from 'lucide-react'
+import { useApp } from '../contexts/AppContext'
 
-const CreateListing = () => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  
-  // Стан для форми
-  const [loading, setLoading] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [category, setCategory] = useState('other');
-  const [images, setImages] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
+export function Login() {
+  const { t } = useApp()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  // Обробка вибору зображень
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const filesArray = Array.from(e.target.files);
-      setImages((prev) => [...prev, ...filesArray]);
-
-      // Створюємо тимчасові посилання для попереднього перегляду
-      const newPreviews = filesArray.map(file => URL.createObjectURL(file));
-      setPreviews((prev) => [...prev, ...newPreviews]);
-    }
-  };
-
-  // Функція завантаження зображень у Supabase Storage
-  const uploadImages = async (listingId: string) => {
-    const uploadedUrls = [];
-    for (const file of images) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${listingId}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('listing-images')
-        .upload(filePath, file);
-
-      if (!uploadError) {
-        const { data } = supabase.storage.from('listing-images').getPublicUrl(filePath);
-        uploadedUrls.push(data.publicUrl);
-      }
-    }
-    return uploadedUrls;
-  };
-
-  // Основна функція відправки форми
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
 
     try {
-      // 1. Отримуємо поточного користувача
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Користувач не авторизований');
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-      // 2. Створюємо запис у таблиці listings
-      const { data: listing, error: listingError } = await supabase
-        .from('listings')
-        .insert([
-          {
-            user_id: user.id,
-            title,
-            description,
-            price: parseFloat(price),
-            category,
-            status: 'active'
-          }
-        ])
-        .select()
-        .single();
+      if (error) throw error
 
-      if (listingError) throw listingError;
-
-      // 3. Завантажуємо фото, якщо вони є
-      if (images.length > 0) {
-        const imageUrls = await uploadImages(listing.id);
-        // Оновлюємо запис посиланням на перше фото (як головне) або масивом
-        await supabase
-          .from('listings')
-          .update({ images: imageUrls })
-          .eq('id', listing.id);
-      }
-
-      alert('Оголошення успішно створено!');
-      navigate('/listings'); // Повертаємось до списку
-    } catch (error: any) {
-      alert(error.message || 'Сталася помилка');
+      window.location.href = '/dashboard'
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to login')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-xl mt-10">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">{t('create_new_listing')}</h1>
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Завантаження фото */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Фотографії</label>
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            {previews.map((src, index) => (
-              <img key={index} src={src} alt="Preview" className="w-full h-32 object-cover rounded-lg border" />
-            ))}
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
-              <Camera className="text-gray-400" />
-              <span className="text-xs text-gray-500 mt-2">Додати фото</span>
-              <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
-            </label>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="bg-gradient-to-br from-blue-900 to-blue-700 p-3 rounded-lg">
+              <LogIn className="w-8 h-8 text-white" />
+            </div>
           </div>
+          <h2 className="text-3xl font-bold text-gray-900">
+            {t('login.title')}
+          </h2>
+          <p className="mt-2 text-gray-600">
+            {t('login.subtitle')}
+          </p>
         </div>
 
-        {/* Назва */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Назва оголошення</label>
-          <input
-            required
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Наприклад: Продам велосипед"
-          />
-        </div>
-
-        {/* Категорія та Ціна */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Категорія</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm"
-            >
-              <option value="electronics">Електроніка</option>
-              <option value="transport">Транспорт</option>
-              <option value="realty">Нерухомість</option>
-              <option value="services">Послуги</option>
-              <option value="other">Інше</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Ціна (₴)</label>
-            <input
-              required
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="w-full mt-1 p-2 border border-gray-300 rounded-md"
-              placeholder="0.00"
-            />
-          </div>
-        </div>
-
-        {/* Опис */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Опис</label>
-          <textarea
-            required
-            rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full mt-1 p-2 border border-gray-300 rounded-md"
-            placeholder="Опишіть ваш товар детально..."
-          />
-        </div>
-
-        {/* Кнопка відправки */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none disabled:opacity-50 transition"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="animate-spin mr-2" /> Створення...
-            </>
-          ) : (
-            'Опублікувати оголошення'
+        <div className="bg-white py-8 px-6 shadow-lg rounded-xl">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
           )}
-        </button>
-      </form>
-    </div>
-  );
-};
 
-export default CreateListing;
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('login.email')}
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder={t('login.emailPlaceholder')}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('login.password')}
+              </label>
+              <input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder={t('login.passwordPlaceholder')}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? t('login.signingIn') : t('login.signIn')}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              {t('login.noAccount')}{' '}
+              <a href="/register" className="text-blue-900 font-semibold hover:text-blue-700">
+                {t('login.registerLink')}
+              </a>
+            </p>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <p className="text-sm text-gray-500">
+            {t('login.lookingToPost')}{' '}
+            <a href="/create-ad" className="text-orange-600 font-semibold hover:text-orange-500">
+              {t('login.noRegistrationRequired')}
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
