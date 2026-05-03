@@ -1,21 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="0" fill="#f5f0eb"/>
-  <defs>
-    <linearGradient id="copper" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#c8865a"/>
-      <stop offset="50%" stop-color="#b87333"/>
-      <stop offset="100%" stop-color="#a0622d"/>
-    </linearGradient>
-  </defs>
-  <!-- House roof -->
-  <path d="M256 60 L420 210 L92 210 Z" fill="url(#copper)" stroke="none"/>
-  <!-- Window in roof -->
-  <rect x="240" y="120" width="14" height="14" fill="#f5f0eb"/>
-  <rect x="258" y="120" width="14" height="14" fill="#f5f0eb"/>
-  <rect x="240" y="138" width="14" height="14" fill="#f5f0eb"/>
-  <rect x="258" y="138" width="14" height="14" fill="#f5f0eb"/>
-  <!-- D letter -->
-  <text x="130" y="430" font-family="Georgia, serif" font-size="240" font-weight="bold" fill="#2d2319">D</text>
-  <!-- I letter -->
-  <text x="320" y="430" font-family="Georgia, serif" font-size="240" font-weight="bold" fill="url(#copper)">I</text>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="512"
+  height="512"
+  viewBox="0 0 512 512"
+>
+
+  <!-- фон -->
+  <rect width="512" height="512" fill="#f5f0eb"/>
+
+  <!-- твоє зображення -->
+  <image
+    href="/logo-full.png"
+    x="0"
+    y="0"
+    width="512"
+    height="512"
+    preserveAspectRatio="xMidYMid slice"
+  />
+
 </svg>
