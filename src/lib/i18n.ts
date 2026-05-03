@@ -2,14 +2,15 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// Імпортуємо ваші переклади з локальної папки locales
-import { translations } from './locales';
+// Імпортуємо ваші налаштовані ресурси та функції безпосередньо з папки locales
+import { translations, getTranslation } from './locales';
+import type { TranslationKey, LanguageCode } from './locales';
 
-// Експортуємо типи та функції, щоб вони були доступні в Listings.tsx та інших файлах
-export { translations, getTranslation } from './locales';
-export type { TranslationKey, LanguageCode } from './locales';
+// Експортуємо їх, щоб інші файли могли звертатися до i18n.ts як до єдиного джерела
+export { translations, getTranslation };
+export type { TranslationKey, LanguageCode };
 
-// Формуємо об'єкт ресурсів для i18next
+// Перетворюємо об'єкт translations у формат для i18next
 const resources = Object.keys(translations).reduce((acc, lang) => {
   acc[lang] = {
     translation: translations[lang as keyof typeof translations]
@@ -18,19 +19,20 @@ const resources = Object.keys(translations).reduce((acc, lang) => {
 }, {} as any);
 
 i18n
-  // Автоматичне визначення мови (через localStorage або браузер)
   .use(LanguageDetector)
-  // Інтеграція з React
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'uk', // Мова за замовчуванням
+    fallbackLng: 'uk',
     interpolation: {
-      escapeValue: false, // React робить це автоматично
+      escapeValue: false
     },
     detection: {
       order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
+      caches: ['localStorage']
+    },
+    react: {
+      useSuspense: false
     }
   });
 
