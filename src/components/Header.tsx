@@ -25,7 +25,7 @@ interface NavItem {
   icon: LucideIcon
 }
 
-const OWNER_EMAIL = 'ivan.sovbanL@gmail.com'
+const OWNER_EMAIL = 'YOUR_EMAIL@gmail.com'
 
 function isOwnerEmail(email: string | null | undefined) {
   return (email || '').trim().toLowerCase() === OWNER_EMAIL.trim().toLowerCase()
@@ -213,7 +213,7 @@ export function Header() {
                   type="text"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder={t('header.searchPlaceholder')}
+                  placeholder={t('home.search')}
                   className="input-glass h-12 rounded-full pl-11 pr-4"
                 />
               </div>
@@ -374,8 +374,7 @@ export function Header() {
                 className="inline-flex items-center gap-1 rounded-full border-0 bg-transparent px-2 py-2 text-xs font-semibold text-[var(--ink-800)] shadow-none outline-none transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_16px_rgba(196,122,61,0.22)] sm:gap-2 sm:px-3 sm:text-sm"
               >
                 <PlusCircle className="h-5 w-5" />
-                <span className="hidden min-[430px]:inline sm:hidden">{t('header.createAdShort')}</span>
-                <span className="hidden sm:inline">{t('header.createAd')}</span>
+                <span className="hidden min-[430px]:inline">{t('header.createAd')}</span>
               </button>
 
               <button
@@ -420,7 +419,7 @@ export function Header() {
               type="button"
               className={textButtonClass(isActiveRoute('/listings'))}
             >
-              {t('home.viewAllListings')}
+              {t('listings.title')}
             </button>
           </div>
 
@@ -431,7 +430,7 @@ export function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder={t('header.searchPlaceholder')}
+                placeholder={t('home.search')}
                 className="input-glass h-12 rounded-full pl-11 pr-4"
               />
             </div>
@@ -460,7 +459,7 @@ export function Header() {
                   className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
                 >
                   <Search className="h-5 w-5" />
-                  <span>{t('home.viewAllListings')}</span>
+                  <span>{t('listings.title')}</span>
                 </button>
               </div>
 
