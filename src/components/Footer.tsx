@@ -94,7 +94,7 @@ export function Footer() {
                 type="button"
                 className="btn-primary rounded-full"
               >
-                Написати нам
+                {t('header.createAd')}
               </button>
             </div>
           </div>
