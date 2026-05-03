@@ -206,7 +206,6 @@ export function Header() {
         <div className="px-4 py-4 md:px-6">
           <div className="flex items-center justify-between gap-2 sm:gap-3">
             <button onClick={() => goTo('/')} type="button" className="min-w-0 flex-1 text-left">
-              {/* На вузьких екранах беремо менший логотип, щоб шапка лишалась повітряною. */}
               <Logo size="sm" className="sm:hidden" />
               <Logo size="md" className="hidden sm:block" />
             </button>
@@ -432,4 +431,132 @@ export function Header() {
 
         {mobileMenuOpen && (
           <div className="border-t border-[var(--glass-border)] px-3 pb-4 pt-3 xl:hidden">
-            <div id="mobile-primary-menu" className={mobilePanelClass} role="navigation" aria-label="Моб
+            <div
+              id="mobile-primary-menu"
+              className={mobilePanelClass}
+              role="navigation"
+              aria-label={'Мобільна навігація'}
+            >
+              <div className="grid gap-2">
+                {navItems.map((item) => (
+                  <button
+                    key={item.path}
+                    onClick={() => goTo(item.path)}
+                    type="button"
+                    className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => goTo('/listings')}
+                  type="button"
+                  className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
+                >
+                  <Search className="h-5 w-5" />
+                  <span>{t('listings.title')}</span>
+                </button>
+              </div>
+
+              <div className="my-3 border-t border-[var(--glass-border)]" />
+
+              <div className="grid gap-3 rounded-[24px] bg-[rgba(255,249,243,0.74)] p-3">
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--ink-700)]">
+                    <Globe className="h-4 w-4" />
+                    <span>{t('header.language')}</span>
+                  </label>
+                  <select
+                    value={language.code}
+                    onChange={(event) => {
+                      const lang = LANGUAGES.find((item) => item.code === event.target.value)
+                      if (lang) {
+                        setLanguage(lang)
+                      }
+                    }}
+                    className="select-glass"
+                  >
+                    {LANGUAGES.map((lang) => (
+                      <option key={lang.code} value={lang.code}>
+                        {lang.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--ink-700)]">
+                    <span className="text-base">{currency.symbol}</span>
+                    <span>{t('header.currency')}</span>
+                  </label>
+                  <select
+                    value={currency.code}
+                    onChange={(event) => {
+                      const curr = CURRENCIES.find((item) => item.code === event.target.value)
+                      if (curr) {
+                        setCurrency(curr)
+                      }
+                    }}
+                    className="select-glass"
+                  >
+                    {CURRENCIES.map((curr) => (
+                      <option key={curr.code} value={curr.code}>
+                        {curr.symbol} {curr.code} - {curr.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-2">
+                {user && profile ? (
+                  <>
+                    <button
+                      onClick={() => goTo('/settings')}
+                      type="button"
+                      className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
+                    >
+                      <User className="h-5 w-5" />
+                      <span>{t('header.myProfile')}</span>
+                    </button>
+
+                    {isSiteOwner && (
+                      <button
+                        onClick={() => goTo('/dashboard')}
+                        type="button"
+                        className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
+                      >
+                        <ClipboardList className="h-5 w-5" />
+                        <span>{t('header.dashboard')}</span>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={handleSignOut}
+                      type="button"
+                      className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[#a04b39] transition-all duration-300 hover:text-[#c2614a] hover:[text-shadow:0_0_12px_rgba(194,97,74,0.16)]"
+                    >
+                      <LogOut className="h-5 w-5" />
+                      <span>{t('header.signOut')}</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => goTo('/login')}
+                    type="button"
+                    className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
+                  >
+                    <User className="h-5 w-5" />
+                    <span>{t('header.professionalLogin')}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
+  )
+}
