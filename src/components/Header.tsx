@@ -153,36 +153,17 @@ export function Header() {
     navigateTo(`/listings?search=${encodeURIComponent(query)}`)
   }
 
-  const hoverGlowClass =
-    'transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_14px_rgba(196,122,61,0.18)]'
-
   const navTextClass = (active: boolean) =>
     [
       'relative inline-flex items-center gap-2 pb-2 text-sm font-semibold transition-all duration-300',
-      active
-        ? 'text-[var(--accent-700)] [text-shadow:0_0_14px_rgba(196,122,61,0.18)]'
-        : `text-[var(--ink-700)] ${hoverGlowClass}`,
+      active ? 'text-[var(--accent-700)]' : 'text-[var(--ink-700)] hover:text-[var(--ink-900)]',
     ].join(' ')
 
-  const textButtonClass = (active = false) =>
-    [
-      'inline-flex items-center gap-2 rounded-full border-0 bg-transparent px-2 py-2 text-sm font-semibold shadow-none outline-none',
-      active
-        ? 'text-[var(--accent-700)] [text-shadow:0_0_14px_rgba(196,122,61,0.18)]'
-        : `text-[var(--ink-700)] ${hoverGlowClass}`,
-    ].join(' ')
-
-  const createButtonClass =
-    'inline-flex items-center gap-2 rounded-full border-0 bg-transparent px-2 py-2 text-sm font-semibold text-[var(--ink-800)] shadow-none outline-none transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_16px_rgba(196,122,61,0.22)]'
-
-  const mobileIconButtonClass =
-    'flex h-10 w-10 items-center justify-center rounded-full border-0 bg-transparent text-[var(--ink-700)] shadow-none outline-none transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_16px_rgba(196,122,61,0.22)] sm:h-11 sm:w-11'
+  const controlButtonClass =
+    'inline-flex items-center gap-2 rounded-full border border-[var(--glass-border)] bg-[rgba(255,255,255,0.42)] px-3.5 py-2.5 text-sm font-semibold text-[var(--ink-700)] transition-all duration-300 hover:bg-[rgba(255,255,255,0.58)] hover:text-[var(--ink-900)]'
 
   const dropdownPanelClass =
     'absolute right-0 top-full mt-3 w-64 rounded-[24px] border border-[var(--glass-border)] bg-[rgba(255,252,248,0.94)] p-2.5 shadow-[0_22px_50px_rgba(67,44,26,0.10)] backdrop-blur-xl'
-
-  const dropdownItemClass =
-    'block w-full rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]'
 
   const mobilePanelClass =
     'max-h-[calc(100vh-8rem)] overflow-y-auto rounded-[26px] border border-[var(--glass-border)] bg-[rgba(255,252,248,0.92)] p-3 shadow-[0_18px_42px_rgba(67,44,26,0.08)] backdrop-blur-xl'
@@ -195,10 +176,10 @@ export function Header() {
             <button
               onClick={() => goTo('/')}
               type="button"
-              className="min-w-0 flex-1 text-left"
+              className="min-w-0 flex-1 text-left xl:flex-none"
             >
-              {/* На вузьких екранах беремо менший логотип,
-                  щоб шапка лишалась повітряною. */}
+              {/* На дуже вузьких екранах беремо менший логотип,
+                  щоб він не конфліктував із кнопкою дії. */}
               <Logo size="sm" className="sm:hidden" />
               <Logo size="md" className="hidden sm:block" />
             </button>
@@ -213,13 +194,13 @@ export function Header() {
                   type="text"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder={t('header.searchPlaceholder')}
+                  placeholder="Пошук по сайту"
                   className="input-glass h-12 rounded-full pl-11 pr-4"
                 />
               </div>
             </form>
 
-            <div className="hidden items-center gap-2 xl:flex">
+            <div className="hidden items-center gap-1 xl:flex">
               <div ref={languageRef} className="relative">
                 <button
                   onClick={() => {
@@ -228,11 +209,11 @@ export function Header() {
                     setAccountOpen(false)
                   }}
                   type="button"
-                  className={textButtonClass(languageOpen)}
+                  className={controlButtonClass}
                 >
                   <Globe className="h-4 w-4" />
                   <span>{language.code.toUpperCase()}</span>
-                  <ChevronDown className="h-4 w-4 text-current" />
+                  <ChevronDown className="h-4 w-4 text-[var(--ink-500)]" />
                 </button>
 
                 {languageOpen && (
@@ -245,11 +226,11 @@ export function Header() {
                           setLanguageOpen(false)
                         }}
                         type="button"
-                        className={
+                        className={`block w-full rounded-[18px] px-4 py-3 text-left text-sm font-semibold transition ${
                           language.code === lang.code
-                            ? `${dropdownItemClass} text-[var(--accent-700)] [text-shadow:0_0_12px_rgba(196,122,61,0.16)]`
-                            : dropdownItemClass
-                        }
+                            ? 'bg-[rgba(169,105,66,0.12)] text-[var(--accent-700)]'
+                            : 'text-[var(--ink-700)] hover:bg-[rgba(255,248,241,0.92)]'
+                        }`}
                       >
                         {lang.name}
                       </button>
@@ -266,11 +247,11 @@ export function Header() {
                     setAccountOpen(false)
                   }}
                   type="button"
-                  className={textButtonClass(currencyOpen)}
+                  className={controlButtonClass}
                 >
                   <span className="text-base">{currency.symbol}</span>
                   <span>{currency.code}</span>
-                  <ChevronDown className="h-4 w-4 text-current" />
+                  <ChevronDown className="h-4 w-4 text-[var(--ink-500)]" />
                 </button>
 
                 {currencyOpen && (
@@ -283,11 +264,11 @@ export function Header() {
                           setCurrencyOpen(false)
                         }}
                         type="button"
-                        className={
+                        className={`block w-full rounded-[18px] px-4 py-3 text-left text-sm font-semibold transition ${
                           currency.code === curr.code
-                            ? `${dropdownItemClass} text-[var(--accent-700)] [text-shadow:0_0_12px_rgba(196,122,61,0.16)]`
-                            : dropdownItemClass
-                        }
+                            ? 'bg-[rgba(169,105,66,0.12)] text-[var(--accent-700)]'
+                            : 'text-[var(--ink-700)] hover:bg-[rgba(255,248,241,0.92)]'
+                        }`}
                       >
                         <span className="font-bold">{curr.symbol}</span>{' '}
                         {curr.code} - {curr.name}
@@ -306,11 +287,11 @@ export function Header() {
                       setCurrencyOpen(false)
                     }}
                     type="button"
-                    className={`${textButtonClass(accountOpen)} max-w-[240px]`}
+                    className={`${controlButtonClass} max-w-[240px]`}
                   >
-                    <User className="h-4 w-4 shrink-0" />
+                    <User className="h-4 w-4" />
                     <span className="truncate">{accountLabel}</span>
-                    <ChevronDown className="h-4 w-4 shrink-0 text-current" />
+                    <ChevronDown className="h-4 w-4 shrink-0 text-[var(--ink-500)]" />
                   </button>
 
                   {accountOpen && (
@@ -318,7 +299,7 @@ export function Header() {
                       <button
                         onClick={() => goTo('/settings')}
                         type="button"
-                        className={dropdownItemClass}
+                        className="block w-full rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-[var(--ink-700)] transition hover:bg-[rgba(255,248,241,0.92)]"
                       >
                         {t('header.myProfile')}
                       </button>
@@ -327,7 +308,7 @@ export function Header() {
                         <button
                           onClick={() => goTo('/dashboard')}
                           type="button"
-                          className={dropdownItemClass}
+                          className="block w-full rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-[var(--ink-700)] transition hover:bg-[rgba(255,248,241,0.92)]"
                         >
                           {t('header.dashboard')}
                         </button>
@@ -338,7 +319,7 @@ export function Header() {
                       <button
                         onClick={handleSignOut}
                         type="button"
-                        className="flex w-full items-center gap-2 rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-[#a04b39] transition-all duration-300 hover:text-[#c2614a] hover:[text-shadow:0_0_12px_rgba(194,97,74,0.16)]"
+                        className="flex w-full items-center gap-2 rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-[#a04b39] transition hover:bg-[rgba(255,239,235,0.92)]"
                       >
                         <LogOut className="h-4 w-4" />
                         <span>{t('header.signOut')}</span>
@@ -350,7 +331,7 @@ export function Header() {
                 <button
                   onClick={() => goTo('/login')}
                   type="button"
-                  className={textButtonClass()}
+                  className="text-sm font-semibold text-[var(--ink-700)] transition hover:text-[var(--ink-900)]"
                 >
                   {t('header.professionalLogin')}
                 </button>
@@ -359,23 +340,25 @@ export function Header() {
               <button
                 onClick={() => goTo('/create-ad')}
                 type="button"
-                className={createButtonClass}
+                className="btn-primary px-5 py-3 text-sm"
               >
                 <PlusCircle className="h-4 w-4" />
-                {t('header.createAd')}
+               {t('header.createAd')}
               </button>
             </div>
 
-            <div className="flex shrink-0 items-center gap-1.5 xl:hidden">
+            <div className="flex shrink-0 items-center gap-2 xl:hidden">
               <button
                 onClick={() => goTo('/create-ad')}
                 type="button"
-                aria-label={t('header.createAd')}
-                className="inline-flex items-center gap-1 rounded-full border-0 bg-transparent px-2 py-2 text-xs font-semibold text-[var(--ink-800)] shadow-none outline-none transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_16px_rgba(196,122,61,0.22)] sm:gap-2 sm:px-3 sm:text-sm"
+                aria-label="Додати оголошення"
+                className="btn-primary h-10 px-2.5 text-xs sm:h-11 sm:px-4 sm:text-sm"
               >
                 <PlusCircle className="h-5 w-5" />
-                <span className="hidden min-[430px]:inline sm:hidden">{t('header.createAdShort')}</span>
-                <span className="hidden sm:inline">{t('header.createAd')}</span>
+                {/* На найменших екранах лишаємо тільки іконку,
+                    далі показуємо короткий текст, а на більших — повний. */}
+                <span className="hidden min-[430px]:inline sm:hidden">Додати</span>
+                <span className="hidden sm:inline">Додати оголошення</span>
               </button>
 
               <button
@@ -385,11 +368,7 @@ export function Header() {
                 }}
                 type="button"
                 aria-expanded={mobileMenuOpen}
-                className={`${mobileIconButtonClass} ${
-                  mobileMenuOpen
-                    ? 'text-[var(--accent-700)] [text-shadow:0_0_16px_rgba(196,122,61,0.22)]'
-                    : ''
-                }`}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--glass-border)] bg-[rgba(255,255,255,0.42)] text-[var(--ink-700)] shadow-[0_10px_22px_rgba(67,44,26,0.05)] sm:h-11 sm:w-11"
               >
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
@@ -418,9 +397,9 @@ export function Header() {
             <button
               onClick={() => goTo('/listings')}
               type="button"
-              className={textButtonClass(isActiveRoute('/listings'))}
+              className="text-sm font-semibold text-[var(--ink-700)] transition hover:text-[var(--accent-700)]"
             >
-              {t('home.viewAllListings')}
+              Усі оголошення
             </button>
           </div>
 
@@ -431,7 +410,7 @@ export function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder={t('header.searchPlaceholder')}
+                placeholder="Пошук по сайту"
                 className="input-glass h-12 rounded-full pl-11 pr-4"
               />
             </div>
@@ -447,7 +426,7 @@ export function Header() {
                     key={item.path}
                     onClick={() => goTo(item.path)}
                     type="button"
-                    className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
+                    className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition hover:bg-[rgba(255,247,240,0.90)]"
                   >
                     <item.icon className="h-5 w-5" />
                     <span>{item.label}</span>
@@ -457,10 +436,10 @@ export function Header() {
                 <button
                   onClick={() => goTo('/listings')}
                   type="button"
-                  className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
+                  className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition hover:bg-[rgba(255,247,240,0.90)]"
                 >
                   <Search className="h-5 w-5" />
-                  <span>{t('home.viewAllListings')}</span>
+                  <span>Усі оголошення</span>
                 </button>
               </div>
 
@@ -520,7 +499,7 @@ export function Header() {
                     <button
                       onClick={() => goTo('/settings')}
                       type="button"
-                      className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
+                      className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition hover:bg-[rgba(255,247,240,0.90)]"
                     >
                       <User className="h-5 w-5" />
                       <span>{t('header.myProfile')}</span>
@@ -530,7 +509,7 @@ export function Header() {
                       <button
                         onClick={() => goTo('/dashboard')}
                         type="button"
-                        className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
+                        className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition hover:bg-[rgba(255,247,240,0.90)]"
                       >
                         <ClipboardList className="h-5 w-5" />
                         <span>{t('header.dashboard')}</span>
@@ -540,7 +519,7 @@ export function Header() {
                     <button
                       onClick={handleSignOut}
                       type="button"
-                      className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[#a04b39] transition-all duration-300 hover:text-[#c2614a] hover:[text-shadow:0_0_12px_rgba(194,97,74,0.16)]"
+                      className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[#a04b39] transition hover:bg-[rgba(255,239,235,0.92)]"
                     >
                       <LogOut className="h-5 w-5" />
                       <span>{t('header.signOut')}</span>
@@ -550,7 +529,7 @@ export function Header() {
                   <button
                     onClick={() => goTo('/login')}
                     type="button"
-                    className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
+                    className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition hover:bg-[rgba(255,247,240,0.90)]"
                   >
                     <User className="h-5 w-5" />
                     <span>{t('header.professionalLogin')}</span>
