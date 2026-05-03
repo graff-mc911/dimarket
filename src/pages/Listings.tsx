@@ -1,19 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase'; // Перевірте, чи шлях до вашого клієнта supabase вірний
-import { getTranslation } from '../lib/Translations/i18n'; // Імпорт вашої функції перекладу
-import type { TranslationKey } from '../lib/Translations/i18n'; // Імпорт типу ключів
-import { Search, Filter, Loader2, MapPin } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+// Імпортуємо функцію та типи саме з нашого i18n.ts
+import { getTranslation } from '../lib/Translations/i18n';
+import type { TranslationKey } from '../lib/Translations/i18n';
+import { Search, Loader2, MapPin } from 'lucide-react';
 
-// Визначаємо інтерфейс для оголошення (адаптуйте під вашу БД)
 interface Listing {
   id: string;
   title: string;
   description: string;
   price: number;
   images: string[];
-  category: string;
   location?: string;
-  created_at: string;
 }
 
 const Listings = () => {
@@ -21,109 +19,65 @@ const Listings = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Функція для завантаження даних із Supabase
-  const fetchListings = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('listings')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setListings(data || []);
-    } catch (error: any) {
-      console.error('Помилка завантаження:', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('listings')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        setListings(data || []);
+      } catch (err) {
+        console.error('Fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchListings();
   }, []);
 
-  // Фільтрація за пошуковим запитом
-  const filteredListings = listings.filter(item =>
-    item.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = listings.filter(l => l.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Заголовок та Пошук */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold text-gray-800">
           {getTranslation('listings_title' as TranslationKey) || 'Оголошення'}
         </h1>
-        
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <div className="relative w-64">
+          <Search className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
           <input
             type="text"
-            placeholder={getTranslation('search_placeholder' as TranslationKey) || 'Пошук товарів...'}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            value={searchTerm}
+            placeholder={getTranslation('search_placeholder' as TranslationKey) || 'Пошук...'}
+            className="w-full pl-9 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
 
-      {/* Стан завантаження */}
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-        </div>
+        <div className="flex justify-center py-20"><Loader2 className="animate-spin text-blue-500" /></div>
       ) : (
-        <>
-          {/* Сітка товарів */}
-          {filteredListings.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredListings.map((item) => (
-                <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
-                  {/* Зображення */}
-                  <div className="aspect-square bg-gray-100 relative">
-                    {item.images && item.images[0] ? (
-                      <img
-                        src={item.images[0]}
-                        alt={item.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        Немає фото
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Контент картки */}
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold text-gray-900 truncate flex-1">{item.title}</h3>
-                      <span className="text-blue-600 font-bold ml-2">
-                        {item.price} ₴
-                      </span>
-                    </div>
-                    
-                    <p className="text-sm text-gray-500 line-clamp-2 mb-4 h-10">
-                      {item.description}
-                    </p>
-
-                    <div className="flex items-center text-xs text-gray-400 mt-auto">
-                      <MapPin className="w-3 h-3 mr-1" />
-                      {item.location || getTranslation('unknown_location' as TranslationKey) || 'Місце не вказано'}
-                    </div>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filtered.map(item => (
+            <div key={item.id} className="border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
+              <div className="h-48 bg-gray-100">
+                {item.images?.[0] && <img src={item.images[0]} alt="" className="w-full h-full object-cover" />}
+              </div>
+              <div className="p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-medium truncate">{item.title}</h3>
+                  <span className="text-blue-600 font-bold">{item.price} ₴</span>
                 </div>
-              ))}
+                <div className="flex items-center text-xs text-gray-400">
+                  <MapPin className="w-3 h-3 mr-1" />
+                  {item.location || 'Україна'}
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="text-center py-20">
-              <p className="text-gray-500 text-lg">
-                {getTranslation('no_listings_found' as TranslationKey) || 'Нічого не знайдено'}
-              </p>
-            </div>
-          )}
-        </>
+          ))}
+        </div>
       )}
     </div>
   );
