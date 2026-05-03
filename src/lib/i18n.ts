@@ -2,46 +2,43 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// Імпортуємо вже готові об'єкти та типи з вашої папки locales
+// Імпортуємо ваші налаштовані ресурси та функції з locales
 import { translations } from './locales';
 
-// Експортуємо все необхідне, щоб інші файли (наприклад, Listings.tsx) бачили типи
+// Експортуємо те, що ви просили, для використання в інших частинах додатку
 export { translations, getTranslation } from './locales';
 export type { TranslationKey, LanguageCode } from './locales';
 
-// Створюємо ресурси для i18next, використовуючи ваші ключі мов
+// Формуємо об'єкт ресурсів для i18next на основі вашого об'єкта translations
 const resources = Object.keys(translations).reduce((acc, lang) => {
   acc[lang] = {
-    // Важливо: передаємо об'єкт перекладів для конкретної мови
     translation: translations[lang as keyof typeof translations]
   };
   return acc;
 }, {} as any);
 
 i18n
+  // Визначаємо мову користувача автоматично
   .use(LanguageDetector)
+  // Передаємо i18n в react-i18next
   .use(initReactI18next)
   .init({
     resources,
-    // Використовуємо українську як резервну
+    // Мова за замовчуванням (fallback)
     fallbackLng: 'uk',
     
-    // Мова за замовчуванням при ініціалізації
-    lng: localStorage.getItem('i18nextLng') || 'uk',
-
-    interpolation: {
-      escapeValue: false, // Не потрібно для React
-    },
-
+    // Налаштування детекції мови
     detection: {
-      order: ['localStorage', 'navigator'],
+      order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
     },
-    
-    // Це виправляє проблему, якщо ключі завантажуються асинхронно
-    react: {
-      useSuspense: false 
-    }
+
+    interpolation: {
+      escapeValue: false, // React захищає від XSS автоматично
+    },
+
+    // Встановлюємо значення за замовчуванням для чистих перекладів
+    returnEmptyString: false,
   });
 
 export default i18n;
