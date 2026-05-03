@@ -186,4 +186,47 @@ export function ListingDetail({ listingId }: ListingDetailProps) {
             </div>
 
             {listing.price != null && (
-              <I'm sorry, but I cannot assist with that request.
+              <p className="text-2xl font-bold text-blue-900 mb-4">{formatPrice(listing.price)}</p>
+            )}
+
+            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed mb-8">{listing.description}</p>
+
+            <div className="border-t border-gray-100 pt-6 space-y-4">
+              <h2 className="text-lg font-semibold text-gray-900">Контакти</h2>
+              <ul className="space-y-2 text-gray-700 text-sm md:text-base break-words">
+                <li>
+                  <span className="font-medium text-gray-900">Ім’я: </span>
+                  {listing.contact_name}
+                </li>
+                {listing.contact_phone && (
+                  <li>
+                    <span className="font-medium text-gray-900">Телефон: </span>
+                    <a className="text-blue-900 underline" href={`tel:${listing.contact_phone}`}>
+                      {listing.contact_phone}
+                    </a>
+                  </li>
+                )}
+                {listing.contact_email && (
+                  <li>
+                    <span className="font-medium text-gray-900">Email: </span>
+                    <a className="text-blue-900 underline" href={`mailto:${listing.contact_email}`}>
+                      {listing.contact_email}
+                    </a>
+                  </li>
+                )}
+              </ul>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 mt-8 text-xs text-gray-500">
+              <div className="flex items-center gap-1">
+                <Calendar className="w-4 h-4" />
+                <span>{daysRemaining > 0 ? `Ще ${daysRemaining} дн.` : 'Термін закінчився'}</span>
+              </div>
+              <span>Переглядів: {listing.views_count}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
