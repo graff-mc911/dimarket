@@ -1,13 +1,35 @@
-/**
- * Шапка сайту: навігація, мова/валюта, мобільне меню.
- * Логотип беремо з окремого компонента Logo (ваш оригінальний файл).
- */
 import { useEffect, useRef, useState } from 'react'
-import { Menu, X, Globe, User, LogOut } from 'lucide-react'
+import {
+  ChevronDown,
+  ClipboardList,
+  Globe,
+  Hammer,
+  Heart,
+  LogOut,
+  Menu,
+  MessageSquare,
+  PlusCircle,
+  Search,
+  User,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import { useApp } from '../contexts/AppContext'
 import { CURRENCIES, LANGUAGES } from '../lib/types'
 import { navigateTo } from '../lib/navigation'
 import { Logo } from './Logo'
+
+interface NavItem {
+  label: string
+  path: string
+  icon: LucideIcon
+}
+
+const OWNER_EMAIL = 'ivan.sovban@gmail.com'
+
+function isOwnerEmail(email: string | null | undefined) {
+  return (email || '').trim().toLowerCase() === OWNER_EMAIL.trim().toLowerCase()
+}
 
 export function Header() {
   const {
@@ -21,12 +43,38 @@ export function Header() {
     t,
   } = useApp()
 
+  const [searchQuery, setSearchQuery] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [currencyOpen, setCurrencyOpen] = useState(false)
   const [languageOpen, setLanguageOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
 
   const languageRef = useRef<HTMLDivElement | null>(null)
   const currencyRef = useRef<HTMLDivElement | null>(null)
+  const accountRef = useRef<HTMLDivElement | null>(null)
+
+  const currentPath = window.location.pathname
+  const isSiteOwner = profile?.is_site_owner === true || isOwnerEmail(user?.email)
+  const accountLabel = profile?.full_name || t('header.account')
+
+  const navItems: NavItem[] = [
+    { label: t('header.findProfessionals'), path: '/professionals', icon: Hammer },
+    { label: t('header.favorites'), path: '/favorites', icon: Heart },
+    { label: t('header.messages'), path: '/messages', icon: MessageSquare },
+  ]
+
+  const closeAllMenus = () => {
+    setLanguageOpen(false)
+    setCurrencyOpen(false)
+    setAccountOpen(false)
+    setMobileMenuOpen(false)
+  }
+
+  const closeDropdowns = () => {
+    setLanguageOpen(false)
+    setCurrencyOpen(false)
+    setAccountOpen(false)
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,13 +87,15 @@ export function Header() {
       if (currencyRef.current && !currencyRef.current.contains(target)) {
         setCurrencyOpen(false)
       }
+
+      if (accountRef.current && !accountRef.current.contains(target)) {
+        setAccountOpen(false)
+      }
     }
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setLanguageOpen(false)
-        setCurrencyOpen(false)
-        setMobileMenuOpen(false)
+        closeAllMenus()
       }
     }
 
@@ -58,369 +108,458 @@ export function Header() {
     }
   }, [])
 
-  const goToHome = () => {
-    setMobileMenuOpen(false)
-    navigateTo('/')
-  }
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow
 
-  const goToListings = () => {
-    setMobileMenuOpen(false)
-    navigateTo('/listings')
-  }
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    }
 
-  const goToProfessionals = () => {
-    setMobileMenuOpen(false)
-    navigateTo('/professionals')
-  }
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [mobileMenuOpen])
 
-  const goToLogin = () => {
-    setMobileMenuOpen(false)
-    navigateTo('/login')
-  }
-
-  const goToCreateAd = () => {
-    setMobileMenuOpen(false)
-    navigateTo('/create-ad')
-  }
-
-  const goToDashboard = () => {
-    setMobileMenuOpen(false)
-    navigateTo('/dashboard')
-  }
-
-  const goToSettings = () => {
-    setMobileMenuOpen(false)
-    navigateTo('/settings')
+  const goTo = (path: string) => {
+    closeAllMenus()
+    navigateTo(path)
   }
 
   const handleSignOut = async () => {
     await signOut()
-    setMobileMenuOpen(false)
-    navigateTo('/')
+    goTo('/')
   }
 
+  const isActiveRoute = (path: string) => {
+    if (path === '/') {
+      return currentPath === '/'
+    }
+
+    return currentPath === path || currentPath.startsWith(`${path}/`)
+  }
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const query = searchQuery.trim()
+
+    closeAllMenus()
+
+    if (!query) {
+      navigateTo('/listings')
+      return
+    }
+
+    navigateTo(`/listings?search=${encodeURIComponent(query)}`)
+  }
+
+  const hoverGlowClass =
+    'transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_14px_rgba(196,122,61,0.18)]'
+
+  const navTextClass = (active: boolean) =>
+    [
+      'relative inline-flex items-center gap-2 pb-2 text-sm font-semibold transition-all duration-300',
+      active
+        ? 'text-[var(--accent-700)] [text-shadow:0_0_14px_rgba(196,122,61,0.18)]'
+        : `text-[var(--ink-700)] ${hoverGlowClass}`,
+    ].join(' ')
+
+  const textButtonClass = (active = false) =>
+    [
+      'inline-flex items-center gap-2 rounded-full border-0 bg-transparent px-2 py-2 text-sm font-semibold shadow-none outline-none',
+      active
+        ? 'text-[var(--accent-700)] [text-shadow:0_0_14px_rgba(196,122,61,0.18)]'
+        : `text-[var(--ink-700)] ${hoverGlowClass}`,
+    ].join(' ')
+
+  const createButtonClass =
+    'inline-flex items-center gap-2 rounded-full border-0 bg-transparent px-2 py-2 text-sm font-semibold text-[var(--ink-800)] shadow-none outline-none transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_16px_rgba(196,122,61,0.22)]'
+
+  const mobileIconButtonClass =
+    'flex h-10 w-10 items-center justify-center rounded-full border-0 bg-transparent text-[var(--ink-700)] shadow-none outline-none transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_16px_rgba(196,122,61,0.22)] sm:h-11 sm:w-11'
+
+  const dropdownPanelClass =
+    'absolute right-0 top-full mt-3 w-64 rounded-[24px] border border-[var(--glass-border)] bg-[rgba(255,252,248,0.94)] p-2.5 shadow-[0_22px_50px_rgba(67,44,26,0.10)] backdrop-blur-xl'
+
+  const dropdownItemClass =
+    'block w-full rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]'
+
+  const mobilePanelClass =
+    'max-h-[calc(100vh-8rem)] overflow-y-auto rounded-[26px] border border-[var(--glass-border)] bg-[rgba(255,252,248,0.92)] p-3 shadow-[0_18px_42px_rgba(67,44,26,0.08)] backdrop-blur-xl'
+
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50 w-full">
-      <div className="w-full px-4 md:px-6 xl:px-8 2xl:px-10">
-        <div className="flex justify-between items-center h-20">
-          {/* Логотип */}
-          <div className="flex items-center min-w-0">
+    <header className="sticky top-0 z-50 w-full px-3 pt-3 md:px-5 md:pt-5">
+      <div className="w-full rounded-[30px] border border-[var(--glass-border)] bg-[rgba(255,252,248,0.78)] shadow-[0_16px_36px_rgba(67,44,26,0.06)] backdrop-blur-xl">
+        <div className="px-4 py-4 md:px-6">
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
             <button
-              onClick={goToHome}
-              className="flex items-center min-w-0"
+              onClick={() => goTo('/')}
               type="button"
-              aria-label="DImarket — на головну"
+              className="min-w-0 flex-1 text-left"
             >
-              <Logo size="md" className="max-w-[180px] sm:max-w-[220px]" />
+              {/* На вузьких екранах беремо менший логотип,
+                  щоб шапка лишалась повітряною. */}
+              <Logo size="sm" className="sm:hidden" />
+              <Logo size="md" className="hidden sm:block" />
+            </button>
+
+            <form
+              onSubmit={handleSearchSubmit}
+              className="hidden min-w-0 flex-1 items-center xl:flex xl:max-w-[620px]"
+            >
+              <div className="relative w-full">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[var(--ink-500)]" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder={t('home.search')}
+                  className="input-glass h-12 rounded-full pl-11 pr-4"
+                />
+              </div>
+            </form>
+
+            <div className="hidden items-center gap-2 xl:flex">
+              <div ref={languageRef} className="relative">
+                <button
+                  onClick={() => {
+                    setLanguageOpen((open) => !open)
+                    setCurrencyOpen(false)
+                    setAccountOpen(false)
+                  }}
+                  type="button"
+                  className={textButtonClass(languageOpen)}
+                >
+                  <Globe className="h-4 w-4" />
+                  <span>{language.code.toUpperCase()}</span>
+                  <ChevronDown className="h-4 w-4 text-current" />
+                </button>
+
+                {languageOpen && (
+                  <div className={dropdownPanelClass}>
+                    {LANGUAGES.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          setLanguage(lang)
+                          setLanguageOpen(false)
+                        }}
+                        type="button"
+                        className={
+                          language.code === lang.code
+                            ? `${dropdownItemClass} text-[var(--accent-700)] [text-shadow:0_0_12px_rgba(196,122,61,0.16)]`
+                            : dropdownItemClass
+                        }
+                      >
+                        {lang.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div ref={currencyRef} className="relative">
+                <button
+                  onClick={() => {
+                    setCurrencyOpen((open) => !open)
+                    setLanguageOpen(false)
+                    setAccountOpen(false)
+                  }}
+                  type="button"
+                  className={textButtonClass(currencyOpen)}
+                >
+                  <span className="text-base">{currency.symbol}</span>
+                  <span>{currency.code}</span>
+                  <ChevronDown className="h-4 w-4 text-current" />
+                </button>
+
+                {currencyOpen && (
+                  <div className={dropdownPanelClass}>
+                    {CURRENCIES.map((curr) => (
+                      <button
+                        key={curr.code}
+                        onClick={() => {
+                          setCurrency(curr)
+                          setCurrencyOpen(false)
+                        }}
+                        type="button"
+                        className={
+                          currency.code === curr.code
+                            ? `${dropdownItemClass} text-[var(--accent-700)] [text-shadow:0_0_12px_rgba(196,122,61,0.16)]`
+                            : dropdownItemClass
+                        }
+                      >
+                        <span className="font-bold">{curr.symbol}</span>{' '}
+                        {curr.code} - {curr.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {user && profile ? (
+                <div ref={accountRef} className="relative">
+                  <button
+                    onClick={() => {
+                      setAccountOpen((open) => !open)
+                      setLanguageOpen(false)
+                      setCurrencyOpen(false)
+                    }}
+                    type="button"
+                    className={`${textButtonClass(accountOpen)} max-w-[240px]`}
+                  >
+                    <User className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{accountLabel}</span>
+                    <ChevronDown className="h-4 w-4 shrink-0 text-current" />
+                  </button>
+
+                  {accountOpen && (
+                    <div className={dropdownPanelClass}>
+                      <button
+                        onClick={() => goTo('/settings')}
+                        type="button"
+                        className={dropdownItemClass}
+                      >
+                        {t('header.myProfile')}
+                      </button>
+
+                      {isSiteOwner && (
+                        <button
+                          onClick={() => goTo('/dashboard')}
+                          type="button"
+                          className={dropdownItemClass}
+                        >
+                          {t('header.dashboard')}
+                        </button>
+                      )}
+
+                      <div className="my-2 border-t border-[var(--glass-border)]" />
+
+                      <button
+                        onClick={handleSignOut}
+                        type="button"
+                        className="flex w-full items-center gap-2 rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-[#a04b39] transition-all duration-300 hover:text-[#c2614a] hover:[text-shadow:0_0_12px_rgba(194,97,74,0.16)]"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span>{t('header.signOut')}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => goTo('/login')}
+                  type="button"
+                  className={textButtonClass()}
+                >
+                  {t('header.professionalLogin')}
+                </button>
+              )}
+
+              <button
+                onClick={() => goTo('/create-ad')}
+                type="button"
+                className={createButtonClass}
+              >
+                <PlusCircle className="h-4 w-4" />
+                {t('header.createAd')}
+              </button>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-1.5 xl:hidden">
+              <button
+                onClick={() => goTo('/create-ad')}
+                type="button"
+                aria-label={t('header.createAd')}
+                className="inline-flex items-center gap-1 rounded-full border-0 bg-transparent px-2 py-2 text-xs font-semibold text-[var(--ink-800)] shadow-none outline-none transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_16px_rgba(196,122,61,0.22)] sm:gap-2 sm:px-3 sm:text-sm"
+              >
+                <PlusCircle className="h-5 w-5" />
+                <span className="hidden min-[430px]:inline">{t('header.createAd')}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setMobileMenuOpen((open) => !open)
+                  closeDropdowns()
+                }}
+                type="button"
+                aria-expanded={mobileMenuOpen}
+                className={`${mobileIconButtonClass} ${
+                  mobileMenuOpen
+                    ? 'text-[var(--accent-700)] [text-shadow:0_0_16px_rgba(196,122,61,0.22)]'
+                    : ''
+                }`}
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 hidden items-end justify-between gap-6 border-t border-[var(--glass-border)] pt-4 xl:flex">
+            <nav className="flex items-center gap-7">
+              {navItems.map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => goTo(item.path)}
+                  type="button"
+                  className={navTextClass(isActiveRoute(item.path))}
+                >
+                  <span>{item.label}</span>
+                  <span
+                    className={`absolute bottom-0 left-0 h-[2px] rounded-full bg-[var(--accent-700)] transition-all duration-300 ${
+                      isActiveRoute(item.path) ? 'w-full opacity-100' : 'w-0 opacity-0'
+                    }`}
+                  />
+                </button>
+              ))}
+            </nav>
+
+            <button
+              onClick={() => goTo('/listings')}
+              type="button"
+              className={textButtonClass(isActiveRoute('/listings'))}
+            >
+              {t('listings.title')}
             </button>
           </div>
 
-          {/* Десктопне меню */}
-          <nav className="hidden md:flex items-center space-x-4">
-            <button
-              onClick={goToListings}
-              type="button"
-              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition"
-            >
-              {t('header.browse')}
-            </button>
-
-            <button
-              onClick={goToProfessionals}
-              type="button"
-              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition"
-            >
-              {t('header.findProfessionals')}
-            </button>
-
-            <div ref={languageRef} className="relative">
-              <button
-                onClick={() => {
-                  setLanguageOpen(!languageOpen)
-                  setCurrencyOpen(false)
-                }}
-                type="button"
-                className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 px-3 py-2 rounded-lg text-sm font-medium transition hover:bg-gray-50"
-              >
-                <Globe className="w-5 h-5" />
-                <span className="font-semibold">{language.code.toUpperCase()}</span>
-              </button>
-
-              {languageOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2 max-h-96 overflow-auto z-50 border border-gray-100">
-                  {LANGUAGES.map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => {
-                        setLanguage(lang)
-                        setLanguageOpen(false)
-                      }}
-                      type="button"
-                      className={`block w-[calc(100%-1rem)] text-left px-4 py-3 text-sm font-medium transition rounded-lg mx-2 ${
-                        language.code === lang.code
-                          ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-md'
-                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                      }`}
-                    >
-                      {lang.name}
-                    </button>
-                  ))}
-                </div>
-              )}
+          <form onSubmit={handleSearchSubmit} className="mt-4 xl:hidden">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[var(--ink-500)]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={t('home.search')}
+                className="input-glass h-12 rounded-full pl-11 pr-4"
+              />
             </div>
-
-            <div ref={currencyRef} className="relative">
-              <button
-                onClick={() => {
-                  setCurrencyOpen(!currencyOpen)
-                  setLanguageOpen(false)
-                }}
-                type="button"
-                className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 px-3 py-2 rounded-lg text-sm font-medium transition hover:bg-gray-50"
-              >
-                <span className="text-lg font-bold">{currency.symbol}</span>
-                <span className="font-semibold">{currency.code}</span>
-              </button>
-
-              {currencyOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2 z-50 border border-gray-100">
-                  {CURRENCIES.map((curr) => (
-                    <button
-                      key={curr.code}
-                      onClick={() => {
-                        setCurrency(curr)
-                        setCurrencyOpen(false)
-                      }}
-                      type="button"
-                      className={`block w-[calc(100%-1rem)] text-left px-4 py-3 text-sm font-medium transition rounded-lg mx-2 ${
-                        currency.code === curr.code
-                          ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-md'
-                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                      }`}
-                    >
-                      <span className="font-bold">{curr.symbol}</span> {curr.code} - {curr.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {user && profile ? (
-              <div className="relative group">
-                <button
-                  type="button"
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition"
-                >
-                  <User className="w-5 h-5" />
-                  <span className="font-semibold">{profile.full_name || t('header.account')}</span>
-                </button>
-
-                <div className="hidden group-hover:block absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2 z-50 border border-gray-100">
-                  <button
-                    onClick={goToSettings}
-                    type="button"
-                    className="block w-[calc(100%-1rem)] text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition rounded-lg mx-2"
-                  >
-                    {t('header.myProfile')}
-                  </button>
-
-                  {profile.is_professional && (
-                    <>
-                      <button
-                        onClick={goToDashboard}
-                        type="button"
-                        className="block w-[calc(100%-1rem)] text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition rounded-lg mx-2"
-                      >
-                        {t('header.dashboard')}
-                      </button>
-
-                      <button
-                        onClick={goToDashboard}
-                        type="button"
-                        className="block w-[calc(100%-1rem)] text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition rounded-lg mx-2"
-                      >
-                        {t('header.myListings')}
-                      </button>
-                    </>
-                  )}
-
-                  <div className="border-t border-gray-200 my-2"></div>
-
-                  <button
-                    onClick={handleSignOut}
-                    type="button"
-                    className="flex items-center space-x-2 w-[calc(100%-1rem)] px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition rounded-lg mx-2"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>{t('header.signOut')}</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={goToLogin}
-                type="button"
-                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition"
-              >
-                {t('header.professionalLogin')}
-              </button>
-            )}
-
-            <button
-              onClick={goToCreateAd}
-              type="button"
-              className="px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-primary to-secondary text-white hover:shadow-lg transition-all duration-300 hover:scale-105"
-            >
-              {t('header.createAd')}
-            </button>
-          </nav>
-
-          {/* Кнопка мобільного меню */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            type="button"
-            className="md:hidden text-gray-700 p-2 -mr-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-50"
-            aria-expanded={mobileMenuOpen}
-            aria-controls="mobile-primary-menu"
-            aria-label={mobileMenuOpen ? 'Закрити меню' : 'Відкрити меню'}
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          </form>
         </div>
-      </div>
 
-      {mobileMenuOpen && (
-        <div
-          id="mobile-primary-menu"
-          className="md:hidden bg-white border-t shadow-lg"
-          role="navigation"
-          aria-label="Мобільна навігація"
-        >
-          <div className="px-2 pt-2 pb-3 space-y-1 max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain">
-            <button
-              onClick={goToListings}
-              type="button"
-              className="block w-full text-left px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition"
-            >
-              {t('header.browse')}
-            </button>
-
-            <button
-              onClick={goToProfessionals}
-              type="button"
-              className="block w-full text-left px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition"
-            >
-              {t('header.findProfessionals')}
-            </button>
-
-            <div className="border-t border-gray-200 my-3"></div>
-
-            <div className="px-3 py-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-2 mb-3">
-                <Globe className="w-5 h-5 text-gray-600" />
-                <span className="text-sm font-semibold text-gray-700">{t('header.language')}</span>
-              </div>
-
-              <select
-                value={language.code}
-                onChange={(e) => {
-                  const lang = LANGUAGES.find((item) => item.code === e.target.value)
-                  if (lang) setLanguage(lang)
-                }}
-                className="w-full px-3 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition"
-              >
-                {LANGUAGES.map((lang) => (
-                  <option key={lang.code} value={lang.code}>
-                    {lang.name}
-                  </option>
+        {mobileMenuOpen && (
+          <div className="border-t border-[var(--glass-border)] px-3 pb-4 pt-3 xl:hidden">
+            <div className={mobilePanelClass}>
+              <div className="grid gap-2">
+                {navItems.map((item) => (
+                  <button
+                    key={item.path}
+                    onClick={() => goTo(item.path)}
+                    type="button"
+                    className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </button>
                 ))}
-              </select>
-            </div>
 
-            <div className="px-3 py-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-2 mb-3">
-                <span className="text-lg">{currency.symbol}</span>
-                <span className="text-sm font-semibold text-gray-700">{t('header.currency')}</span>
-              </div>
-
-              <select
-                value={currency.code}
-                onChange={(e) => {
-                  const curr = CURRENCIES.find((item) => item.code === e.target.value)
-                  if (curr) setCurrency(curr)
-                }}
-                className="w-full px-3 py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition"
-              >
-                {CURRENCIES.map((curr) => (
-                  <option key={curr.code} value={curr.code}>
-                    {curr.symbol} {curr.code} - {curr.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="border-t border-gray-200 my-3"></div>
-
-            {user && profile ? (
-              <>
                 <button
-                  onClick={goToSettings}
+                  onClick={() => goTo('/listings')}
                   type="button"
-                  className="flex items-center space-x-2 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition"
+                  className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
                 >
-                  <User className="w-5 h-5" />
-                  <span>{t('header.myProfile')}</span>
+                  <Search className="h-5 w-5" />
+                  <span>{t('listings.title')}</span>
                 </button>
+              </div>
 
-                {profile.is_professional && (
+              <div className="my-3 border-t border-[var(--glass-border)]" />
+
+              <div className="grid gap-3 rounded-[24px] bg-[rgba(255,249,243,0.74)] p-3">
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--ink-700)]">
+                    <Globe className="h-4 w-4" />
+                    <span>{t('header.language')}</span>
+                  </label>
+                  <select
+                    value={language.code}
+                    onChange={(event) => {
+                      const lang = LANGUAGES.find((item) => item.code === event.target.value)
+                      if (lang) {
+                        setLanguage(lang)
+                      }
+                    }}
+                    className="select-glass"
+                  >
+                    {LANGUAGES.map((lang) => (
+                      <option key={lang.code} value={lang.code}>
+                        {lang.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--ink-700)]">
+                    <span className="text-base">{currency.symbol}</span>
+                    <span>{t('header.currency')}</span>
+                  </label>
+                  <select
+                    value={currency.code}
+                    onChange={(event) => {
+                      const curr = CURRENCIES.find((item) => item.code === event.target.value)
+                      if (curr) {
+                        setCurrency(curr)
+                      }
+                    }}
+                    className="select-glass"
+                  >
+                    {CURRENCIES.map((curr) => (
+                      <option key={curr.code} value={curr.code}>
+                        {curr.symbol} {curr.code} - {curr.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-2">
+                {user && profile ? (
                   <>
                     <button
-                      onClick={goToDashboard}
+                      onClick={() => goTo('/settings')}
                       type="button"
-                      className="block w-full text-left px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition"
+                      className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
                     >
-                      {t('header.dashboard')}
+                      <User className="h-5 w-5" />
+                      <span>{t('header.myProfile')}</span>
                     </button>
+
+                    {isSiteOwner && (
+                      <button
+                        onClick={() => goTo('/dashboard')}
+                        type="button"
+                        className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
+                      >
+                        <ClipboardList className="h-5 w-5" />
+                        <span>{t('header.dashboard')}</span>
+                      </button>
+                    )}
 
                     <button
-                      onClick={goToDashboard}
+                      onClick={handleSignOut}
                       type="button"
-                      className="block w-full text-left px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition"
+                      className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[#a04b39] transition-all duration-300 hover:text-[#c2614a] hover:[text-shadow:0_0_12px_rgba(194,97,74,0.16)]"
                     >
-                      {t('header.myListings')}
+                      <LogOut className="h-5 w-5" />
+                      <span>{t('header.signOut')}</span>
                     </button>
                   </>
+                ) : (
+                  <button
+                    onClick={() => goTo('/login')}
+                    type="button"
+                    className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-base font-semibold text-[var(--ink-700)] transition-all duration-300 hover:text-[var(--accent-700)] hover:[text-shadow:0_0_12px_rgba(196,122,61,0.16)]"
+                  >
+                    <User className="h-5 w-5" />
+                    <span>{t('header.professionalLogin')}</span>
+                  </button>
                 )}
-
-                <button
-                  onClick={handleSignOut}
-                  type="button"
-                  className="flex items-center space-x-2 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-red-600 hover:bg-red-50 transition"
-                >
-                  <LogOut className="w-5 h-5" />
-                  <span>{t('header.signOut')}</span>
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={goToLogin}
-                type="button"
-                className="block w-full text-left px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition"
-              >
-                {t('header.professionalLogin')}
-              </button>
-            )}
-
-            <button
-              onClick={goToCreateAd}
-              type="button"
-              className="block w-[calc(100%-1.5rem)] mx-3 my-2 px-4 py-3 rounded-lg text-base font-semibold bg-gradient-to-r from-primary to-secondary text-white hover:shadow-lg transition-all duration-300 text-center"
-            >
-              {t('header.createAd')}
-            </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </header>
   )
 }
