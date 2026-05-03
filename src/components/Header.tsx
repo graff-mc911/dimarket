@@ -343,7 +343,7 @@ export function Header() {
                 className="btn-primary px-5 py-3 text-sm"
               >
                 <PlusCircle className="h-4 w-4" />
-                Додати оголошення
+               {t('header.createAd')}
               </button>
             </div>
 
