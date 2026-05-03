@@ -1,22 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  width="512"
-  height="512"
-  viewBox="0 0 512 512"
->
-
-  <!-- фон -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DI">
+  <title>DI</title>
+  <defs>
+    <linearGradient id="copper" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c8865a"/>
+      <stop offset="50%" stop-color="#b87333"/>
+      <stop offset="100%" stop-color="#a0622d"/>
+    </linearGradient>
+  </defs>
   <rect width="512" height="512" fill="#f5f0eb"/>
-
-  <!-- твоє зображення -->
-  <image
-    href="/logo-full.png"
-    x="0"
-    y="0"
-    width="512"
-    height="512"
-    preserveAspectRatio="xMidYMid slice"
-  />
-
+  <path fill="url(#copper)" d="M256,60L420,210L92,210Z"/>
+  <rect x="240" y="120" width="14" height="14" fill="#f5f0eb"/>
+  <rect x="258" y="120" width="14" height="14" fill="#f5f0eb"/>
+  <rect x="240" y="138" width="14" height="14" fill="#f5f0eb"/>
+  <rect x="258" y="138" width="14" height="14" fill="#f5f0eb"/>
+  <text x="130" y="430" font-family="Georgia, serif" font-size="240" font-weight="bold" fill="#2d2319">D</text>
+  <text x="320" y="430" font-family="Georgia, serif" font-size="240" font-weight="bold" fill="url(#copper)">I</text>
 </svg>
