@@ -25,7 +25,7 @@ interface NavItem {
   icon: LucideIcon
 }
 
-const OWNER_EMAIL = 'ivan.sovban@gmail.com'
+const OWNER_EMAIL = 'YOUR_EMAIL@gmail.com'
 
 function isOwnerEmail(email: string | null | undefined) {
   return (email || '').trim().toLowerCase() === OWNER_EMAIL.trim().toLowerCase()
@@ -172,13 +172,16 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full px-3 pt-3 md:px-5 md:pt-5">
       <div className="w-full rounded-[30px] border border-[var(--glass-border)] bg-[rgba(255,252,248,0.78)] shadow-[0_16px_36px_rgba(67,44,26,0.06)] backdrop-blur-xl">
         <div className="px-4 py-4 md:px-6">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
             <button
               onClick={() => goTo('/')}
               type="button"
-              className="min-w-0 text-left"
+              className="min-w-0 flex-1 text-left xl:flex-none"
             >
-              <Logo size="md" />
+              {/* На дуже вузьких екранах беремо менший логотип,
+                  щоб він не конфліктував із кнопкою дії. */}
+              <Logo size="sm" className="sm:hidden" />
+              <Logo size="md" className="hidden sm:block" />
             </button>
 
             <form
@@ -344,15 +347,18 @@ export function Header() {
               </button>
             </div>
 
-            <div className="flex items-center gap-2 xl:hidden">
+            <div className="flex shrink-0 items-center gap-2 xl:hidden">
               <button
                 onClick={() => goTo('/create-ad')}
                 type="button"
                 aria-label="Додати оголошення"
-                className="btn-primary h-11 px-3 text-sm sm:px-4"
+                className="btn-primary h-10 px-2.5 text-xs sm:h-11 sm:px-4 sm:text-sm"
               >
                 <PlusCircle className="h-5 w-5" />
-                <span className="hidden min-[390px]:inline">Додати оголошення</span>
+                {/* На найменших екранах лишаємо тільки іконку,
+                    далі показуємо короткий текст, а на більших — повний. */}
+                <span className="hidden min-[430px]:inline sm:hidden">Додати</span>
+                <span className="hidden sm:inline">Додати оголошення</span>
               </button>
 
               <button
@@ -362,7 +368,7 @@ export function Header() {
                 }}
                 type="button"
                 aria-expanded={mobileMenuOpen}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--glass-border)] bg-[rgba(255,255,255,0.42)] text-[var(--ink-700)] shadow-[0_10px_22px_rgba(67,44,26,0.05)]"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--glass-border)] bg-[rgba(255,255,255,0.42)] text-[var(--ink-700)] shadow-[0_10px_22px_rgba(67,44,26,0.05)] sm:h-11 sm:w-11"
               >
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
