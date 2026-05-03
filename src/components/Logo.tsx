@@ -1,7 +1,5 @@
-/**
- * Єдиний компонент логотипу DImarket.
- * Використовуємо ваш готовий файл логотипу без зміни кольорів/стилю.
- */
+import { useState } from 'react'
+
 interface LogoProps {
   variant?: 'full' | 'icon'
   size?: 'sm' | 'md' | 'lg' | 'xl'
@@ -16,26 +14,19 @@ const sizeMap = {
 } as const
 
 export function Logo({ variant = 'full', size = 'md', className = '' }: LogoProps) {
+  const [src, setSrc] = useState('/logo-main.png')
   const sizeClass = variant === 'icon' ? sizeMap[size].icon : sizeMap[size].full
-  const src = '/logo-main.png' // Ваш оригінальний логотип у public
-
-  if (variant === 'icon') {
-    return (
-      <img
-        src={src}
-        alt="DImarket"
-        className={`${sizeClass} w-auto object-contain ${className}`}
-        loading="eager"
-      />
-    )
-  }
 
   return (
     <img
       src={src}
-      alt="DImarket — Build & Renovate"
+      alt={variant === 'icon' ? 'DImarket' : 'DImarket — Build & Renovate'}
       className={`${sizeClass} w-auto object-contain ${className}`}
       loading="eager"
+      onError={() => {
+        // fallback, якщо png відсутній
+        if (src !== '/logo-main.jpg') setSrc('/logo-main.jpg')
+      }}
     />
   )
 }
