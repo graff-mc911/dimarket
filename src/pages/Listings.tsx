@@ -179,8 +179,6 @@ export function Listings() {
                 >
                   <PlusCircle className="h-4 w-4" />
 
-
- 
     <div className="page-bg min-h-screen">
       <section className="px-4 pb-6 pt-4 md:px-6 md:pb-8 xl:px-8 2xl:px-10">
         <div className="mx-auto max-w-7xl">
