@@ -1,193 +1,106 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../lib/supabase'; // Переконайтеся, що шлях до клієнта supabase вірний
-import { Camera, Loader2, MapPin, Tag } from 'lucide-react';
+import { supabase } from '../lib/supabase'; // Перевірте шлях до supabase.ts
+import { LogIn, Mail, Lock, Loader2 } from 'lucide-react';
 
-const CreateListing = () => {
+const Login = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   
-  // Стан для форми
+  // Стан для полів вводу
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [category, setCategory] = useState('other');
-  const [images, setImages] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  // Обробка вибору зображень
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const filesArray = Array.from(e.target.files);
-      setImages((prev) => [...prev, ...filesArray]);
-
-      // Створюємо тимчасові посилання для попереднього перегляду
-      const newPreviews = filesArray.map(file => URL.createObjectURL(file));
-      setPreviews((prev) => [...prev, ...newPreviews]);
-    }
-  };
-
-  // Функція завантаження зображень у Supabase Storage
-  const uploadImages = async (listingId: string) => {
-    const uploadedUrls = [];
-    for (const file of images) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${listingId}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('listing-images')
-        .upload(filePath, file);
-
-      if (!uploadError) {
-        const { data } = supabase.storage.from('listing-images').getPublicUrl(filePath);
-        uploadedUrls.push(data.publicUrl);
-      }
-    }
-    return uploadedUrls;
-  };
-
-  // Основна функція відправки форми
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     try {
-      // 1. Отримуємо поточного користувача
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Користувач не авторизований');
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      // 2. Створюємо запис у таблиці listings
-      const { data: listing, error: listingError } = await supabase
-        .from('listings')
-        .insert([
-          {
-            user_id: user.id,
-            title,
-            description,
-            price: parseFloat(price),
-            category,
-            status: 'active'
-          }
-        ])
-        .select()
-        .single();
+      if (authError) throw authError;
 
-      if (listingError) throw listingError;
-
-      // 3. Завантажуємо фото, якщо вони є
-      if (images.length > 0) {
-        const imageUrls = await uploadImages(listing.id);
-        // Оновлюємо запис посиланням на перше фото (як головне) або масивом
-        await supabase
-          .from('listings')
-          .update({ images: imageUrls })
-          .eq('id', listing.id);
-      }
-
-      alert('Оголошення успішно створено!');
-      navigate('/listings'); // Повертаємось до списку
-    } catch (error: any) {
-      alert(error.message || 'Сталася помилка');
+      // Якщо вхід успішний, перенаправляємо на головну сторінку
+      navigate('/');
+    } catch (err: any) {
+      setError(err.message || 'Помилка входу');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-xl mt-10">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">{t('create_new_listing')}</h1>
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Завантаження фото */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Фотографії</label>
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            {previews.map((src, index) => (
-              <img key={index} src={src} alt="Preview" className="w-full h-32 object-cover rounded-lg border" />
-            ))}
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
-              <Camera className="text-gray-400" />
-              <span className="text-xs text-gray-500 mt-2">Додати фото</span>
-              <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
-            </label>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-lg">
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-gray-900">
+            {t('login_welcome') || 'Вхід у систему'}
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            {t('login_subtitle') || 'Будь ласка, введіть ваші дані'}
+          </p>
         </div>
 
-        {/* Назва */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Назва оголошення</label>
-          <input
-            required
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Наприклад: Продам велосипед"
-          />
-        </div>
-
-        {/* Категорія та Ціна */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Категорія</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full mt-1 p-2 border border-gray-300 rounded-md shadow-sm"
-            >
-              <option value="electronics">Електроніка</option>
-              <option value="transport">Транспорт</option>
-              <option value="realty">Нерухомість</option>
-              <option value="services">Послуги</option>
-              <option value="other">Інше</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Ціна (₴)</label>
-            <input
-              required
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="w-full mt-1 p-2 border border-gray-300 rounded-md"
-              placeholder="0.00"
-            />
-          </div>
-        </div>
-
-        {/* Опис */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Опис</label>
-          <textarea
-            required
-            rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full mt-1 p-2 border border-gray-300 rounded-md"
-            placeholder="Опишіть ваш товар детально..."
-          />
-        </div>
-
-        {/* Кнопка відправки */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none disabled:opacity-50 transition"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="animate-spin mr-2" /> Створення...
-            </>
-          ) : (
-            'Опублікувати оголошення'
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          {error && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-100">
+              {error}
+            </div>
           )}
-        </button>
-      </form>
+
+          <div className="space-y-4">
+            {/* Поле Email */}
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                required
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                placeholder="Email"
+              />
+            </div>
+
+            {/* Поле Пароль */}
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                required
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                placeholder={t('password_placeholder') || 'Пароль'}
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none transition disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 className="animate-spin w-5 h-5" />
+            ) : (
+              <>
+                <LogIn className="w-5 h-5 mr-2" />
+                {t('login_button') || 'Увійти'}
+              </>
+            )}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
 
-export default CreateListing;
+export default Login;
