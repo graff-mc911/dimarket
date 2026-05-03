@@ -1,9 +1,5 @@
 /**
- * Кореневий компонент: макет (шапка + контент + підвал) і простий роутинг за URL.
- *
- * Роутинг побудований на `pathname` + слухач `popstate`, бо проєкт використовує
- * власну функцію navigateTo() замість react-router. Шлях беремо зі стану `currentUrl`,
- * щоб гарантовано перемальовуватися після кожного navigateTo().
+ * Кореневий компонент: шапка, контент, підвал і простий роутинг за URL + navigateTo().
  */
 import { useEffect, useMemo, useState } from 'react'
 import { AppProvider } from './contexts/AppContext'
@@ -19,8 +15,9 @@ import { Dashboard } from './pages/Dashboard'
 import { Settings } from './pages/Settings'
 import { ListingDetail } from './pages/ListingDetail'
 import { ProfessionalDetail } from './pages/ProfessionalDetail'
+import { Favorites } from './pages/Favorites'
+import { Messages } from './pages/Messages'
 
-/** Нормалізуємо шлях: без зайвого слеша в кінці (крім кореня `/`) */
 function normalizePathname(raw: string): string {
   if (raw === '/' || raw.length <= 1) {
     return raw || '/'
@@ -57,8 +54,15 @@ function AppContent() {
     }
 
     if (path === '/listings') {
-      // key: при зміні query (?search=) перечитуємо фільтр з URL (навіть без повного remount маршруту)
       return <Listings key={currentUrl} />
+    }
+
+    if (path === '/favorites') {
+      return <Favorites />
+    }
+
+    if (path === '/messages') {
+      return <Messages />
     }
 
     if (path === '/create-ad') {
@@ -81,7 +85,6 @@ function AppContent() {
       return <Settings />
     }
 
-    // Динамічні маршрути: картки майстрів та оголошень
     const listingMatch = path.match(/^\/listing\/([^/]+)$/)
     if (listingMatch) {
       return <ListingDetail listingId={listingMatch[1]} />
@@ -92,13 +95,11 @@ function AppContent() {
       return <ProfessionalDetail profileId={professionalMatch[1]} />
     }
 
-    // Невідомий шлях — повертаємо на головну (м’яко, без втрати шапки/підвалу)
     return <Home />
   }, [path, currentUrl])
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col w-full">
-      {/* key змушує шапку коректно підхоплювати зміну маршруту, якщо з’являться локальні стани */}
       <Header key={`header-${currentUrl}`} />
 
       <main className="flex-1 w-full max-w-[100vw] overflow-x-hidden">{page}</main>
