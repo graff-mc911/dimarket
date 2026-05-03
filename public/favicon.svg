@@ -1,12 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Браузери, які підтримують SVG favicon,
-       беруть цю іконку першою. -->
-  <image
-    href="/logo-icon.png"
-    x="0"
-    y="0"
-    width="512"
-    height="512"
-    preserveAspectRatio="xMidYMid meet"
-  />
+  <rect width="512" height="512" rx="64" fill="#1a1a1a"/>
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d4a574"/>
+      <stop offset="50%" stop-color="#c8956c"/>
+      <stop offset="100%" stop-color="#b8845c"/>
+    </linearGradient>
+  </defs>
+  <!-- House roof -->
+  <path d="M256 80 L400 200 L112 200 Z" fill="none" stroke="url(#gold)" stroke-width="16" stroke-linejoin="round"/>
+  <!-- Window in roof -->
+  <rect x="232" y="130" width="28" height="28" rx="2" fill="none" stroke="url(#gold)" stroke-width="8"/>
+  <!-- D letter -->
+  <text x="160" y="380" font-family="Georgia, serif" font-size="180" font-weight="bold" fill="url(#gold)">D</text>
+  <!-- I letter -->
+  <text x="310" y="380" font-family="Georgia, serif" font-size="180" font-weight="bold" fill="url(#gold)">I</text>
 </svg>
