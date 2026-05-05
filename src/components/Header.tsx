@@ -4,10 +4,8 @@ import {
   ClipboardList,
   Globe,
   Hammer,
-  Heart,
   LogOut,
   Menu,
-  MessageSquare,
   PlusCircle,
   Search,
   User,
@@ -71,9 +69,10 @@ export function Header() {
   const accountLabel = profile?.full_name || t('header.account')
 
   const navItems: NavItem[] = [
+    // У верхній навігації залишаємо тільки готові користувацькі сценарії.
+    // Розділи "Обране" і "Повідомлення" поки доступні як сторінки-інформери,
+    // але не показуються як основні дії, доки функції не запущені повністю.
     { label: t('header.findProfessionals'), path: '/professionals', icon: Hammer },
-    { label: t('header.favorites'), path: '/favorites', icon: Heart },
-    { label: t('header.messages'), path: '/messages', icon: MessageSquare },
   ]
 
   const closeAllMenus = () => {
