@@ -6,8 +6,8 @@
   :root {
     --font-sans: "Aptos", "Segoe UI Variable Text", "Segoe UI", sans-serif;
     --font-display: "Segoe UI Variable Display", "Aptos", "Segoe UI", sans-serif;
-    --bg-canvas: #f8f5ef;
-    --bg-soft: #fdfbf7;
+    --bg-canvas: #f3f4f6;
+    --bg-soft: #f9fafb;
     --panel: rgba(255, 255, 255, 0.5);
     --panel-strong: rgba(255, 255, 255, 0.68);
     --line: rgba(219, 148, 94, 0.16);
@@ -34,10 +34,7 @@
     margin: 0;
     min-height: 100vh;
     overflow-x: hidden;
-    background:
-      radial-gradient(circle at 12% 10%, rgba(246, 211, 182, 0.12), transparent 24%),
-      radial-gradient(circle at 88% 14%, rgba(255, 236, 220, 0.14), transparent 24%),
-      linear-gradient(180deg, #fdfbf7 0%, #f7f3ec 54%, #f2ebe2 100%);
+    background: var(--bg-canvas);
     color: var(--ink-900);
     font-family: var(--font-sans);
     letter-spacing: -0.01em;
@@ -103,10 +100,8 @@
 
 @layer components {
   .page-bg {
-    background:
-      radial-gradient(circle at 8% 12%, rgba(244, 207, 177, 0.1), transparent 24%),
-      radial-gradient(circle at 92% 16%, rgba(255, 236, 220, 0.1), transparent 22%),
-      linear-gradient(180deg, #fdfbf7 0%, #f7f3ec 58%, #f1eae1 100%);
+    /* Єдиний нейтральний фон для десктопу і мобільної версії. */
+    background: var(--bg-canvas);
   }
 
   .glass-card {
