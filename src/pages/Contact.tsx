@@ -10,7 +10,7 @@ type FeedbackState = {
 }
 
 export function Contact() {
-  const { user, profile } = useApp()
+  const { user, profile, t } = useApp()
 
   // Поля форми зворотного зв'язку.
   const [name, setName] = useState('')
@@ -53,7 +53,7 @@ export function Contact() {
     if (!name.trim() || !email.trim() || !subject.trim() || !message.trim()) {
       setFeedback({
         type: 'error',
-        text: 'Будь ласка, заповніть усі обовʼязкові поля.',
+        text: t('contact.requiredFields'),
       })
       return
     }
@@ -80,7 +80,7 @@ export function Contact() {
 
       setFeedback({
         type: 'success',
-        text: 'Повідомлення успішно відправлено. Ми переглянемо його та звʼяжемося з вами за вказаними контактами.',
+        text: t('contact.successMessage'),
       })
 
       resetForm()
@@ -88,7 +88,7 @@ export function Contact() {
       console.error('Помилка надсилання зворотного звʼязку:', submitError)
       setFeedback({
         type: 'error',
-        text: 'Не вдалося відправити повідомлення. Спробуйте ще раз.',
+        text: t('contact.errorMessage'),
       })
     } finally {
       setSending(false)
@@ -102,16 +102,15 @@ export function Contact() {
         <section className="glass-panel p-6 md:p-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/42 bg-[rgba(248,250,252,0.70)] px-4 py-2 text-sm font-semibold text-[#64748b]">
             <LifeBuoy className="h-4 w-4" />
-            <span>Зворотний звʼязок</span>
+            <span>{t('contact.eyebrow')}</span>
           </div>
 
           <h1 className="mt-5 max-w-4xl text-4xl font-extrabold tracking-tight text-[#2f2a24] md:text-5xl">
-            Напишіть нам напряму
+            {t('contact.title')}
           </h1>
 
           <p className="mt-4 max-w-3xl text-base leading-7 text-[#6f665d] md:text-lg">
-            Якщо у вас є питання, пропозиція, скарга або ідея для розвитку платформи —
-            відправте повідомлення через цю форму.
+            {t('contact.description')}
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -120,7 +119,7 @@ export function Contact() {
               type="button"
               className="btn-secondary rounded-full"
             >
-              На головну
+              {t('contact.homeButton')}
             </button>
 
             {!user && (
@@ -129,7 +128,7 @@ export function Contact() {
                 type="button"
                 className="btn-primary rounded-full"
               >
-                Увійти в акаунт
+                {t('contact.loginButton')}
               </button>
             )}
           </div>
@@ -139,12 +138,11 @@ export function Contact() {
           {/* Основна форма надсилання повідомлення. */}
           <div className="glass-card p-6">
             <h2 className="text-2xl font-extrabold text-[#2f2a24]">
-              Форма звернення
+              {t('contact.formTitle')}
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-[#6f665d]">
-              Опишіть питання простими словами — ми збережемо звернення і зможемо
-              повернутися до нього без втрати деталей.
+              {t('contact.formDescription')}
             </p>
 
             {feedback && (
@@ -164,7 +162,7 @@ export function Contact() {
                 <div>
                   <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#5f5a54]">
                     <User className="h-4 w-4" />
-                    <span>Імʼя</span>
+                    <span>{t('contact.nameLabel')}</span>
                   </label>
                   <input
                     type="text"
@@ -172,14 +170,14 @@ export function Contact() {
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     className="input-glass"
-                    placeholder="Ваше імʼя"
+                    placeholder={t('contact.namePlaceholder')}
                   />
                 </div>
 
                 <div>
                   <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#5f5a54]">
                     <Mail className="h-4 w-4" />
-                    <span>Email</span>
+                    <span>{t('contact.emailLabel')}</span>
                   </label>
                   <input
                     type="email"
@@ -187,7 +185,7 @@ export function Contact() {
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     className="input-glass"
-                    placeholder="your@email.com"
+                    placeholder={t('contact.emailPlaceholder')}
                   />
                 </div>
               </div>
@@ -195,21 +193,21 @@ export function Contact() {
               <div>
                 <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#5f5a54]">
                   <Phone className="h-4 w-4" />
-                  <span>Телефон</span>
+                  <span>{t('contact.phoneLabel')}</span>
                 </label>
                 <input
                   type="tel"
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
                   className="input-glass"
-                  placeholder="+48 ..."
+                  placeholder={t('contact.phonePlaceholder')}
                 />
               </div>
 
               <div>
                 <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#5f5a54]">
                   <MessageSquare className="h-4 w-4" />
-                  <span>Тема</span>
+                  <span>{t('contact.subjectLabel')}</span>
                 </label>
                 <input
                   type="text"
@@ -217,13 +215,13 @@ export function Contact() {
                   value={subject}
                   onChange={(event) => setSubject(event.target.value)}
                   className="input-glass"
-                  placeholder="Коротко про суть звернення"
+                  placeholder={t('contact.subjectPlaceholder')}
                 />
               </div>
 
               <div>
                 <label className="mb-2 block text-sm font-semibold text-[#5f5a54]">
-                  Повідомлення
+                  {t('contact.messageLabel')}
                 </label>
                 <textarea
                   required
@@ -231,7 +229,7 @@ export function Contact() {
                   onChange={(event) => setMessage(event.target.value)}
                   rows={7}
                   className="input-glass min-h-[180px] resize-y"
-                  placeholder="Опишіть питання або проблему детально..."
+                  placeholder={t('contact.messagePlaceholder')}
                 />
               </div>
 
@@ -242,7 +240,7 @@ export function Contact() {
                   className="btn-primary rounded-full disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Send className="h-4 w-4" />
-                  {sending ? 'Надсилаємо...' : 'Надіслати повідомлення'}
+                  {sending ? t('contact.sending') : t('contact.submitButton')}
                 </button>
               </div>
             </form>
@@ -252,26 +250,26 @@ export function Contact() {
           <div className="space-y-6">
             <div className="glass-card p-6">
               <h2 className="text-2xl font-extrabold text-[#2f2a24]">
-                Як це працює
+                {t('contact.howItWorksTitle')}
               </h2>
 
               <div className="mt-5 space-y-3 text-sm text-[#6f665d]">
-                <InfoRow text="Ви заповнюєте коротку форму з контактами та описом питання." />
-                <InfoRow text="Ми отримуємо звернення в адмін-панелі платформи." />
-                <InfoRow text="Відповідь надходитиме за email або телефоном, який ви залишили." />
+                <InfoRow text={t('contact.howItWorksStepOne')} />
+                <InfoRow text={t('contact.howItWorksStepTwo')} />
+                <InfoRow text={t('contact.howItWorksStepThree')} />
               </div>
             </div>
 
             <div className="glass-card p-6">
               <h2 className="text-2xl font-extrabold text-[#2f2a24]">
-                Для чого ця форма
+                {t('contact.useCasesTitle')}
               </h2>
 
               <div className="mt-5 space-y-3 text-sm text-[#6f665d]">
-                <InfoRow text="Запитання по роботі сайту" />
-                <InfoRow text="Повідомлення про помилки" />
-                <InfoRow text="Пропозиції по функціоналу" />
-                <InfoRow text="Скарги на контент або користувачів" />
+                <InfoRow text={t('contact.useCaseQuestions')} />
+                <InfoRow text={t('contact.useCaseBugs')} />
+                <InfoRow text={t('contact.useCaseIdeas')} />
+                <InfoRow text={t('contact.useCaseComplaints')} />
               </div>
             </div>
           </div>

@@ -45,6 +45,44 @@ export const ukTranslations: Partial<Record<TranslationKey, string>> = {
   'footer.legalRight':
     'Безкоштовна платформа будівельних послуг з монетизацією лише через рекламу.',
 
+  // Contact
+  'contact.eyebrow': 'Зворотний звʼязок',
+  'contact.title': 'Напишіть нам напряму',
+  'contact.description':
+    'Якщо у вас є питання, пропозиція, скарга або ідея для розвитку платформи — відправте повідомлення через цю форму.',
+  'contact.homeButton': 'На головну',
+  'contact.loginButton': 'Увійти в акаунт',
+  'contact.formTitle': 'Форма звернення',
+  'contact.formDescription':
+    'Опишіть питання простими словами — ми збережемо звернення і зможемо повернутися до нього без втрати деталей.',
+  'contact.nameLabel': 'Імʼя',
+  'contact.namePlaceholder': 'Ваше імʼя',
+  'contact.emailLabel': 'Email',
+  'contact.emailPlaceholder': 'your@email.com',
+  'contact.phoneLabel': 'Телефон',
+  'contact.phonePlaceholder': '+48 ...',
+  'contact.subjectLabel': 'Тема',
+  'contact.subjectPlaceholder': 'Коротко про суть звернення',
+  'contact.messageLabel': 'Повідомлення',
+  'contact.messagePlaceholder': 'Опишіть питання або проблему детально...',
+  'contact.submitButton': 'Надіслати повідомлення',
+  'contact.sending': 'Надсилаємо...',
+  'contact.requiredFields': 'Будь ласка, заповніть усі обовʼязкові поля.',
+  'contact.successMessage':
+    'Повідомлення успішно відправлено. Ми переглянемо його та звʼяжемося з вами за вказаними контактами.',
+  'contact.errorMessage': 'Не вдалося відправити повідомлення. Спробуйте ще раз.',
+  'contact.howItWorksTitle': 'Як це працює',
+  'contact.howItWorksStepOne':
+    'Ви заповнюєте коротку форму з контактами та описом питання.',
+  'contact.howItWorksStepTwo': 'Ми отримуємо звернення в адмін-панелі платформи.',
+  'contact.howItWorksStepThree':
+    'Відповідь надходитиме за email або телефоном, який ви залишили.',
+  'contact.useCasesTitle': 'Для чого ця форма',
+  'contact.useCaseQuestions': 'Запитання по роботі сайту',
+  'contact.useCaseBugs': 'Повідомлення про помилки',
+  'contact.useCaseIdeas': 'Пропозиції по функціоналу',
+  'contact.useCaseComplaints': 'Скарги на контент або користувачів',
+
   // Home old keys
   'home.heroTitle': 'Знайдіть перевірених майстрів',
   'home.heroSubtitle': 'Збудуйте свої мрії',

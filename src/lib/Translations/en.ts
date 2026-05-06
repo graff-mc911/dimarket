@@ -45,6 +45,44 @@ export const enTranslations = {
   'footer.legalRight':
     'Free construction-services platform with advertising-only monetization.',
 
+  // Contact
+  'contact.eyebrow': 'Contact',
+  'contact.title': 'Write to us directly',
+  'contact.description':
+    'If you have a question, suggestion, complaint, or idea for improving the platform, send us a message through this form.',
+  'contact.homeButton': 'Home',
+  'contact.loginButton': 'Sign in',
+  'contact.formTitle': 'Contact form',
+  'contact.formDescription':
+    'Describe the question in simple words — we will save the request and return to it without losing details.',
+  'contact.nameLabel': 'Name',
+  'contact.namePlaceholder': 'Your name',
+  'contact.emailLabel': 'Email',
+  'contact.phoneLabel': 'Phone',
+  'contact.phonePlaceholder': '+48 ...',
+  'contact.subjectLabel': 'Subject',
+  'contact.subjectPlaceholder': 'Briefly describe the request',
+  'contact.messageLabel': 'Message',
+  'contact.messagePlaceholder': 'Describe the question or problem in detail...',
+  'contact.submitButton': 'Send message',
+  'contact.sending': 'Sending...',
+  'contact.requiredFields': 'Please fill in all required fields.',
+  'contact.successMessage':
+    'Message sent successfully. We will review it and contact you using the details you provided.',
+  'contact.errorMessage': 'Unable to send the message. Please try again.',
+  'contact.howItWorksTitle': 'How it works',
+  'contact.howItWorksStepOne':
+    'You fill out a short form with contact details and a description of the question.',
+  'contact.howItWorksStepTwo':
+    'We receive the request in the platform admin panel.',
+  'contact.howItWorksStepThree':
+    'The answer will come by email or phone, depending on what you left.',
+  'contact.useCasesTitle': 'What this form is for',
+  'contact.useCaseQuestions': 'Questions about how the site works',
+  'contact.useCaseBugs': 'Bug reports',
+  'contact.useCaseIdeas': 'Feature suggestions',
+  'contact.useCaseComplaints': 'Complaints about content or users',
+
   // Home old keys
   'home.heroTitle': 'Find Trusted Professionals',
   'home.heroSubtitle': 'Build Your Dreams',
