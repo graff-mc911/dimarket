@@ -17,11 +17,14 @@ import { ListingDetail } from './pages/ListingDetail'
 import { ProfessionalDetail } from './pages/ProfessionalDetail'
 import { Favorites } from './pages/Favorites'
 import { Messages } from './pages/Messages'
+import { Contact } from './pages/Contact'
+import { Advertising } from './pages/Advertising'
 
 function normalizePathname(raw: string): string {
   if (raw === '/' || raw.length <= 1) {
     return raw || '/'
   }
+
   return raw.endsWith('/') ? raw.slice(0, -1) : raw
 }
 
@@ -83,6 +86,14 @@ function AppContent() {
 
     if (path === '/settings') {
       return <Settings />
+    }
+
+    if (path === '/contact') {
+      return <Contact />
+    }
+
+    if (path === '/advertise') {
+      return <Advertising />
     }
 
     const listingMatch = path.match(/^\/listing\/([^/]+)$/)
