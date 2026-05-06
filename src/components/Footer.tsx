@@ -7,20 +7,18 @@ export function Footer() {
   const { t } = useApp()
   const currentYear = new Date().getFullYear()
 
-  // Основні посилання платформи.
+  // Основні посилання платформи: залишаємо тут тільки готові сценарії,
+  // щоб новий користувач не потрапляв одразу на сторінки-заглушки.
   const platformLinks = [
     { label: t('header.jobRequests'), path: '/listings' },
     { label: t('header.findProfessionals'), path: '/professionals' },
     { label: t('header.postJob'), path: '/create-ad' },
-    { label: t('header.favorites'), path: '/favorites' },
   ]
 
-  // Посилання на сторінки акаунта та навігації.
+  // Посилання на сторінки акаунта, які вже мають реальну дію для користувача.
   const accountLinks = [
-    { label: t('header.messages'), path: '/messages' },
     { label: t('footer.signIn'), path: '/login' },
     { label: t('footer.register'), path: '/register' },
-    { label: t('header.dashboard'), path: '/dashboard' },
     { label: t('header.myProfile'), path: '/settings' },
   ]
 
@@ -94,7 +92,7 @@ export function Footer() {
                 type="button"
                 className="btn-primary rounded-full"
               >
-                {t('header.createAd')}
+                Звʼязатися з нами
               </button>
             </div>
           </div>
