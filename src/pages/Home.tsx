@@ -145,7 +145,7 @@ export function Home() {
               </h1>
 
               <p className="muted-text mt-4 max-w-2xl text-[14px] md:text-[15px]">
-              
+                {t('home.heroSimpleDescription')}
               </p>
             </div>
 
@@ -185,7 +185,7 @@ export function Home() {
                 className="btn-primary rounded-full px-5 text-sm"
               >
                 <PlusCircle className="h-4 w-4" />
-               {t('header.createAd')}
+                {t('header.createAd')}
               </button>
 
               <button
