@@ -34,6 +34,10 @@ export const ukTranslations: Partial<Record<TranslationKey, string>> = {
     'Жодних оплат для користувачів. Жодних підписок. Дохід платформи — лише від реклами.',
   'footer.platformTitleSimple': 'Платформа',
   'footer.accountTitleSimple': 'Акаунт',
+  'footer.supportTitle': 'Підтримка',
+  'footer.contactLink': 'Зворотний звʼязок',
+  'footer.advertisingLink': 'Реклама на сайті',
+  'footer.contactButton': 'Звʼязатися з нами',
   'footer.adsTitle': 'Реклама',
   'footer.adsText':
     'Бренди будівельних матеріалів, інструментів, логістики та локальних сервісів можуть охоплювати активний попит у стрічці запитів і на сторінках майстрів.',

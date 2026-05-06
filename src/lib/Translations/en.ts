@@ -34,10 +34,14 @@ export const enTranslations = {
     'No fees for users. No subscriptions. Platform revenue comes only from advertising.',
   'footer.platformTitleSimple': 'Platform',
   'footer.accountTitleSimple': 'Account',
+  'footer.supportTitle': 'Support',
+  'footer.contactLink': 'Contact',
+  'footer.advertisingLink': 'Advertise on the site',
   'footer.adsTitle': 'Advertising',
   'footer.adsText':
     'Construction brands, materials, tools, logistics, and local services can reach active demand across listings and professional pages.',
   'footer.adsButton': 'Advertising page',
+  'footer.contactButton': 'Contact us',
   'footer.legalRight':
     'Free construction-services platform with advertising-only monetization.',
 

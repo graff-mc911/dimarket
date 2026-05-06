@@ -24,8 +24,8 @@ export function Footer() {
 
   // Службові посилання без битих маршрутів.
   const supportLinks = [
-    { label: 'Зворотний звʼязок', path: '/contact' },
-    { label: 'Реклама на сайті', path: '/advertise' },
+    { label: t('footer.contactLink'), path: '/contact' },
+    { label: t('footer.advertisingLink'), path: '/advertise' },
   ]
 
   return (
@@ -64,7 +64,7 @@ export function Footer() {
           />
 
           <FooterLinkGroup
-            title="Підтримка"
+            title={t('footer.supportTitle')}
             links={supportLinks}
           />
 
@@ -92,7 +92,7 @@ export function Footer() {
                 type="button"
                 className="btn-primary rounded-full"
               >
-                Звʼязатися з нами
+                {t('footer.contactButton')}
               </button>
             </div>
           </div>
