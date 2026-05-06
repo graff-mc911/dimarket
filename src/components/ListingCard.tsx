@@ -18,19 +18,23 @@ export function ListingCard({ listing }: ListingCardProps) {
     'https://images.pexels.com/photos/1249611/pexels-photo-1249611.jpeg?auto=compress&cs=tinysrgb&w=600'
 
   const formatPrice = (price: number | null) => {
-    if (!price) {
-      return 'Contact for price'
+    // Нульовий бюджет може означати безкоштовно або "0", тому приховуємо ціну
+    // тільки тоді, коли вона справді не вказана в базі.
+    if (price === null) {
+      return t('listing.contactForPrice')
     }
+
     return `${currency.symbol}${price.toLocaleString()}`
   }
 
   const getListingTypeLabel = (type: string) => {
     const labels = {
-      service_request: 'Service Needed',
-      service_offer: 'Service Offered',
-      item_sale: 'For Sale',
-      item_wanted: 'Wanted',
+      service_request: t('listing.serviceNeeded'),
+      service_offer: t('listing.serviceOffered'),
+      item_sale: t('listing.forSale'),
+      item_wanted: t('listing.wanted'),
     }
+
     return labels[type as keyof typeof labels] || type
   }
 
@@ -48,6 +52,7 @@ export function ListingCard({ listing }: ListingCardProps) {
       land: t('visibility.land') || 'Земля (DE)',
       global: t('visibility.global') || 'Всі користувачі',
     }
+
     return labels[radius] || radius
   }
 
@@ -60,6 +65,15 @@ export function ListingCard({ listing }: ListingCardProps) {
       e.preventDefault()
       openListing()
     }
+  }
+
+  const getDaysLabel = () => {
+    // Для простого UX показуємо просту фразу, а не технічну дату завершення.
+    if (daysRemaining <= 0) {
+      return 'Термін завершився'
+    }
+
+    return `${daysRemaining} ${t('listing.daysLeft')}`
   }
 
   return (
@@ -75,7 +89,7 @@ export function ListingCard({ listing }: ListingCardProps) {
       {listing.is_premium && (
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs font-semibold px-3 py-1 flex items-center">
           <Star className="w-3 h-3 mr-1 fill-current" />
-          PREMIUM
+          {t('listing.premium')}
         </div>
       )}
 
@@ -101,11 +115,13 @@ export function ListingCard({ listing }: ListingCardProps) {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center text-gray-500 text-sm min-w-0">
               <MapPin className="w-4 h-4 mr-1 shrink-0" />
-              <span className="truncate">{listing.location}</span>
+              <span className="truncate">
+                {listing.location || t('listing.locationNotSpecified')}
+              </span>
             </div>
-            {listing.price && (
-              <div className="text-lg font-bold text-blue-900 shrink-0">{formatPrice(listing.price)}</div>
-            )}
+            <div className="text-lg font-bold text-blue-900 shrink-0">
+              {formatPrice(listing.price)}
+            </div>
           </div>
           {listing.visibility_radius && (
             <div className="flex items-center text-gray-500 text-xs">
@@ -117,16 +133,18 @@ export function ListingCard({ listing }: ListingCardProps) {
 
         {listing.category && (
           <div className="inline-block text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md mb-2">
-            {listing.category.name}
+            {listing.category.name || t('listing.constructionService')}
           </div>
         )}
 
         <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
           <div className="flex items-center">
             <Calendar className="w-3 h-3 mr-1" />
-            <span>{daysRemaining} days left</span>
+            <span>{getDaysLabel()}</span>
           </div>
-          <span>{listing.views_count} views</span>
+          <span>
+            {listing.views_count} {t('listing.views')}
+          </span>
         </div>
       </div>
     </div>
